@@ -8,6 +8,6 @@ public:
 	~Thread();
 
 private:
-
+	std::unique_ptr<std::thread> thread;
 };
 
