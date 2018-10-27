@@ -4,7 +4,6 @@
 enum Job_Type
 {
 	NULL_TYPE,
-
 };
 
 class Job

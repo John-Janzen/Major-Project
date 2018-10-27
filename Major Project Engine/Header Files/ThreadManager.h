@@ -18,9 +18,25 @@ public:
 		num_of_threads = size;
 		threads = new Thread*[size];
 		thread_list = std::queue<Thread*>();
+		std::string name;
 		for (std::size_t i = 0; i < size; i++)
 		{
-			threads[i] = new Thread();
+			switch (i)
+			{
+			case 0:
+				name = "Albert";
+				break;
+			case 1:
+				name = "Curie";
+				break;
+			case 2:
+				name = "Newton";
+				break;
+			case 3:
+				name = "Dennis";
+				break;
+			}
+			threads[i] = new Thread(name);
 			thread_list.emplace(&*threads[i]);
 		}
 		job_list = std::queue<std::unique_ptr<Job>>();
@@ -37,6 +53,8 @@ public:
 		{
 			delete(threads[i]);
 		}
+		std::queue<Thread*>().swap(thread_list);
+		std::queue<std::unique_ptr<Job>>().swap(job_list);
 	}
 private:
 	ThreadManager() {};

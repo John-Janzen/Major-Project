@@ -1,8 +1,9 @@
 #include "Thread.h"
 
-Thread::Thread() 
+Thread::Thread(const std::string & name)
+	:_name(name)
 {
-	_thread = new std::thread();
+	_thread = std::make_unique<std::thread>(&Thread::Execution, this);
 }
 
 Thread::~Thread() 
@@ -14,9 +15,9 @@ Thread::~Thread()
 
 void Thread::Execution()
 {
-	while (running)
+	while (_running)
 	{
-		std::this_thread::sleep_for(std::chrono::seconds(5));
-		std::printf("Running...");
+		std::this_thread::sleep_for(std::chrono::seconds(2));
+		std::printf("%s Running...", _name.c_str());
 	}
 }
