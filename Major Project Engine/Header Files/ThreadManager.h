@@ -42,11 +42,6 @@ public:
 		job_list = std::queue<std::unique_ptr<Job>>();
 	}
 
-	void Close()
-	{
-		this->~ThreadManager();
-	}
-
 	~ThreadManager() 
 	{
 		for (std::size_t i = 0; i < num_of_threads; i++)
