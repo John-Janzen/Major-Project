@@ -1,5 +1,8 @@
 #pragma once
+#include "Job.h"
+
 #include <thread>
+#include <chrono>
 
 class Thread
 {
@@ -7,7 +10,13 @@ public:
 	Thread();
 	~Thread();
 
+	void Execution();
+
 private:
-	std::unique_ptr<std::thread> thread;
+	bool running = true;
+
+	std::thread * _thread;
+	std::unique_ptr<Job> current_job;
 };
+
 
