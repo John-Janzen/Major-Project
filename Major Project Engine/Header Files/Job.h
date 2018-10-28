@@ -9,7 +9,7 @@ enum Job_Type
 class Job
 {
 public:
-	Job();
+	Job(Job_Type, std::function<void()>);
 	~Job();
 
 	Job_Type get_type()

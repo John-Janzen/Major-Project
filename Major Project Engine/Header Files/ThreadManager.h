@@ -17,7 +17,6 @@ public:
 	{
 		num_of_threads = size;
 		threads = new Thread*[size];
-		thread_list = std::queue<Thread*>();
 		std::string name;
 		for (std::size_t i = 0; i < size; i++)
 		{
@@ -37,7 +36,6 @@ public:
 				break;
 			}
 			threads[i] = new Thread(name);
-			thread_list.emplace(&*threads[i]);
 		}
 		job_list = std::queue<std::unique_ptr<Job>>();
 	}
@@ -48,15 +46,54 @@ public:
 		{
 			delete(threads[i]);
 		}
-		std::queue<Thread*>().swap(thread_list);
 		std::queue<std::unique_ptr<Job>>().swap(job_list);
 	}
+
+	void allocate_jobs()
+	{
+		for (std::size_t i = 0; i < num_of_threads && !jobs_empty(); i++)
+		{
+			if (threads[i]->get_state() == false)
+			{
+				threads[i]->recieve_Job(job_list.front());
+				job_list.pop();
+			}
+		}
+	}
+
+	void register_job(Job_Type type, std::function<void()> function)
+	{
+		job_list.emplace(std::make_unique<Job>(type, function));
+	}
+
+	void register_job(std::unique_ptr<Job> job)
+	{
+		job_list.emplace(std::move(job));
+	}
+
+	bool jobs_empty()
+	{
+		return job_list.empty();
+	}
+
+	bool jobs_full()
+	{
+		return job_list.size() > 20 ? true : false;
+	}
+
+	void print_total_jobs()
+	{
+		uint16_t total = 0;
+		for (std::size_t i = 0; i < num_of_threads; i++)
+			total += threads[i]->print_stats();
+		printf("Total count is: %u", total);
+	}
+
 private:
 	ThreadManager() {};
 	Thread ** threads;
 
 	std::size_t num_of_threads;
 
-	std::queue<Thread*> thread_list;
 	std::queue<std::unique_ptr<Job>> job_list;
 };

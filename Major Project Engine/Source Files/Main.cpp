@@ -4,7 +4,7 @@
 
 void standard_function()
 {
-
+	//printf("Testing Function");
 }
 
 int main(int argc, char * args[])
@@ -13,7 +13,7 @@ int main(int argc, char * args[])
 	bool GameOn = true;
 	SDL_Event e;
 	SDL_Window * window;
-
+	
 	window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
 	if (window == NULL)
 	{
@@ -40,9 +40,17 @@ int main(int argc, char * args[])
 				}
 			}
 		}
-		/*std::this_thread::sleep_for(std::chrono::milliseconds(500));*/
-		//printf("Main Running...");
+		if (!ThreadManager::Instance().jobs_full())
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				ThreadManager::Instance().register_job(std::make_unique<Job>(Job_Type::NULL_TYPE, &standard_function));
+			}
+		}
+		ThreadManager::Instance().allocate_jobs();
 	}
+	ThreadManager::Instance().print_total_jobs();
+	getchar();
 	SDL_Quit();
 	return 0;
 }
