@@ -13,6 +13,7 @@ public:
 	~Thread();
 
 	void Execution();
+	void Stop();
 	void recieve_Job(std::unique_ptr<Job> & job);
 	std::atomic_bool & get_state();
 

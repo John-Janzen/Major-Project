@@ -8,8 +8,6 @@ Thread::Thread(const std::string & name)
 
 Thread::~Thread() 
 {
-	_running = false;
-	_thread->join();
 	current_job.release();
 	current_job = nullptr;
 }
@@ -21,15 +19,16 @@ void Thread::Execution()
 		if (current_job != nullptr)
 		{
 			current_job.get()->get_function()();
-			current_job.release();
+			current_job.reset();
+			current_job = nullptr;
 			std::printf("%s Finished Job!\n", _name.c_str());
 			count++;
 			_busy = false;
 		}
-		else
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		}
+		//else
+		//{
+		//	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		//}
 	}
 }
 
@@ -37,6 +36,12 @@ void Thread::recieve_Job(std::unique_ptr<Job> & job)
 {
 	_busy = true;
 	current_job = std::move(job);
+}
+
+void Thread::Stop()
+{
+	_running = false;
+	_thread->join();
 }
 
 std::atomic_bool& Thread::get_state()

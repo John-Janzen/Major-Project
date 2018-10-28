@@ -49,6 +49,7 @@ int main(int argc, char * args[])
 		}
 		ThreadManager::Instance().allocate_jobs();
 	}
+	ThreadManager::Instance().Close();
 	ThreadManager::Instance().print_total_jobs();
 	getchar();
 	SDL_Quit();

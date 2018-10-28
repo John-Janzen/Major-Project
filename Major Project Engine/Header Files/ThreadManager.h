@@ -40,6 +40,11 @@ public:
 		job_list = std::queue<std::unique_ptr<Job>>();
 	}
 
+	void Close()
+	{
+		stop_threads();
+	}
+
 	~ThreadManager() 
 	{
 		for (std::size_t i = 0; i < num_of_threads; i++)
@@ -83,10 +88,16 @@ public:
 
 	void print_total_jobs()
 	{
-		uint16_t total = 0;
+		int total = 0;
 		for (std::size_t i = 0; i < num_of_threads; i++)
 			total += threads[i]->print_stats();
 		printf("Total count is: %u", total);
+	}
+
+	void stop_threads()
+	{
+		for (std::size_t i = 0; i < num_of_threads; i++)
+			threads[i]->Stop();
 	}
 
 private:
