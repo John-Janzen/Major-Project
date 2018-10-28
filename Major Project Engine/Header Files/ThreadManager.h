@@ -105,7 +105,7 @@ public:
 	* To register a job in the manager any class can call this function
 	* with the job type and function.
 	*/
-	void register_job(Job_Type type, std::function<void()> function)
+	void register_job(Job_Type type, std::function<void(Content*)> function)
 	{
 		job_list.emplace(std::make_unique<Job>(type, function));
 	}

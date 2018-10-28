@@ -21,9 +21,11 @@ https://github.com/John-Janzen
 /*
 * Standard testing function for Jobs
 */
-void standard_function()
+void standard_function(Content * ptr)
 {
 	//printf("Testing Function");
+	InitialContent * IC = static_cast<InitialContent*>(ptr);
+	//printf("Has Content: %u + %u", IC->num1, IC->num2);
 }
 
 /*
@@ -67,7 +69,12 @@ int main(int argc, char * args[])
 		{													// Add more dummy jobs
 			for (int i = 0; i < 5; i++)
 			{
-				ThreadManager::Instance().register_job(std::make_unique<Job>(Job_Type::NULL_TYPE, &standard_function));
+				ThreadManager::Instance().register_job(
+					std::make_unique<Job>(
+						Job_Type::NULL_TYPE,
+						&standard_function,
+						new InitialContent(2, 4)
+						));
 			}
 		}
 		ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads

@@ -35,7 +35,7 @@ void Thread::Execution()
 	{
 		if (current_job != nullptr)
 		{
-			current_job.get()->get_function()();
+			current_job.get()->get_function()(current_job->get_content());
 			current_job.reset();
 			current_job = nullptr;
 			std::printf("%s Finished Job!\n", _name.c_str());

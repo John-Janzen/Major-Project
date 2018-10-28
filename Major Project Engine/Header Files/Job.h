@@ -1,4 +1,5 @@
 #pragma once
+#include "Content.h"
 #include <functional>
 
 /*
@@ -27,7 +28,7 @@ class Job
 {
 public:
 
-	Job(Job_Type, std::function<void()>);
+	Job(Job_Type type, std::function<void(Content*)> function, Content* data = nullptr);
 	~Job();
 
 	/* Gets the type of the job */
@@ -37,12 +38,18 @@ public:
 	}
 
 	/* Gets the function of the job */
-	std::function<void()> get_function()
+	std::function<void(Content*)> get_function()
 	{
 		return _func;
 	}
+
+	Content * get_content()
+	{
+		return _content;
+	}
 private:
 	Job_Type _type;
-	std::function<void()> _func;
+	std::function<void(Content*)> _func;
+	Content * _content;
 };
 
