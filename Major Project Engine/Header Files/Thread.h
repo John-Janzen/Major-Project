@@ -28,7 +28,7 @@ public:
 	*/
 	int print_stats()
 	{
-		printf("%s completed %u Jobs\n", _name.c_str(), count);
+		printf("%s\tcompleted %u Jobs\n", _name.c_str(), count);
 		return count;
 	}
 

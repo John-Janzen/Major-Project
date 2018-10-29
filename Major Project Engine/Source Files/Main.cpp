@@ -1,6 +1,9 @@
 #include "ThreadManager.h"
 
 #include <SDL.h>
+#include <cstdlib>
+#include <iostream>
+#include <ctime>
 
 /*===================================================================================*//**
 
@@ -23,9 +26,59 @@ https://github.com/John-Janzen
 */
 void standard_function(Content * ptr)
 {
-	//printf("Testing Function");
 	InitialContent * IC = static_cast<InitialContent*>(ptr);
-	//printf("Has Content: %u + %u", IC->num1, IC->num2);
+	int total = IC->num1 + IC->num2;
+}
+
+void sleepy_function(Content * ptr)
+{
+	InitialContent * IC = static_cast<InitialContent*>(ptr);
+	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+	int total = IC->num1 + IC->num2;
+}
+
+void complex_function(Content * ptr)
+{
+	int total = 0;
+	for (int i = 0; i < 100; i++)
+	{
+		total += i;
+	}
+	total /= 2;
+}
+
+void random_job_function(Content * ptr)
+{
+	int random_variable = 1 + std::rand() % 4;
+	switch (random_variable)
+	{
+	case STANDARD_JOB:
+		ThreadManager::Instance().register_job(
+			std::make_unique<Job>(
+				Job_Type::STANDARD_JOB, 
+				&standard_function, 
+				new InitialContent(2, random_variable)));
+		break;
+	case SLEEPY_JOB:
+		ThreadManager::Instance().register_job(
+			std::make_unique<Job>(
+				Job_Type::SLEEPY_JOB,
+				&sleepy_function,
+				new InitialContent(2, random_variable)));
+		break;
+	case COMPLEX_JOB:
+		ThreadManager::Instance().register_job(
+			std::make_unique<Job>(
+				Job_Type::COMPLEX_JOB,
+				&complex_function));
+		break;
+	case RANDOM_JOB:
+		ThreadManager::Instance().register_job(
+			std::make_unique<Job>(
+				Job_Type::RANDOM_JOB,
+				&random_job_function));
+		break;
+	}
 }
 
 /*
@@ -34,6 +87,7 @@ void standard_function(Content * ptr)
 */
 int main(int argc, char * args[])
 {
+	//std::srand(std::time(NULL));
 	SDL_Init(SDL_INIT_EVERYTHING);
 	bool GameOn = true;
 	SDL_Event e;
@@ -67,14 +121,9 @@ int main(int argc, char * args[])
 		}
 		if (!ThreadManager::Instance().jobs_full())			// As long as the list of jobs is not full 
 		{													// Add more dummy jobs
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < 3; i++)
 			{
-				ThreadManager::Instance().register_job(
-					std::make_unique<Job>(
-						Job_Type::NULL_TYPE,
-						&standard_function,
-						new InitialContent(2, 4)
-						));
+				random_job_function(nullptr);
 			}
 		}
 		ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads

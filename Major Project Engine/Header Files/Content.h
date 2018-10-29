@@ -3,6 +3,8 @@
 struct Content
 {
 	virtual ~Content() {};
+
+	
 };
 
 class InitialContent : public Content

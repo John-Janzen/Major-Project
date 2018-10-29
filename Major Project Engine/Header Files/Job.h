@@ -10,6 +10,10 @@
 enum Job_Type
 {
 	NULL_TYPE,
+	SLEEPY_JOB,
+	STANDARD_JOB,
+	RANDOM_JOB,
+	COMPLEX_JOB
 };
 
 /*
@@ -20,7 +24,7 @@ enum Job_Type
 *
 * Function gives the thread an actual function to work on - However,
 * this is extremely limiting as all jobs currently have to work
-* at a void ?function? () architecture.
+* at a void ?function? (Content*) architecture.
 *
 * (Will need to develop further)
 */

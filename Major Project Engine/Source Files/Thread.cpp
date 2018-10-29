@@ -36,9 +36,10 @@ void Thread::Execution()
 		if (current_job != nullptr)
 		{
 			current_job.get()->get_function()(current_job->get_content());
+			printf("%s\tfinished Job %i\n", this->_name.c_str(), static_cast<int>(current_job.get()->get_type()));
 			current_job.reset();
 			current_job = nullptr;
-			std::printf("%s Finished Job!\n", _name.c_str());
+			//std::printf("%s Finished Job!\n", _name.c_str());
 			count++;
 			_busy = false;
 		}
@@ -50,6 +51,16 @@ void Thread::Execution()
 }
 
 /*
+* This function stops the threads from continously running and
+* joins the main thread until there is only one thread left.
+*/
+void Thread::Stop()
+{
+	_running = false;
+	_thread->join();
+}
+
+/*
 * This is where the threads recieve jobs from the managers.
 * The flag _busy is to indicate to the manager that it is currently
 * working on a job.
@@ -58,16 +69,6 @@ void Thread::recieve_Job(std::unique_ptr<Job> & job)
 {
 	_busy = true;
 	current_job = std::move(job);
-}
-
-/*
-* This function stops the threads from continously running and 
-* joins the main thread until there is only one thread left.
-*/
-void Thread::Stop()
-{
-	_running = false;
-	_thread->join();
 }
 
 /*
