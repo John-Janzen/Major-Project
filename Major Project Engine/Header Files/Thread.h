@@ -19,8 +19,8 @@ public:
 
 	void Execution();
 	void Stop();
-	void recieve_Job(std::unique_ptr<Job> & job);
-	std::atomic_bool & get_state();
+	void recieve_Job(std::unique_ptr<Job> job);
+	bool check_availability();
 
 	/*
 	* Prints available stats.
@@ -34,7 +34,6 @@ public:
 
 private:
 	bool _running = true;
-	std::atomic_bool _busy = false;
 	std::string _name;
 	int count = 0;
 

@@ -33,7 +33,7 @@ void standard_function(Content * ptr)
 void sleepy_function(Content * ptr)
 {
 	InitialContent * IC = static_cast<InitialContent*>(ptr);
-	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	int total = IC->num1 + IC->num2;
 }
 
@@ -70,13 +70,18 @@ void random_job_function(Content * ptr)
 		ThreadManager::Instance().register_job(
 			std::make_unique<Job>(
 				Job_Type::COMPLEX_JOB,
-				&complex_function));
+				&complex_function, 
+				nullptr));
 		break;
 	case RANDOM_JOB:
-		ThreadManager::Instance().register_job(
-			std::make_unique<Job>(
-				Job_Type::RANDOM_JOB,
-				&random_job_function));
+		if (!ThreadManager::Instance().jobs_full()) {
+			ThreadManager::Instance().register_job(
+				std::make_unique<Job>(
+					Job_Type::RANDOM_JOB,
+					&random_job_function,
+					nullptr));
+		}
+		
 		break;
 	}
 }
@@ -87,11 +92,12 @@ void random_job_function(Content * ptr)
 */
 int main(int argc, char * args[])
 {
-	//std::srand(std::time(NULL));
+	std::srand(std::time(NULL));
 	SDL_Init(SDL_INIT_EVERYTHING);
 	bool GameOn = true;
 	SDL_Event e;
 	SDL_Window * window;
+	int count = 0;
 	
 	window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
 	if (window == NULL)
@@ -102,7 +108,8 @@ int main(int argc, char * args[])
 
 	ThreadManager::Instance().Init(std::thread::hardware_concurrency() / 2);		// Checks the computers for how many threads that it can have
 																					// Based on haredware limitation
-	while (GameOn)
+	//ThreadManager::Instance().Init(2);
+	while (GameOn && count++ <= 1000000)
 	{
 		while (SDL_PollEvent(&e))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{

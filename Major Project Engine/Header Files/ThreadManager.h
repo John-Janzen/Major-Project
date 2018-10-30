@@ -1,7 +1,6 @@
 #pragma once
 #include "Thread.h"
-
-#include <queue>
+#include "BlockingQueue.h"
 
 /*
 * This Manager class is created as a singleton because
@@ -59,7 +58,7 @@ public:
 			}
 			threads[i] = new Thread(name);
 		}
-		job_list = std::queue<std::unique_ptr<Job>>();
+		job_list = new BlockingQueue<std::unique_ptr<Job>>();
 	}
 
 	/*
@@ -71,8 +70,7 @@ public:
 	}
 
 	/*
-	* Deletes the threads and emptys the job list by swapping
-	* with an empty array. (This was the simplest way of emptying a queue)
+	* Deletes the threads and job list.
 	*/
 	~ThreadManager() 
 	{
@@ -80,7 +78,7 @@ public:
 		{
 			delete(threads[i]);
 		}
-		std::queue<std::unique_ptr<Job>>().swap(job_list);
+		delete(job_list);
 	}
 
 	/*
@@ -93,10 +91,9 @@ public:
 	{
 		for (std::size_t i = 0; i < num_of_threads && !jobs_empty(); i++)
 		{
-			if (threads[i]->get_state() == false)
+			if (threads[i]->check_availability())
 			{
-				threads[i]->recieve_Job(job_list.front());
-				job_list.pop();
+				threads[i]->recieve_Job(job_list->pop());
 			}
 		}
 	}
@@ -107,7 +104,7 @@ public:
 	*/
 	void register_job(Job_Type type, std::function<void(Content*)> function)
 	{
-		job_list.emplace(std::make_unique<Job>(type, function));
+		job_list->emplace(std::make_unique<Job>(type, function));
 	}
 
 	/*
@@ -116,7 +113,7 @@ public:
 	*/
 	void register_job(std::unique_ptr<Job> job)
 	{
-		job_list.emplace(std::move(job));
+		job_list->emplace(std::move(job));
 	}
 
 	/*
@@ -124,7 +121,7 @@ public:
 	*/
 	bool jobs_empty()
 	{
-		return job_list.empty();
+		return job_list->empty();
 	}
 
 	/*
@@ -133,7 +130,7 @@ public:
 	*/
 	bool jobs_full()
 	{
-		return job_list.size() > 20 ? true : false;
+		return job_list->size() > 20 ? true : false;
 	}
 
 	/*
@@ -167,5 +164,6 @@ private:
 	std::size_t num_of_threads;
 
 	// List of jobs available
-	std::queue<std::unique_ptr<Job>> job_list;
+	// std::queue<std::unique_ptr<Job>> job_list;
+	BlockingQueue<std::unique_ptr<Job>> * job_list;
 };

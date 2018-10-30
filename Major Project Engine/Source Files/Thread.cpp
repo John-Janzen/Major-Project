@@ -33,19 +33,16 @@ void Thread::Execution()
 {
 	while (_running)
 	{
-		if (current_job != nullptr)
+		if (current_job)
 		{
 			current_job.get()->get_function()(current_job->get_content());
 			printf("%s\tfinished Job %i\n", this->_name.c_str(), static_cast<int>(current_job.get()->get_type()));
-			current_job.reset();
-			current_job = nullptr;
-			//std::printf("%s Finished Job!\n", _name.c_str());
 			count++;
-			_busy = false;
+			current_job.reset();
 		}
 		else
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			std::this_thread::sleep_for(std::chrono::milliseconds(2));
 		}
 	}
 }
@@ -65,17 +62,12 @@ void Thread::Stop()
 * The flag _busy is to indicate to the manager that it is currently
 * working on a job.
 */
-void Thread::recieve_Job(std::unique_ptr<Job> & job)
+void Thread::recieve_Job(std::unique_ptr<Job> job)
 {
-	_busy = true;
 	current_job = std::move(job);
 }
 
-/*
-* Gets the current state of the thread.
-* This is a flag for busy or not busy for the manager.
-*/
-std::atomic_bool& Thread::get_state()
+bool Thread::check_availability()
 {
-	return _busy;
+	return (current_job.get() == nullptr);
 }
