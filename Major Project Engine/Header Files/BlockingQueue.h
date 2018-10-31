@@ -50,4 +50,3 @@ private:
 	std::mutex _mutex;
 	std::queue<T> _queue;
 };
-

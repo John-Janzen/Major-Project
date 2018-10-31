@@ -1,9 +1,10 @@
 #include "ThreadManager.h"
 
 #include <SDL.h>
-#include <cstdlib>
-#include <iostream>
 #include <ctime>
+#include <chrono>
+#include <iomanip>
+#include <iostream>
 
 /*===================================================================================*//**
 
@@ -92,7 +93,9 @@ void random_job_function(Content * ptr)
 */
 int main(int argc, char * args[])
 {
-	std::srand(std::time(NULL));
+	//std::srand(std::time(NULL));
+	std::clock_t c_start = std::clock();
+	auto t_start = std::chrono::high_resolution_clock::now();
 	SDL_Init(SDL_INIT_EVERYTHING);
 	bool GameOn = true;
 	SDL_Event e;
@@ -109,8 +112,8 @@ int main(int argc, char * args[])
 	ThreadManager::Instance().Init(std::thread::hardware_concurrency() / 2);		// Checks the computers for how many threads that it can have
 																					// Based on haredware limitation
 	//ThreadManager::Instance().Init(2);
-	while (GameOn && count++ <= 1000000)
-	{
+	std::chrono::time_point<std::chrono::steady_clock> t_end;
+	do {
 		while (SDL_PollEvent(&e))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{
 			switch (e.type)
@@ -134,7 +137,11 @@ int main(int argc, char * args[])
 			}
 		}
 		ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
-	}
+		t_end = std::chrono::high_resolution_clock::now();
+	} while (GameOn && std::chrono::duration<double, std::milli>(t_end - t_start).count() < 10000);
+
+	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(t_end - t_start).count());
+
 	ThreadManager::Instance().Close();						// Close the Manager
 	ThreadManager::Instance().print_total_jobs();			// Print the stats
 	getchar();												// This is so I can see the stats when printed
