@@ -1,17 +1,10 @@
-#include "ThreadManager.h"
-
-#include <SDL.h>
-#include <ctime>
-#include <chrono>
-#include <iomanip>
-#include <iostream>
-
 /*===================================================================================*//**
 
 Major Project Engine
 
 A Prototype Engine made using the Thread-Pool design pattern for
-multithreading. This should allow the game to scale with higher level cpu's.
+multithreading. This will allow the game engine to utilize more of the
+cpus within the hardware of the computer.
 
 Copyright 2018 John Janzen. All rights reserved.
 https://github.com/John-Janzen
@@ -21,6 +14,14 @@ https://github.com/John-Janzen
 @file Main.cpp
 
 *//*====================================================================================*/
+
+#include "ThreadManager.h"
+#include "Render.h"
+
+#include <ctime>
+#include <chrono>
+#include <iomanip>
+#include <iostream>
 
 /*
 * Standard testing function for Jobs
@@ -82,7 +83,6 @@ void random_job_function(Content * ptr)
 					&random_job_function,
 					nullptr));
 		}
-		
 		break;
 	}
 }
@@ -111,7 +111,6 @@ int main(int argc, char * args[])
 
 	ThreadManager::Instance().Init(std::thread::hardware_concurrency() / 2);		// Checks the computers for how many threads that it can have
 																					// Based on haredware limitation
-	//ThreadManager::Instance().Init(2);
 	std::chrono::time_point<std::chrono::steady_clock> t_end;
 	do {
 		while (SDL_PollEvent(&e))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
@@ -138,7 +137,7 @@ int main(int argc, char * args[])
 		}
 		ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
 		t_end = std::chrono::high_resolution_clock::now();
-	} while (GameOn && std::chrono::duration<double, std::milli>(t_end - t_start).count() < 10000);
+	} while (GameOn && std::chrono::duration<double, std::milli>(t_end - t_start).count() < 5000);
 
 	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(t_end - t_start).count());
 
