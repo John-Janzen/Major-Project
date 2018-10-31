@@ -19,11 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source Files\Job.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header Files\BlockingQueue.h" />
+    <ClInclude Include="Header Files\Content.h" />
     <ClInclude Include="Header Files\Thread.h" />
+    <ClInclude Include="Header Files\ThreadManager.h" />
+    <ClInclude Include="Header Files\Job.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
