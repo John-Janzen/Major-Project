@@ -16,16 +16,16 @@ public:
 		std::queue<T>().swap(_queue);
 	}
 
-	T pop()
+	bool pop(T & location)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		T value;
 		if (!_queue.empty())
 		{
-			value = std::move(_queue.front());
+			location = std::move(_queue.front());
 			_queue.pop();
+			return true;
 		}
-		return value;
+		return false;
 	}
 
 	void emplace(T item)

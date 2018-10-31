@@ -19,8 +19,8 @@ public:
 
 	void Execution();
 	void Stop();
-	void recieve_Job(std::unique_ptr<Job> job);
 	bool check_availability();
+	std::unique_ptr<Job> * get_location();
 
 	/*
 	* Prints available stats.

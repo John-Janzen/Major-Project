@@ -57,17 +57,12 @@ void Thread::Stop()
 	_thread->join();
 }
 
-/*
-* This is where the threads recieve jobs from the managers.
-* The flag _busy is to indicate to the manager that it is currently
-* working on a job.
-*/
-void Thread::recieve_Job(std::unique_ptr<Job> job)
-{
-	current_job = std::move(job);
-}
-
 bool Thread::check_availability()
 {
 	return (current_job.get() == nullptr);
+}
+
+std::unique_ptr<Job> * Thread::get_location()
+{
+	return &current_job;
 }
