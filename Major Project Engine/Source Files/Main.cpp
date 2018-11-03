@@ -16,8 +16,8 @@ https://github.com/John-Janzen
 *//*====================================================================================*/
 
 #include "ThreadManager.h"
-#include "Render.h"
 
+#include <SDL.h>
 #include <ctime>
 #include <chrono>
 #include <iomanip>
@@ -99,15 +99,9 @@ int main(int argc, char * args[])
 	SDL_Init(SDL_INIT_EVERYTHING);
 	bool GameOn = true;
 	SDL_Event e;
-	SDL_Window * window;
 	int count = 0;
 	
-	window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
-	if (window == NULL)
-	{
-		printf("Window could not be created");
-		return 1;
-	}
+	SDL_Window * sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
 
 	ThreadManager::Instance().Init(std::thread::hardware_concurrency() / 2);		// Checks the computers for how many threads that it can have
 																					// Based on haredware limitation

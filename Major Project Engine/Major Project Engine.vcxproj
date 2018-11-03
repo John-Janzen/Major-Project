@@ -19,11 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source Files\Entity.cpp" />
     <ClCompile Include="Source Files\Job.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Components\Header Files\BaseComponent.h" />
+    <ClInclude Include="Header Files\Entity.h" />
     <ClInclude Include="Header Files\BlockingQueue.h" />
     <ClInclude Include="Header Files\Content.h" />
     <ClInclude Include="Header Files\Thread.h" />
@@ -85,7 +88,7 @@
     <IncludePath>$(ProjectDir)Header Files;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)Header Files;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Components\Header Files;$(ProjectDir)Header Files;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
