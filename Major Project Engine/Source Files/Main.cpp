@@ -15,77 +15,11 @@ https://github.com/John-Janzen
 
 *//*====================================================================================*/
 
-#include "ThreadManager.h"
-
 #include <SDL.h>
 #include <ctime>
 #include <chrono>
 #include <iomanip>
 #include <iostream>
-
-/*
-* Standard testing function for Jobs
-*/
-void standard_function(Content * ptr)
-{
-	InitialContent * IC = static_cast<InitialContent*>(ptr);
-	int total = IC->num1 + IC->num2;
-}
-
-void sleepy_function(Content * ptr)
-{
-	InitialContent * IC = static_cast<InitialContent*>(ptr);
-	//std::this_thread::sleep_for(std::chrono::milliseconds(1));
-	int total = IC->num1 + IC->num2;
-}
-
-void complex_function(Content * ptr)
-{
-	int total = 0;
-	for (int i = 0; i < 100; i++)
-	{
-		total += i;
-	}
-	total /= 2;
-}
-
-void random_job_function(Content * ptr)
-{
-	int random_variable = 1 + std::rand() % 4;
-	switch (random_variable)
-	{
-	case STANDARD_JOB:
-		ThreadManager::Instance().register_job(
-			std::make_unique<Job>(
-				Job_Type::STANDARD_JOB, 
-				&standard_function, 
-				new InitialContent(2, random_variable)));
-		break;
-	case SLEEPY_JOB:
-		ThreadManager::Instance().register_job(
-			std::make_unique<Job>(
-				Job_Type::SLEEPY_JOB,
-				&sleepy_function,
-				new InitialContent(2, random_variable)));
-		break;
-	case COMPLEX_JOB:
-		ThreadManager::Instance().register_job(
-			std::make_unique<Job>(
-				Job_Type::COMPLEX_JOB,
-				&complex_function, 
-				nullptr));
-		break;
-	case RANDOM_JOB:
-		if (!ThreadManager::Instance().jobs_full()) {
-			ThreadManager::Instance().register_job(
-				std::make_unique<Job>(
-					Job_Type::RANDOM_JOB,
-					&random_job_function,
-					nullptr));
-		}
-		break;
-	}
-}
 
 /*
 * Main entry point of the program.

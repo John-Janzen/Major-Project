@@ -21,9 +21,6 @@
     <ClCompile Include="Source Files\Thread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Job.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source Files\Entity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

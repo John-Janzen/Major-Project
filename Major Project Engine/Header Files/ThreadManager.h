@@ -16,16 +16,6 @@ class ThreadManager
 public:
 
 	/*
-	Singleton required function.
-	Gets the classes data.
-	*/
-	static ThreadManager& Instance()
-	{
-		static ThreadManager inst;
-		return inst;
-	}
-
-	/*
 	Initializes the manager to create threads with a dynamic
 	amount based on the hardware limitations.
 	*/
