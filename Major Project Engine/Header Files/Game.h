@@ -4,8 +4,12 @@
 class Game : public Application
 {
 public:
-	Game();
+	explicit Game(const size_t & num_of_threads);
 	~Game();
+
+	bool Load();
+	bool Game_Loop();
+	void Close();
 
 };
 

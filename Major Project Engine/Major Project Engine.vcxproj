@@ -19,17 +19,21 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source Files\Entity.cpp" />
+    <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
+    <ClCompile Include="Source Files\Game.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Managers\Header Files\EntityManager.h" />
+    <ClInclude Include="Header Files\Application.h" />
     <ClInclude Include="Components\Header Files\BaseComponent.h" />
+    <ClInclude Include="Header Files\Game.h" />
     <ClInclude Include="Header Files\Entity.h" />
     <ClInclude Include="Header Files\BlockingQueue.h" />
     <ClInclude Include="Header Files\Content.h" />
     <ClInclude Include="Header Files\Thread.h" />
-    <ClInclude Include="Header Files\ThreadManager.h" />
+    <ClInclude Include="Managers\Header Files\ThreadManager.h" />
     <ClInclude Include="Header Files\Job.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -87,7 +91,7 @@
     <IncludePath>$(ProjectDir)Header Files;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)Components\Header Files;$(ProjectDir)Header Files;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -109,7 +113,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)Libraries\bullet3-2.87\src;$(ProjectDir)Libraries\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Components\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;$(ProjectDir)Libraries\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

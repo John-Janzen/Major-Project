@@ -14,7 +14,7 @@ public:
 	{
 		EntityID id = id_counter;
 		++id_counter;
-		auto inserted = entities.emplace(id, std::make_unique<Entity>());
+		auto inserted = entities.emplace(id, std::make_unique<Entity>(name, id));
 		return *(*inserted.first).second;
 	}
 
