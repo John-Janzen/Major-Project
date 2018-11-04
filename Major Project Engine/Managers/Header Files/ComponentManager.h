@@ -13,21 +13,90 @@ class ComponentManager
 {
 public:
 
-	void add_component(const Entity & entity, std::shared_ptr<BaseComponent> comp)
+	template<class T>
+	void add_component(const std::shared_ptr<Entity> & entity, std::shared_ptr<T> comp)
 	{
-		components.emplace(entity.get_id(), comp);
+		if (!has_component<T>(entity))
+		{
+			components.emplace(entity->get_id(), comp);
+		}
+		else
+		{
+			printf("Duplicate Components not allowed, %s", entity->get_name().c_str());
+		}
+	}
+
+	template<class T>
+	void add_component(const int & entity_id, std::shared_ptr<T> comp)
+	{
+		if (!has_component<T>(entity_id))
+		{
+			components.emplace(entity_id, comp);
+		}
+		else
+		{
+			
+			printf("Duplicate Components not allowed, %d", entity_id);
+		}
 	}
 
 	template <class T>
-	bool get_component(const Entity & entity, T & base_comp)
+	bool get_component(const std::shared_ptr<Entity> & entity, T & base_comp)
 	{
 		bool found = false;
-		auto range = components.equal_range(entity.get_id());
+		auto range = components.equal_range(entity->get_id());
 		std::for_each(range.first, range.second, [&base_comp, &found](ComponentStorage::value_type & x)
 		{
 			if (&dynamic_cast<T&>(*x.second) != nullptr)
 			{
 				base_comp = dynamic_cast<T&>(*x.second);
+				found = true;
+			}
+		});
+		return found;
+	}
+
+
+	template <class T>
+	bool get_component(const int & entity_id, T & base_comp)
+	{
+		bool found = false;
+		auto range = components.equal_range(entity_id);
+		std::for_each(range.first, range.second, [&base_comp, &found](ComponentStorage::value_type & x)
+		{
+			if (&dynamic_cast<T&>(*x.second) != nullptr)
+			{
+				base_comp = dynamic_cast<T&>(*x.second);
+				found = true;
+			}
+		});
+		return found;
+	}
+
+	template<class T>
+	bool has_component(const std::shared_ptr<Entity> & entity)
+	{
+		bool found = false;
+		auto range = components.equal_range(entity->get_id());
+		std::for_each(range.first, range.second, [&found](ComponentStorage::value_type & x)
+		{
+			if (&dynamic_cast<T&>(*x.second) != nullptr)
+			{
+				found = true;
+			}
+		});
+		return found;
+	}
+
+	template<class T>
+	bool has_component(const int & entity_id)
+	{
+		bool found = false;
+		auto range = components.equal_range(entity_id);
+		std::for_each(range.first, range.second, [&found](ComponentStorage::value_type & x)
+		{
+			if (&dynamic_cast<T&>(*x.second) != nullptr)
+			{
 				found = true;
 			}
 		});

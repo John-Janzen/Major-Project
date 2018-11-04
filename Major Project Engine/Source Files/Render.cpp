@@ -26,10 +26,15 @@ bool Render::Load()
 	return true;
 }
 
-void Render::Update()
+void Render::Update(const Entity & entity, const RenderComponent & rc)
 {
 
 
+	
+}
+
+void Render::FinalUpdate()
+{
 	SDL_GL_SwapWindow(sdl_window);
 }
 

@@ -17,12 +17,10 @@ bool Game::Load()
 		return false;
 	}
 
-	Entity e = entity_manager.get()->create_entity("Temp");
-	Entity e2 = entity_manager.get()->create_entity("Temp2");
-	component_manager.get()->add_component(e, std::make_shared<RenderComponent>());
-	component_manager.get()->add_component(e2, std::make_shared<RenderComponent>());
-	RenderComponent rc;
-	component_manager.get()->get_component<RenderComponent>(e, rc);
+	int entity_id1 = entity_manager->create_entity_id("256");
+	int entity_id2 = entity_manager->create_entity_id("257");
+	component_manager->add_component(entity_id1, std::make_shared<RenderComponent>());
+	component_manager->add_component(entity_id2, std::make_shared<RenderComponent>());
 
 	_state = PLAYING;
 	return true;
@@ -51,6 +49,16 @@ bool Game::Game_Loop()
 				}
 			}
 		}
+		for (auto it = entity_manager->retreive_list().begin(); it != entity_manager->retreive_list().end(); ++it)
+		{
+			RenderComponent rc;
+			if (component_manager->get_component((*it).first, rc))
+			{
+				renderer->Update(*(*it).second, rc);
+			}
+		}
+		renderer->FinalUpdate();
+
 		break;
 	case EXITING:
 		this->Close();

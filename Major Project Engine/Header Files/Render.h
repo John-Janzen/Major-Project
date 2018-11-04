@@ -1,5 +1,7 @@
 #pragma once
 #include "System.h"
+#include "Entity.h"
+#include "RenderComponent.h"
 
 #include <SDL.h>
 #include <glew.h>
@@ -12,7 +14,8 @@ public:
 	~Render();
 
 	bool Load();
-	void Update();
+	void Update(const Entity & entity, const RenderComponent & rc);
+	void FinalUpdate();
 	void Close();
 
 	bool init_SDL();

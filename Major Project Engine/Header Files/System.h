@@ -9,7 +9,6 @@ public:
 	virtual ~System() = 0;
 
 	virtual bool Load() = 0;
-	virtual void Update() = 0;
 	virtual void Close() = 0;
 
 private:
