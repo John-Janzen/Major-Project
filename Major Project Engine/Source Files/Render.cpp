@@ -29,6 +29,8 @@ bool Render::Load()
 void Render::Update()
 {
 
+
+	SDL_GL_SwapWindow(sdl_window);
 }
 
 void Render::Close()
@@ -85,6 +87,11 @@ bool Render::init_SDL()
 
 bool Render::init_GL()
 {
+	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
 
 	return true;
 }

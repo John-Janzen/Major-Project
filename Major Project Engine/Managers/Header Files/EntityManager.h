@@ -3,17 +3,17 @@
 
 #include <unordered_map>
 
-using EntityID = int;
+typedef int EntityID;
+typedef std::map<EntityID, std::unique_ptr<Entity>> EntityStorage;
 
 class EntityManager
 {
 public:
-	EntityManager() : id_counter(0) {}
+	EntityManager() : id_counter(0x100) {}
 
 	Entity & create_entity(const std::string & name)
 	{
-		EntityID id = id_counter;
-		++id_counter;
+		EntityID id = id_counter++;
 		auto inserted = entities.emplace(id, std::make_unique<Entity>(name, id));
 		return *(*inserted.first).second;
 	}
@@ -21,6 +21,6 @@ public:
 	~EntityManager() {}
 
 private:
-	std::unordered_map<EntityID, std::unique_ptr<Entity>> entities;
+	EntityStorage entities;
 	EntityID id_counter;
 };

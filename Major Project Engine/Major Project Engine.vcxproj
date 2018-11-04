@@ -20,12 +20,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
+    <ClCompile Include="Components\Source Files\RenderComponent.cpp" />
     <ClCompile Include="Source Files\Render.cpp" />
     <ClCompile Include="Source Files\Game.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Components\Header Files\ComponentHeaders.h" />
+    <ClInclude Include="Managers\Header Files\ComponentManager.h" />
     <ClInclude Include="Managers\Header Files\EntityManager.h" />
     <ClInclude Include="Header Files\Application.h" />
     <ClInclude Include="Components\Header Files\BaseComponent.h" />
@@ -38,6 +41,7 @@
     <ClInclude Include="Header Files\Job.h" />
     <ClInclude Include="Header Files\System.h" />
     <ClInclude Include="Header Files\Render.h" />
+    <ClInclude Include="Components\Header Files\RenderComponent.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -121,7 +125,7 @@
     <Link>
       <AdditionalLibraryDirectories>$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

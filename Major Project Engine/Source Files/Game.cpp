@@ -16,6 +16,14 @@ bool Game::Load()
 		_state = EXITING;
 		return false;
 	}
+
+	Entity e = entity_manager.get()->create_entity("Temp");
+	Entity e2 = entity_manager.get()->create_entity("Temp2");
+	component_manager.get()->add_component(e, std::make_shared<RenderComponent>());
+	component_manager.get()->add_component(e2, std::make_shared<RenderComponent>());
+	RenderComponent rc;
+	component_manager.get()->get_component<RenderComponent>(e, rc);
+
 	_state = PLAYING;
 	return true;
 }

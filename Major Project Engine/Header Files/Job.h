@@ -10,10 +10,7 @@
 enum Job_Type
 {
 	NULL_TYPE,
-	SLEEPY_JOB,
-	STANDARD_JOB,
-	RANDOM_JOB,
-	COMPLEX_JOB
+	
 };
 
 /*

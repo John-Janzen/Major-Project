@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "ThreadManager.h"
 #include "EntityManager.h"
+#include "ComponentManager.h"
 #include "Render.h"
 
 #include <vector>
@@ -30,6 +31,7 @@ public:
 protected:
 	std::unique_ptr<ThreadManager> thread_manager;
 	std::unique_ptr<EntityManager> entity_manager;
+	std::unique_ptr<ComponentManager> component_manager;
 
 	std::clock_t c_start;
 	SDL_Event sdl_event;
@@ -44,6 +46,7 @@ inline Application::Application(const std::size_t & num_of_threads)
 {
 	thread_manager = std::make_unique<ThreadManager>(num_of_threads);
 	entity_manager = std::make_unique<EntityManager>();
+	component_manager = std::make_unique<ComponentManager>();
 }
 
 inline Application::~Application()
@@ -52,5 +55,7 @@ inline Application::~Application()
 	thread_manager = nullptr;
 	entity_manager.reset();
 	entity_manager = nullptr;
+	component_manager.reset();
+	component_manager = nullptr;
 }
 
