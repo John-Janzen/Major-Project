@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
+    <ClCompile Include="Source Files\Render.cpp" />
     <ClCompile Include="Source Files\Game.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
@@ -35,6 +36,8 @@
     <ClInclude Include="Header Files\Thread.h" />
     <ClInclude Include="Managers\Header Files\ThreadManager.h" />
     <ClInclude Include="Header Files\Job.h" />
+    <ClInclude Include="Header Files\System.h" />
+    <ClInclude Include="Header Files\Render.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -113,12 +116,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)Components\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;$(ProjectDir)Libraries\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Libraries\glew-2.1.0\include\GL;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Components\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

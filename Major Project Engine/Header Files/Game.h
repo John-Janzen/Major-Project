@@ -10,6 +10,5 @@ public:
 	bool Load();
 	bool Game_Loop();
 	void Close();
-
 };
 

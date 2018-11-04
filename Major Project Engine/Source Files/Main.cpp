@@ -23,17 +23,12 @@ https://github.com/John-Janzen
 */
 int main(int argc, char * args[])
 {
-	SDL_Init(SDL_INIT_EVERYTHING);
-	
-	SDL_Window * sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
 
 	Game * game = new Game(std::thread::hardware_concurrency() / 2);
 	
 	while (game->Game_Loop());
 
-	game->Close();
 	delete(game);
 
-	SDL_Quit();
 	return 0;
 }

@@ -78,7 +78,7 @@ void ThreadManager::print_total_jobs()
 	int total = 0;
 	for (std::size_t i = 0; i < num_of_threads; i++)
 		total += threads[i]->print_stats();
-	printf("Total count is: %u", total);
+	printf("Total count is: %u\n", total);
 }
 
 void ThreadManager::stop_threads()

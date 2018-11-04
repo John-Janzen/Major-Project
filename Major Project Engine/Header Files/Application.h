@@ -3,11 +3,19 @@
 #include "Entity.h"
 #include "ThreadManager.h"
 #include "EntityManager.h"
+#include "Render.h"
 
-#include <SDL.h>
 #include <vector>
 #include <ctime>
 #include <chrono>
+
+enum GAME_STATE
+{
+	NULL_STATE,
+	LOADING,
+	PLAYING,
+	EXITING
+};
 
 class Application
 {
@@ -25,11 +33,14 @@ protected:
 
 	std::clock_t c_start;
 	SDL_Event sdl_event;
+	std::unique_ptr<Render> renderer;
 	bool game_running = true;
+	GAME_STATE _state;
 	std::chrono::time_point<std::chrono::steady_clock> t_start, t_end;
 };
 
 inline Application::Application(const std::size_t & num_of_threads)
+	: _state(LOADING)
 {
 	thread_manager = std::make_unique<ThreadManager>(num_of_threads);
 	entity_manager = std::make_unique<EntityManager>();
