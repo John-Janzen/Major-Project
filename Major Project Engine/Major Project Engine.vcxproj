@@ -28,6 +28,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\Header Files\ComponentHeaders.h" />
+    <ClInclude Include="Header Files\FileLoader.h" />
+    <ClInclude Include="Header Files\LoadingStructs.h" />
     <ClInclude Include="Managers\Header Files\ComponentManager.h" />
     <ClInclude Include="Managers\Header Files\EntityManager.h" />
     <ClInclude Include="Header Files\Application.h" />
@@ -120,7 +122,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)Libraries\glew-2.1.0\include\GL;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Components\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Libraries\glm\include;$(ProjectDir)Libraries\glew-2.1.0\include\GL;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Components\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

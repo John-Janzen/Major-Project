@@ -29,7 +29,6 @@ bool Render::Load()
 void Render::Update(const Entity & entity, const RenderComponent & rc)
 {
 
-
 	
 }
 

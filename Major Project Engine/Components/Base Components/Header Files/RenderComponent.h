@@ -1,5 +1,7 @@
 #pragma once
 #include "BaseComponent.h"
+#include "RenderExternals.h"
+
 class RenderComponent : public BaseComponent
 {
 public:
