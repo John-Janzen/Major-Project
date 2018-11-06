@@ -14,7 +14,7 @@ public:
 	~Render();
 
 	bool Load();
-	void Update(const Entity & entity, const RenderComponent & rc);
+	void Update(const Entity & entity, const std::shared_ptr<RenderComponent> & rc);
 	void FinalUpdate();
 	void Close();
 

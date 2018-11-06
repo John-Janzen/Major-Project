@@ -22,6 +22,8 @@ bool Game::Load()
 	component_manager->add_component(entity_id1, std::make_shared<RenderComponent>());
 	component_manager->add_component(entity_id2, std::make_shared<RenderComponent>());
 
+	FileLoader::instance().ObjImporter(std::string("Assets/Quad.obj"), component_manager->get_component<RenderComponent>(entity_id1)->get_model());
+
 	_state = PLAYING;
 	return true;
 }
@@ -51,7 +53,7 @@ bool Game::Game_Loop()
 		}
 		for (auto it = entity_manager->retreive_list().begin(); it != entity_manager->retreive_list().end(); ++it)
 		{
-			RenderComponent rc;
+			std::shared_ptr<RenderComponent> rc;
 			if (component_manager->get_component((*it).first, rc))
 			{
 				renderer->Update(*(*it).second, rc);
@@ -77,8 +79,8 @@ bool Game::Game_Loop()
 	//ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
 	t_end = std::chrono::high_resolution_clock::now();
 
-	if (std::chrono::duration<double, std::milli>(t_end - t_start).count() > 5000)
-		_state = EXITING;
+	/*if (std::chrono::duration<double, std::milli>(t_end - t_start).count() > 5000)
+		_state = EXITING;*/
 	
 	return game_running;
 }

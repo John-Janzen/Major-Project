@@ -26,7 +26,7 @@ bool Render::Load()
 	return true;
 }
 
-void Render::Update(const Entity & entity, const RenderComponent & rc)
+void Render::Update(const Entity & entity, const std::shared_ptr<RenderComponent> & rc)
 {
 
 	

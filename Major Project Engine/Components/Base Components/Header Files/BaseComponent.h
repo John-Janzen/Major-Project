@@ -7,5 +7,5 @@ public:
 
 	void set_death() { death_flag = true; }
 private:
-	bool death_flag;
+	bool death_flag = false;
 };

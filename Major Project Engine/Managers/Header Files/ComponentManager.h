@@ -35,21 +35,20 @@ public:
 		}
 		else
 		{
-			
 			printf("Duplicate Components not allowed, %d", entity_id);
 		}
 	}
 
 	template <class T>
-	bool get_component(const std::shared_ptr<Entity> & entity, T & base_comp)
+	bool get_component(const std::shared_ptr<Entity> & entity, std::shared_ptr<T> & base_comp)
 	{
 		bool found = false;
 		auto range = components.equal_range(entity->get_id());
 		std::for_each(range.first, range.second, [&base_comp, &found](ComponentStorage::value_type & x)
 		{
-			if (&dynamic_cast<T&>(*x.second) != nullptr)
+			if (std::dynamic_pointer_cast<T>(x.second) != nullptr)
 			{
-				base_comp = dynamic_cast<T&>(*x.second);
+				base_comp = std::static_pointer_cast<T>(x.second);
 				found = true;
 			}
 		});
@@ -58,19 +57,34 @@ public:
 
 
 	template <class T>
-	bool get_component(const int & entity_id, T & base_comp)
+	bool get_component(const int & entity_id, std::shared_ptr<T> & base_comp)
 	{
 		bool found = false;
 		auto range = components.equal_range(entity_id);
 		std::for_each(range.first, range.second, [&base_comp, &found](ComponentStorage::value_type & x)
 		{
-			if (&dynamic_cast<T&>(*x.second) != nullptr)
+			if (std::dynamic_pointer_cast<T>(x.second) != nullptr)
 			{
-				base_comp = dynamic_cast<T&>(*x.second);
+				base_comp = std::static_pointer_cast<T>(x.second);
 				found = true;
 			}
 		});
 		return found;
+	}
+
+	template<class T>
+	std::shared_ptr<T> get_component(const int & entity_id)
+	{
+		std::shared_ptr<T> temp;
+		auto range = components.equal_range(entity_id);
+		std::for_each(range.first, range.second, [&temp](ComponentStorage::value_type & x)
+		{
+			if (std::dynamic_pointer_cast<T>(x.second) != nullptr)
+			{
+				temp = std::static_pointer_cast<T>(x.second);
+			}
+		});
+		return temp;
 	}
 
 	template<class T>
@@ -80,7 +94,7 @@ public:
 		auto range = components.equal_range(entity->get_id());
 		std::for_each(range.first, range.second, [&found](ComponentStorage::value_type & x)
 		{
-			if (&dynamic_cast<T&>(*x.second) != nullptr)
+			if (std::dynamic_pointer_cast<T>(x.second) != nullptr)
 			{
 				found = true;
 			}
@@ -95,7 +109,7 @@ public:
 		auto range = components.equal_range(entity_id);
 		std::for_each(range.first, range.second, [&found](ComponentStorage::value_type & x)
 		{
-			if (&dynamic_cast<T&>(*x.second) != nullptr)
+			if (std::dynamic_pointer_cast<T>(x.second) != nullptr)
 			{
 				found = true;
 			}
