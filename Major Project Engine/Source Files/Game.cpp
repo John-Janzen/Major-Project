@@ -17,14 +17,18 @@ bool Game::Load()
 		return false;
 	}
 
-	int entity_id1 = entity_manager->create_entity_id("256");
-	int entity_id2 = entity_manager->create_entity_id("257");
-	component_manager->add_component(entity_id1, std::make_shared<RenderComponent>());
+	int entity_id1 = entity_manager->add_entity<Quad>("Quad");
+	int entity_id2 = entity_manager->create_entity_id("Test_Empty");
+	component_manager->add_component(entity_id1, std::make_shared<QuadRenderComponent>());
 	component_manager->add_component(entity_id2, std::make_shared<RenderComponent>());
 
-	FileLoader::instance().ObjImporter(std::string("Assets/Quad.obj"), component_manager->get_component<RenderComponent>(entity_id1)->get_model());
-
+	for (auto & element : component_manager->find_all_of_type<RenderComponent>())
+	{
+		renderer->init_render_component(element);
+	}
 	_state = PLAYING;
+	t_end = std::chrono::high_resolution_clock::now();
+	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(t_end - t_start).count());
 	return true;
 }
 
@@ -51,13 +55,10 @@ bool Game::Game_Loop()
 				}
 			}
 		}
-		for (auto it = entity_manager->retreive_list().begin(); it != entity_manager->retreive_list().end(); ++it)
+
+		for (auto & element : component_manager->find_all_of_type<RenderComponent>())
 		{
-			std::shared_ptr<RenderComponent> rc;
-			if (component_manager->get_component((*it).first, rc))
-			{
-				renderer->Update(*(*it).second, rc);
-			}
+			renderer->Update(element);
 		}
 		renderer->FinalUpdate();
 

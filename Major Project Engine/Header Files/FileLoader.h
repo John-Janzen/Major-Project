@@ -22,7 +22,7 @@ public:
 		
 	};
 
-	static FileLoader& instance()
+	static FileLoader& Instance()
 	{
 		static FileLoader inst;
 		return inst;
@@ -32,9 +32,9 @@ public:
 
 	void Close();
 
-	void addModel(const std::string & path, const std::shared_ptr<Model> & pair);
+	void add_model(const std::string & path, const std::shared_ptr<Model> & pair);
 
-	void ObjImporter(const std::string & path, std::shared_ptr<Model> & model_loc);
+	void obj_file_importer(const std::string & path, std::shared_ptr<Model> & model_loc);
 
 private:
 	FileLoader() {}
@@ -66,12 +66,12 @@ inline void FileLoader::Close()
 	_models = nullptr;*/
 }
 
-inline void FileLoader::addModel(const std::string & path, const std::shared_ptr<Model> & model)
+inline void FileLoader::add_model(const std::string & path, const std::shared_ptr<Model> & model)
 {
 	_models.emplace(path, model);
 }
 
-inline void FileLoader::ObjImporter(
+inline void FileLoader::obj_file_importer(
 	const std::string & path,
 	std::shared_ptr<Model> & model_loc)
 {
@@ -174,7 +174,7 @@ inline void FileLoader::ObjImporter(
 		new_model->VSize = finalData.size();
 		model_loc = new_model;
 
-		addModel(path, new_model);
+		add_model(path, new_model);
 
 		auto end_time = std::chrono::high_resolution_clock::now();
 		printf("Time ended: %f\n", std::chrono::duration<double, std::micro>(end_time - start_time).count());

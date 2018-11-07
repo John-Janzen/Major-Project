@@ -13,6 +13,25 @@ class ComponentManager
 {
 public:
 
+	~ComponentManager()
+	{
+		components.clear();
+	}
+
+	template<class T>
+	std::list<std::shared_ptr<T>> find_all_of_type()
+	{
+		std::list<std::shared_ptr<T>> full_list;
+		for (auto const & element : components)
+		{
+			if (std::dynamic_pointer_cast<T>(element.second) != nullptr)
+			{
+				full_list.push_back(std::static_pointer_cast<T>(element.second));
+			}
+		}
+		return full_list;
+	}
+
 	template<class T>
 	void add_component(const std::shared_ptr<Entity> & entity, std::shared_ptr<T> comp)
 	{

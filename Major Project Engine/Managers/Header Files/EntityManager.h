@@ -1,7 +1,9 @@
 #pragma once
 #include "Entity.h"
+#include "Quad.h"
 
 #include <unordered_map>
+#include <type_traits>
 
 typedef int EntityID;
 typedef std::map<EntityID, std::shared_ptr<Entity>> EntityStorage;
@@ -10,6 +12,8 @@ class EntityManager
 {
 public:
 	EntityManager() : id_counter(0x100) {}
+
+	~EntityManager() { entities.clear(); }
 
 	std::shared_ptr<Entity> & create_entity(const std::string & name)
 	{
@@ -25,12 +29,20 @@ public:
 		return inserted.first->first;
 	}
 
+	template <class T>
+	const int & add_entity(const std::string & name)
+	{
+		EntityID id = id_counter++;
+		auto inserted = entities.emplace(id, std::make_shared<T>(name, id));
+		return inserted.first->first;
+	}
+
 	void flag_dead_entity(const EntityID & entity_id)
 	{
 		entities.find(entity_id)->second.get()->set_death();
 	}
 
-	void flag_dead_entity(std::unique_ptr<Entity> & entity)
+	void flag_dead_entity(std::shared_ptr<Entity> & entity)
 	{
 		entity.get()->set_death();
 	}
@@ -50,8 +62,6 @@ public:
 	{
 		return entities;
 	}
-
-	~EntityManager() {}
 
 private:
 	EntityStorage entities;
