@@ -1,5 +1,6 @@
 #pragma once
 #include "Application.h"
+#include "Quad.h"
 
 class Game : public Application
 {

@@ -3,6 +3,7 @@
 #include <map>
 #include <typeinfo>
 #include <typeindex>
+#include <string>
 
 class Entity
 {

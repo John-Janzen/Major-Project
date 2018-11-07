@@ -5,6 +5,7 @@
 #include "EntityManager.h"
 #include "ComponentManager.h"
 #include "Render.h"
+#include "FileLoader.h"
 
 #include <vector>
 #include <ctime>

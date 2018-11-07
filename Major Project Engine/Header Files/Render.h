@@ -14,9 +14,11 @@ public:
 	~Render();
 
 	bool Load();
-	void Update(const Entity & entity, const RenderComponent & rc);
+	void Update(const std::shared_ptr<RenderComponent> & rc);
 	void FinalUpdate();
 	void Close();
+
+	void init_render_component(std::shared_ptr<RenderComponent> & render_component);
 
 	bool init_SDL();
 	bool init_GL();
