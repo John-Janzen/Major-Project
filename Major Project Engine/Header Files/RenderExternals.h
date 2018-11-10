@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _RENDEREXTERNALS_H
+#define _RENDEREXTERNALS_H
+
 #include <glew.h>
 #include <cstddef>
 
@@ -21,3 +24,5 @@ struct Model
 	const GLfloat * getVertices() { return _vertices; }
 	const GLuint * getIndices() { return _indices; }
 };
+
+#endif // !_RENDEREXTERNALS

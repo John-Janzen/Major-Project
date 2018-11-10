@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _BLOCKINGQUEUE_H
+#define _BLOCKINGQUEUE_H
+
 #include <queue>
 #include <mutex>
 
@@ -7,11 +10,11 @@ template<typename T>
 class BlockingQueue
 {
 public:
-	BlockingQueue() 
+	BlockingQueue()
 	{
 		_queue = std::queue<T>();
 	}
-	~BlockingQueue() 
+	~BlockingQueue()
 	{
 		std::queue<T>().swap(_queue);
 	}
@@ -50,3 +53,5 @@ private:
 	std::mutex _mutex;
 	std::queue<T> _queue;
 };
+
+#endif // !_BLOCKINGQUEUE_H

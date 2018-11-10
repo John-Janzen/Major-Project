@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _FILELOADER_H
+#define _FILELOADER_H
+
 #include "RenderExternals.h"
 
 #include <unordered_map>
@@ -17,9 +21,9 @@ typedef std::unordered_map<std::string, std::shared_ptr<Model>> ModelsStorage;
 class FileLoader
 {
 public:
-	~FileLoader() 
+	~FileLoader()
 	{
-		
+
 	};
 
 	static FileLoader& Instance()
@@ -184,3 +188,5 @@ inline void FileLoader::obj_file_importer(
 		model_count++;
 	}
 }
+
+#endif // !_FILELOADER_H

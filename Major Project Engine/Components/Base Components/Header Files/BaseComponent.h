@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _BASECOMPONENT_H
+#define _BASECOMPONENT_H
+
 class BaseComponent
 {
 public:
@@ -9,3 +13,7 @@ public:
 private:
 	bool death_flag = false;
 };
+
+#endif // !_BASECOMPONENT_H
+
+

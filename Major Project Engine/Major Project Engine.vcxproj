@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Scenes\Source Files\MainScene.cpp" />
     <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
     <ClCompile Include="Components\Base Components\Source Files\RenderComponent.cpp" />
     <ClCompile Include="Components\Game Components\Source Files\QuadRenderComponent.cpp" />
@@ -31,8 +32,10 @@
   <ItemGroup>
     <ClInclude Include="Components\Base Components\Header Files\ComponentHeaders.h" />
     <ClInclude Include="Components\Game Components\Header Files\GameComponents.h" />
+    <ClInclude Include="Game Objects\Header Files\GameHeaders.h" />
     <ClInclude Include="Header Files\FileLoader.h" />
     <ClInclude Include="Header Files\RenderExternals.h" />
+    <ClInclude Include="Scenes\Header Files\MainScene.h" />
     <ClInclude Include="Managers\Header Files\ComponentManager.h" />
     <ClInclude Include="Managers\Header Files\EntityManager.h" />
     <ClInclude Include="Header Files\Application.h" />
@@ -49,6 +52,8 @@
     <ClInclude Include="Components\Base Components\Header Files\RenderComponent.h" />
     <ClInclude Include="Components\Game Components\Header Files\QuadRenderComponent.h" />
     <ClInclude Include="Game Objects\Header Files\Quad.h" />
+    <ClInclude Include="Scenes\Header Files\Scene.h" />
+    <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -127,7 +132,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)Game Objects\Header Files;$(ProjectDir)Components\Game Components\Header Files;$(ProjectDir)Components\Base Components\Header Files;$(ProjectDir)Libraries\glm\include;$(ProjectDir)Libraries\glew-2.1.0\include\GL;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Scenes\Header Files;$(ProjectDir)Game Objects\Header Files;$(ProjectDir)Components\Game Components\Header Files;$(ProjectDir)Components\Base Components\Header Files;$(ProjectDir)Libraries\glm\include;$(ProjectDir)Libraries\glew-2.1.0\include\GL;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

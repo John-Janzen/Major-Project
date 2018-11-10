@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _THREADMANAGER_H
+#define _THREADMANAGER_H
+
 #include "Thread.h"
 #include "BlockingQueue.h"
 
@@ -60,7 +64,7 @@ public:
 
 	/*
 	Prints the stats for the jobs that the threads have
-	completed. Along with the number of jobs in total 
+	completed. Along with the number of jobs in total
 	that have been completed.
 	*/
 	void print_total_jobs();
@@ -81,3 +85,5 @@ private:
 	// std::queue<std::unique_ptr<Job>> job_list;
 	BlockingQueue<std::unique_ptr<Job>> * job_list;
 };
+
+#endif // !_THREADMANAGER_H

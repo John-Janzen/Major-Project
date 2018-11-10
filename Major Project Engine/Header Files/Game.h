@@ -1,6 +1,10 @@
 #pragma once
+
+#ifndef _GAME_H
+#define _GAME_H
+
 #include "Application.h"
-#include "Quad.h"
+#include "GameHeaders.h"
 
 class Game : public Application
 {
@@ -13,3 +17,6 @@ public:
 	void Close();
 };
 
+
+
+#endif // !_GAME_H

@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _SYSTEM_H
+#define _SYSTEM_H
+
 class Game;
 
 class System
@@ -17,4 +20,7 @@ private:
 
 inline System::System(Game & app) : parent_app(app) {}
 
-inline System::~System(){}
+inline System::~System() {}
+
+
+#endif // !_SYSTEM_H

@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _ENTITY_H
+#define _ENTITY_H
+
 #include <map>
 #include <typeinfo>
 #include <typeindex>
@@ -22,3 +25,5 @@ private:
 	bool death_flag;
 };
 
+
+#endif // !_ENTITY_H

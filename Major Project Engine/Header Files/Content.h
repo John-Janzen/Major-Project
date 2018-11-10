@@ -1,10 +1,13 @@
 #pragma once
 
+#ifndef _CONTENT_H
+#define _CONTENT_H
+
 struct Content
 {
 	virtual ~Content() {};
 
-	
+
 };
 
 class InitialContent : public Content
@@ -17,3 +20,5 @@ public:
 private:
 	InitialContent();
 };
+
+#endif // !_CONTENT_H

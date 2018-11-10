@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _RENDER_H
+#define _RENDER_H
+
 #include "System.h"
 #include "Entity.h"
 #include "RenderComponent.h"
@@ -32,3 +36,4 @@ private:
 
 };
 
+#endif // !_RENDER_H

@@ -1,11 +1,15 @@
 #pragma once
 
+#ifndef _APPLICATION_H
+#define _APPLICATION_H
+
 #include "Entity.h"
 #include "ThreadManager.h"
 #include "EntityManager.h"
 #include "ComponentManager.h"
 #include "Render.h"
 #include "FileLoader.h"
+#include "SceneHeaders.h"
 
 #include <vector>
 #include <ctime>
@@ -34,6 +38,8 @@ protected:
 	std::unique_ptr<EntityManager> entity_manager;
 	std::unique_ptr<ComponentManager> component_manager;
 
+	std::unique_ptr<Scene> current_scene;
+
 	std::clock_t c_start;
 	SDL_Event sdl_event;
 	std::unique_ptr<Render> renderer;
@@ -60,3 +66,4 @@ inline Application::~Application()
 	component_manager = nullptr;
 }
 
+#endif // !_APPLICATION_H

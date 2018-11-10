@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _COMPONENTHEADER_H
+#define _COMPONENTHEADER_H
+
 #include "ComponentHeaders.h"
 #include "Entity.h"
 
@@ -139,3 +143,5 @@ public:
 private:
 	ComponentStorage components;
 };
+
+#endif // COMPONENTHEADER_H

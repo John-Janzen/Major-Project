@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _QUADRENDERCOMPONENT_H
+#define _QUADRENDERCOMPONENT_H
+
 #include "RenderComponent.h"
 
 #include <memory>
@@ -13,6 +17,7 @@ public:
 	~QuadRenderComponent();
 
 private:
-	
+
 };
 
+#endif // !_QUADRENDERCOMPONENT_H

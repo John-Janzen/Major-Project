@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _RENDERCOMPONENT_H
+#define _RENDERCOMPONENT_H
+
 #include "BaseComponent.h"
 #include "RenderExternals.h"
 #include "FileLoader.h"
@@ -33,3 +37,6 @@ private:
 
 };
 
+
+
+#endif // !_RENDERCOMPONENT_H

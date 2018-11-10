@@ -16,11 +16,8 @@ bool Game::Load()
 		_state = EXITING;
 		return false;
 	}
-
-	int entity_id1 = entity_manager->add_entity<Quad>("Quad");
-	int entity_id2 = entity_manager->create_entity_id("Test_Empty");
-	component_manager->add_component(entity_id1, std::make_shared<QuadRenderComponent>());
-	component_manager->add_component(entity_id2, std::make_shared<RenderComponent>());
+	current_scene = std::make_unique<MainScene>();
+	current_scene->Load(entity_manager, component_manager);
 
 	for (auto & element : component_manager->find_all_of_type<RenderComponent>())
 	{
