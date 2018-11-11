@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _JOB_H
+#define _JOB_H
+
 #include "Content.h"
 #include <functional>
 
@@ -10,15 +14,12 @@
 enum Job_Type
 {
 	NULL_TYPE,
-	SLEEPY_JOB,
-	STANDARD_JOB,
-	RANDOM_JOB,
-	COMPLEX_JOB
+
 };
 
 /*
-* Job class that holds the data for the threads 
-* to read and work on. 
+* Job class that holds the data for the threads
+* to read and work on.
 *
 * Job type as stated above will govern what a job will do.
 *
@@ -32,8 +33,15 @@ class Job
 {
 public:
 
-	Job(Job_Type type, std::function<void(Content*)> function, Content* data = nullptr);
-	~Job();
+	Job(Job_Type type, std::function<void(Content*)> function, Content* data = nullptr)
+		: _type(type), _func(function), _content(data) {}
+
+	~Job()
+	{
+		_type = NULL_TYPE;
+		_func = NULL;
+		delete(_content);
+	}
 
 	/* Gets the type of the job */
 	Job_Type get_type()
@@ -57,3 +65,4 @@ private:
 	Content * _content;
 };
 
+#endif // !_JOB_H

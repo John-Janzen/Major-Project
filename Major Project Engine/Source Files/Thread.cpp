@@ -36,13 +36,12 @@ void Thread::Execution()
 		if (current_job)
 		{
 			current_job.get()->get_function()(current_job->get_content());
-			//printf("%s\tfinished Job %i\n", this->_name.c_str(), static_cast<int>(current_job.get()->get_type()));
 			count++;
 			current_job.reset();
 		}
 		else
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(2));
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
 	}
 }

@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef _THREAD_H
+#define _THREAD_H
+
 #include "Job.h"
 
 #include <atomic>
@@ -43,4 +47,4 @@ private:
 	std::unique_ptr<Job> current_job;
 };
 
-
+#endif // !_THREAD_H

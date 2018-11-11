@@ -19,16 +19,41 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source Files\Job.cpp" />
+    <ClCompile Include="Scenes\Source Files\MainScene.cpp" />
+    <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
+    <ClCompile Include="Components\Base Components\Source Files\RenderComponent.cpp" />
+    <ClCompile Include="Components\Game Components\Source Files\QuadRenderComponent.cpp" />
+    <ClCompile Include="Game Objects\Source Files\Quad.cpp" />
+    <ClCompile Include="Source Files\Render.cpp" />
+    <ClCompile Include="Source Files\Game.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Components\Base Components\Header Files\ComponentHeaders.h" />
+    <ClInclude Include="Components\Game Components\Header Files\GameComponents.h" />
+    <ClInclude Include="Game Objects\Header Files\GameHeaders.h" />
+    <ClInclude Include="Header Files\FileLoader.h" />
+    <ClInclude Include="Header Files\RenderExternals.h" />
+    <ClInclude Include="Scenes\Header Files\MainScene.h" />
+    <ClInclude Include="Managers\Header Files\ComponentManager.h" />
+    <ClInclude Include="Managers\Header Files\EntityManager.h" />
+    <ClInclude Include="Header Files\Application.h" />
+    <ClInclude Include="Components\Base Components\Header Files\BaseComponent.h" />
+    <ClInclude Include="Header Files\Game.h" />
+    <ClInclude Include="Header Files\Entity.h" />
     <ClInclude Include="Header Files\BlockingQueue.h" />
     <ClInclude Include="Header Files\Content.h" />
     <ClInclude Include="Header Files\Thread.h" />
-    <ClInclude Include="Header Files\ThreadManager.h" />
+    <ClInclude Include="Managers\Header Files\ThreadManager.h" />
     <ClInclude Include="Header Files\Job.h" />
+    <ClInclude Include="Header Files\System.h" />
+    <ClInclude Include="Header Files\Render.h" />
+    <ClInclude Include="Components\Base Components\Header Files\RenderComponent.h" />
+    <ClInclude Include="Components\Game Components\Header Files\QuadRenderComponent.h" />
+    <ClInclude Include="Game Objects\Header Files\Quad.h" />
+    <ClInclude Include="Scenes\Header Files\Scene.h" />
+    <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -85,7 +110,7 @@
     <IncludePath>$(ProjectDir)Header Files;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)Header Files;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -107,12 +132,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)Libraries\bullet3-2.87\src;$(ProjectDir)Libraries\sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Scenes\Header Files;$(ProjectDir)Game Objects\Header Files;$(ProjectDir)Components\Game Components\Header Files;$(ProjectDir)Components\Base Components\Header Files;$(ProjectDir)Libraries\glm\include;$(ProjectDir)Libraries\glew-2.1.0\include\GL;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
