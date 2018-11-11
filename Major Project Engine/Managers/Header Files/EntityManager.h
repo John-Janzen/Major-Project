@@ -3,8 +3,7 @@
 #ifndef _ENTITYMANAGER_H
 #define _ENTITYMANAGER_H
 
-#include "Entity.h"
-#include "Quad.h"
+#include "GameHeaders.h"
 
 #include <unordered_map>
 #include <type_traits>
@@ -19,22 +18,25 @@ public:
 
 	~EntityManager() { entities.clear(); }
 
-	std::shared_ptr<Entity> & create_entity(const std::string & name)
+	std::shared_ptr<Entity> & create_entity(const std::string & name, const std::unique_ptr<ComponentManager> & c_manager)
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<Entity>(name, id_counter));
+		inserted.first->second->Load(c_manager);
 		return (*inserted.first).second;
 	}
 
-	const int & create_entity_id(const std::string & name)
+	const int & create_entity_id(const std::string & name, const std::unique_ptr<ComponentManager> & c_manager)
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<Entity>(name, id_counter));
+		inserted.first->second->Load(c_manager);
 		return inserted.first->first;
 	}
 
 	template <class T>
-	const int & add_entity(const std::string & name)
+	const int & add_entity(const std::string & name, const std::unique_ptr<ComponentManager> & c_manager)
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
+		inserted.first->second->Load(c_manager);
 		return inserted.first->first;
 	}
 

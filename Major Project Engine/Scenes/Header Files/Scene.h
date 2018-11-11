@@ -26,5 +26,4 @@ inline Scene::Scene() {}
 
 inline Scene::~Scene() {}
 
-
 #endif // !_SCENE_H

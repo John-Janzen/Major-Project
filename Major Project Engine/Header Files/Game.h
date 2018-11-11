@@ -17,6 +17,4 @@ public:
 	void Close();
 };
 
-
-
 #endif // !_GAME_H

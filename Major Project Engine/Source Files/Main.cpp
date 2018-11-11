@@ -18,13 +18,13 @@ https://github.com/John-Janzen
 #include "Game.h"
 
 /*
-* Main entry point of the program.
-* Initializes and runs everything in the engine.
+Main entry point of the program.
+Initializes and runs everything in the engine.
 */
 int main(int argc, char * args[])
 {
 
-	Game * game = new Game(std::thread::hardware_concurrency() / 2);
+	Application * game = new Game(std::thread::hardware_concurrency() / 2);
 	
 	while (game->Game_Loop());
 

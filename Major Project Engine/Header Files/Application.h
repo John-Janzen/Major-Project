@@ -3,12 +3,10 @@
 #ifndef _APPLICATION_H
 #define _APPLICATION_H
 
-#include "Entity.h"
 #include "ThreadManager.h"
-#include "EntityManager.h"
 #include "ComponentManager.h"
+#include "EntityManager.h"
 #include "Render.h"
-#include "FileLoader.h"
 #include "SceneHeaders.h"
 
 #include <vector>
@@ -29,9 +27,11 @@ public:
 	explicit Application(const std::size_t & num_of_threads);
 	~Application();
 
-	virtual bool Load() = 0;
-	virtual bool Game_Loop() = 0;
-	virtual void Close() = 0;
+	virtual bool Load(std::unique_ptr<Scene> newScene);
+	virtual bool Game_Loop();
+	virtual void Close();
+
+	bool load_scene();
 
 protected:
 	std::unique_ptr<ThreadManager> thread_manager;
@@ -54,6 +54,14 @@ inline Application::Application(const std::size_t & num_of_threads)
 	thread_manager = std::make_unique<ThreadManager>(num_of_threads);
 	entity_manager = std::make_unique<EntityManager>();
 	component_manager = std::make_unique<ComponentManager>();
+	renderer = std::make_unique<Render>();
+
+
+	if (!renderer->Load())
+	{
+		printf("Error Initializing Renderer");
+		_state = EXITING;
+	}
 }
 
 inline Application::~Application()
@@ -64,6 +72,44 @@ inline Application::~Application()
 	entity_manager = nullptr;
 	component_manager.reset();
 	component_manager = nullptr;
+	renderer.reset();
+	renderer = nullptr;
+}
+
+inline bool Application::Load(std::unique_ptr<Scene> newScene)
+{
+	c_start = std::clock();
+	t_start = std::chrono::high_resolution_clock::now();
+
+	if (!newScene->Load(entity_manager, component_manager))
+	{
+		printf("Error Making current scene");
+		return false;
+	}
+	current_scene = std::move(newScene);
+
+	for (auto & element : component_manager->find_all_of_type<RenderComponent>())
+	{
+		renderer->init_render_component(element);
+	}
+
+	return true;
+}
+
+inline bool Application::Game_Loop()
+{
+
+	return true;
+}
+
+inline void Application::Close()
+{
+
+}
+
+inline bool Application::load_scene()
+{
+	return false;
 }
 
 #endif // !_APPLICATION_H

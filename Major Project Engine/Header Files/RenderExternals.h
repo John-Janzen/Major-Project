@@ -25,4 +25,16 @@ struct Model
 	const GLuint * getIndices() { return _indices; }
 };
 
+struct Shader
+{
+	const GLuint _shaderID;
+	GLenum _type;
+
+	Shader(const GLuint & data, const GLenum & type) : _shaderID(data), _type(type) {};
+
+	~Shader() {}
+
+	const GLuint getShaderID() { return _shaderID; };
+};
+
 #endif // !_RENDEREXTERNALS

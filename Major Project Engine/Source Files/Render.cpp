@@ -1,7 +1,7 @@
 #include "Render.h"
 
-Render::Render(Game & parent_app) 
-	: System(parent_app)
+Render::Render() 
+	: System()
 {
 
 }
@@ -23,13 +23,48 @@ bool Render::Load()
 		printf("GL Initialization failed, see function Load()");
 		return false;
 	}
+	projection_matrix = glm::perspective(glm::radians(60.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	return true;
+}
+
+void Render::InitUpdate()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+
+	glm::mat4 model_matrix, rotation;
+	rotation = glm::rotate(rotation, 0.0f, glm::vec3(0, 0, 1));
+	rotation = glm::rotate(rotation, 0.0f, glm::vec3(1, 0, 0));
+	rotation = glm::rotate(rotation, 0.0f, glm::vec3(0, 1, 0));
+	model_matrix = glm::translate(rotation, glm::vec3(0.0f, 0.0f, -5.0f));
+
+	projection_look_matrix = projection_matrix * (look_matrix * model_matrix);
 }
 
 void Render::Update(const std::shared_ptr<RenderComponent> & rc)
 {
+	if (rc->get_model() != nullptr)
+	{
+		glBindVertexArray(rc->get_vertex_array());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->get_element_buffer());
 
-	
+		glUseProgram(rc->get_shader_program());
+
+		glm::mat4 rotation = glm::mat4();
+		rotation = glm::translate(rotation, glm::vec3(0.0f, 0.0f, 0.0f));
+		rotation = glm::rotate(rotation, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+		rotation = glm::rotate(rotation, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 model_matrix = glm::rotate(rotation, test_rotate += 0.001, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		glUniformMatrix4fv(rc->get_render_proj_loc(), 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
+		glUniformMatrix4fv(rc->get_render_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
+		glDrawElements(GL_TRIANGLES, rc->get_model()->ISize, GL_UNSIGNED_INT, NULL);
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+	}
 }
 
 void Render::FinalUpdate()
@@ -73,6 +108,38 @@ void Render::init_render_component(std::shared_ptr<RenderComponent> & render_com
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
+	}
+	else
+	{
+		printf("Object skipped no available model\n");
+	}
+	if (render_component->get_v_shader() != nullptr && render_component->get_f_shader() != nullptr)
+	{
+		render_component->get_shader_program() = glCreateProgram();
+
+		glAttachShader(render_component->get_shader_program(), render_component->get_v_shader()->getShaderID());
+		glAttachShader(render_component->get_shader_program(), render_component->get_f_shader()->getShaderID());
+		glLinkProgram(render_component->get_shader_program());
+
+		GLint programSuccess = GL_FALSE;
+		glGetProgramiv(render_component->get_shader_program(), GL_LINK_STATUS, &programSuccess);
+		if (programSuccess != GL_TRUE)
+		{
+			printf("Error linking program %d!\n", render_component->get_shader_program());
+		}
+		else
+		{
+			glUseProgram(render_component->get_shader_program());
+
+			render_component->get_render_model_loc() = glGetUniformLocation(render_component->get_shader_program(), "model_matrix");
+			render_component->get_render_proj_loc() = glGetUniformLocation(render_component->get_shader_program(), "projection_matrix");
+			
+			render_component->get_render_color_loc() = glGetUniformLocation(render_component->get_shader_program(), "color_vec");
+		}
+	}
+	else
+	{
+		printf("Object skipped no available shaders\n");
 	}
 }
 
@@ -125,7 +192,7 @@ bool Render::init_GL()
 {
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 

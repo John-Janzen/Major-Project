@@ -6,14 +6,12 @@
 class BaseComponent
 {
 public:
+	BaseComponent() : death_flag(false) {}
 	virtual ~BaseComponent() {}
-	virtual void receive(int message) = 0;
 
 	void set_death() { death_flag = true; }
 private:
-	bool death_flag = false;
+	bool death_flag;
 };
 
 #endif // !_BASECOMPONENT_H
-
-

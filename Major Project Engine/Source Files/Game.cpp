@@ -1,28 +1,16 @@
 #include "Game.h"
 
-Game::Game(const size_t & num_of_threads) : Application(num_of_threads) {}
+Game::Game(const size_t & num_of_threads) : Application(num_of_threads) 
+{
+
+}
 
 Game::~Game() {}
 
 bool Game::Load()
 {
-	c_start = std::clock();
-	t_start = std::chrono::high_resolution_clock::now();
+	Application::Load(std::make_unique<MainScene>());
 
-	renderer = std::make_unique<Render>(*this);
-	if (!renderer.get()->Load())
-	{
-		printf("Error Initializing Renderer");
-		_state = EXITING;
-		return false;
-	}
-	current_scene = std::make_unique<MainScene>();
-	current_scene->Load(entity_manager, component_manager);
-
-	for (auto & element : component_manager->find_all_of_type<RenderComponent>())
-	{
-		renderer->init_render_component(element);
-	}
 	_state = PLAYING;
 	t_end = std::chrono::high_resolution_clock::now();
 	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(t_end - t_start).count());
@@ -52,7 +40,7 @@ bool Game::Game_Loop()
 				}
 			}
 		}
-
+		renderer->InitUpdate();
 		for (auto & element : component_manager->find_all_of_type<RenderComponent>())
 		{
 			renderer->Update(element);

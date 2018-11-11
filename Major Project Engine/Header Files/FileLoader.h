@@ -15,8 +15,10 @@
 #include <sstream>
 #include <glew.h>
 #include <chrono>
+#include <iostream>
 
 typedef std::unordered_map<std::string, std::shared_ptr<Model>> ModelsStorage;
+typedef std::unordered_map<std::string, std::shared_ptr<Shader>> ShaderStorage;
 
 class FileLoader
 {
@@ -38,6 +40,10 @@ public:
 
 	void add_model(const std::string & path, const std::shared_ptr<Model> & pair);
 
+	void add_shader(const std::string & path, const std::shared_ptr<Shader> & shader);
+
+	void loadShaderFromFile(const std::string & path, const GLenum & type, std::shared_ptr<Shader> & shader);
+
 	void obj_file_importer(const std::string & path, std::shared_ptr<Model> & model_loc);
 
 private:
@@ -54,6 +60,7 @@ private:
 	};
 
 	ModelsStorage _models;
+	ShaderStorage _shaders;
 
 	unsigned int model_count = 0;
 	unsigned int texture_count = 0;
@@ -75,20 +82,72 @@ inline void FileLoader::add_model(const std::string & path, const std::shared_pt
 	_models.emplace(path, model);
 }
 
+inline void FileLoader::add_shader(const std::string & path, const std::shared_ptr<Shader> & shader)
+{
+	if (shader->_shaderID == GL_VERTEX_SHADER)
+	{
+		_shaders.emplace(path, shader);
+	}
+	else if (shader->_type == GL_FRAGMENT_SHADER)
+	{
+		_shaders.emplace(path, shader);
+	}
+}
+
+inline void FileLoader::loadShaderFromFile(const std::string & path, const GLenum & type, std::shared_ptr<Shader> & shader)
+{
+	GLuint shaderID = 0;
+	std::string shaderString;
+	std::ifstream sourceFile(path.c_str());
+	if (sourceFile.is_open())
+	{
+		shaderString.assign((std::istreambuf_iterator<char>(sourceFile)), std::istreambuf_iterator<char>());
+		shaderID = glCreateShader(type);
+
+		const GLchar* shaderSource = shaderString.c_str();
+		glShaderSource(shaderID, 1, (const GLchar**)&shaderSource, NULL);
+
+		GLint shaderCompiled = GL_FALSE;
+		glCompileShader(shaderID);
+
+		glGetShaderiv(shaderID, GL_COMPILE_STATUS, &shaderCompiled);
+		if (shaderCompiled != GL_TRUE)
+		{
+			printf("Unable to compile shader %d!\n\nSource:\n%s\n", shaderID, shaderSource);
+			glDeleteShader(shaderID);
+			shaderID = 0;
+			return;
+		}
+		sourceFile.close();
+	}
+	else
+	{
+		printf("Unable to open file %s\n", path.c_str());
+		return;
+	}
+	add_shader(path, shader = std::make_shared<Shader>(shaderID, type));
+	printf("Shader Loaded: %s\n", path.c_str());
+}
+
 inline void FileLoader::obj_file_importer(
 	const std::string & path,
 	std::shared_ptr<Model> & model_loc)
 {
+	std::unordered_map<std::string, std::shared_ptr<Model>>::iterator it;
+	if ((it = _models.find(path)) != _models.end())
+	{
+		model_loc = (*it).second;
+		return;
+	}
+
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> textures;
 	std::vector<glm::vec3> normals;
 	std::vector<GLuint> indices;
 	std::vector<GLfloat> finalData;
 
-	std::map<std::string, GLuint> library;
 	std::map<std::string, GLuint>::iterator loc;
-
-	auto start_time = std::chrono::high_resolution_clock::now();
+	std::map<std::string, GLuint> library;
 
 	FILE * file_stream;
 
@@ -98,6 +157,7 @@ inline void FileLoader::obj_file_importer(
 	std::stringstream ss;
 	GLuint location = 0;
 	char lineHeader[16];
+
 
 	if (fopen_s(&file_stream, path.c_str(), "r") != 0)
 	{
@@ -129,9 +189,9 @@ inline void FileLoader::obj_file_importer(
 			else if (strcmp(lineHeader, "f") == 0)
 			{
 				int matches = fscanf_s(file_stream, "%u/%u/%u %u/%u/%u %u/%u/%u\n",
-					&face[0].x, &face[0].y, &face[0].z,		// Vertex
-					&face[1].x, &face[1].y, &face[1].z,		// Texture
-					&face[2].x, &face[2].y, &face[2].z);	// Normal
+					&face[0].x, &face[0].y, &face[0].z,		// Vertex // Texture // Normal
+					&face[1].x, &face[1].y, &face[1].z,		// Vertex // Texture // Normal
+					&face[2].x, &face[2].y, &face[2].z);	// Vertex // Texture // Normal
 
 				if (matches != 9) {
 					printf("File can't be read by our simple parser : ( Try exporting with other options\n");
@@ -171,7 +231,7 @@ inline void FileLoader::obj_file_importer(
 			}
 		}
 		fclose(file_stream);
-		std::shared_ptr<Model> new_model = std::make_shared<Model>();
+		std::shared_ptr<Model> new_model = std::make_shared<Model>();	
 		new_model->setVertices(mallocSpace(finalData));
 		new_model->setIndices(mallocSpace(indices));
 		new_model->ISize = indices.size();
@@ -180,13 +240,12 @@ inline void FileLoader::obj_file_importer(
 
 		add_model(path, new_model);
 
-		auto end_time = std::chrono::high_resolution_clock::now();
-		printf("Time ended: %f\n", std::chrono::duration<double, std::micro>(end_time - start_time).count());
 
 		//_models.emplace(std::make_pair(std::string(path), new_model));
 		printf("Model Loaded: %s\n", path.c_str());
 		model_count++;
 	}
+
 }
 
 #endif // !_FILELOADER_H
