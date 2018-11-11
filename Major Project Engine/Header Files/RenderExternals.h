@@ -16,7 +16,11 @@ struct Model
 	Model(const GLfloat * vert, const GLuint * ind, const GLsizei & is, const GLsizei & vs)
 		: _vertices{ vert }, _indices{ ind }, VSize(vs), ISize(is) {};
 
-	~Model() { if (_vertices != nullptr) delete(_vertices); if (_indices != nullptr) delete(_indices); }
+	~Model() 
+	{
+		if (_vertices != nullptr) delete(_vertices); 
+		if (_indices != nullptr) delete(_indices); 
+	}
 
 	void setVertices(const GLfloat * arr) { _vertices = arr; }
 	void setIndices(const GLuint * arr) { _indices = arr; }

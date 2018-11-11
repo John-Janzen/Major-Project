@@ -69,12 +69,14 @@ private:
 inline void FileLoader::Init()
 {
 	_models = ModelsStorage();
+	_shaders = ShaderStorage();
 }
 
 inline void FileLoader::Close()
 {
-	/*_models.reset();
-	_models = nullptr;*/
+	_models.clear();
+	_shaders.clear();
+
 }
 
 inline void FileLoader::add_model(const std::string & path, const std::shared_ptr<Model> & model)

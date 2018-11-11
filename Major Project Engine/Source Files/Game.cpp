@@ -1,9 +1,6 @@
 #include "Game.h"
 
-Game::Game(const size_t & num_of_threads) : Application(num_of_threads) 
-{
-
-}
+Game::Game(const size_t & num_of_threads) : Application(num_of_threads) {}
 
 Game::~Game() {}
 
@@ -41,9 +38,14 @@ bool Game::Game_Loop()
 			}
 		}
 		renderer->InitUpdate();
-		for (auto & element : component_manager->find_all_of_type<RenderComponent>())
+		for (auto & element : entity_manager->retreive_list())
 		{
-			renderer->Update(element);
+			if (component_manager->get_component<RenderComponent>(element.first) != nullptr)
+			{
+				renderer->Update(
+					component_manager->get_component<RenderComponent>(element.first), 
+					component_manager->get_component<Transform>(element.first));
+			}
 		}
 		renderer->FinalUpdate();
 

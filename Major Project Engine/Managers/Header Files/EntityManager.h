@@ -18,43 +18,49 @@ public:
 
 	~EntityManager() { entities.clear(); }
 
-	std::shared_ptr<Entity> & create_entity(const std::string & name, const std::unique_ptr<ComponentManager> & c_manager)
+	std::shared_ptr<Entity> create_entity()
 	{
-		auto inserted = entities.emplace(++id_counter, std::make_shared<Entity>(name, id_counter));
-		inserted.first->second->Load(c_manager);
-		return (*inserted.first).second;
+		auto inserted = entities.emplace(++id_counter, std::make_shared<Entity>(std::string("Default" + ' ' + id_counter), id_counter));
+		return std::static_pointer_cast<Entity>(inserted.first->second);
 	}
 
-	const int & create_entity_id(const std::string & name, const std::unique_ptr<ComponentManager> & c_manager)
+	template<class T>
+	std::shared_ptr<T> create_entity()
 	{
-		auto inserted = entities.emplace(++id_counter, std::make_shared<Entity>(name, id_counter));
-		inserted.first->second->Load(c_manager);
-		return inserted.first->first;
+		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(std::string("Default" + ' ' + id_counter), id_counter));
+		return std::static_pointer_cast<T>(inserted.first->second);
 	}
 
-	template <class T>
-	const int & add_entity(const std::string & name, const std::unique_ptr<ComponentManager> & c_manager)
+	template<class T>
+	std::shared_ptr<T> create_entity(const std::string & name)
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
-		inserted.first->second->Load(c_manager);
+		return std::static_pointer_cast<T>(inserted.first->second);
+	}
+
+	template<class T>
+	const int & create_entity(const std::string & name, std::shared_ptr<T> & entity)
+	{
+		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
+		entity = std::static_pointer_cast<T>(inserted.first->second);
 		return inserted.first->first;
 	}
 
 	void flag_dead_entity(const EntityID & entity_id)
 	{
-		entities.find(entity_id)->second.get()->set_death();
+		entities.find(entity_id)->second->set_death();
 	}
 
 	void flag_dead_entity(std::shared_ptr<Entity> & entity)
 	{
-		entity.get()->set_death();
+		entity->set_death();
 	}
 
 	void destroy_dead_entities()
 	{
 		for (auto it = entities.begin(); it != entities.end(); ++it)
 		{
-			if ((*it).second.get()->get_death() && (*it).second.unique())
+			if ((*it).second->get_death() && (*it).second.unique())
 			{
 				it = entities.erase(it);
 			}

@@ -43,7 +43,7 @@ void Render::InitUpdate()
 	projection_look_matrix = projection_matrix * (look_matrix * model_matrix);
 }
 
-void Render::Update(const std::shared_ptr<RenderComponent> & rc)
+void Render::Update(const std::shared_ptr<RenderComponent> & rc, const std::shared_ptr<Transform> & transform)
 {
 	if (rc->get_model() != nullptr)
 	{
@@ -53,10 +53,10 @@ void Render::Update(const std::shared_ptr<RenderComponent> & rc)
 		glUseProgram(rc->get_shader_program());
 
 		glm::mat4 rotation = glm::mat4();
-		rotation = glm::translate(rotation, glm::vec3(0.0f, 0.0f, 0.0f));
-		rotation = glm::rotate(rotation, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-		rotation = glm::rotate(rotation, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-		glm::mat4 model_matrix = glm::rotate(rotation, test_rotate += 0.001, glm::vec3(0.0f, 1.0f, 0.0f));
+		rotation = glm::translate(rotation, transform->get_pos());
+		rotation = glm::rotate(rotation, transform->get_rot().z, glm::vec3(0.0f, 0.0f, 1.0f));
+		rotation = glm::rotate(rotation, transform->get_rot().x, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 model_matrix = glm::rotate(rotation, transform->get_rot().y, glm::vec3(0.0f, 1.0f, 0.0f));
 
 		glUniformMatrix4fv(rc->get_render_proj_loc(), 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
 		glUniformMatrix4fv(rc->get_render_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
@@ -79,7 +79,7 @@ void Render::Close()
 	SDL_Quit();
 }
 
-void Render::init_render_component(std::shared_ptr<RenderComponent> & render_component)
+void Render::init_render_component(const std::shared_ptr<RenderComponent> & render_component)
 {
 	if (render_component->get_model() != nullptr)
 	{

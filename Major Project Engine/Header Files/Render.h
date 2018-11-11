@@ -22,11 +22,11 @@ public:
 
 	bool Load();
 	void InitUpdate();
-	void Update(const std::shared_ptr<RenderComponent> & rc);
+	void Update(const std::shared_ptr<RenderComponent> & rc, const std::shared_ptr<Transform> & transform);
 	void FinalUpdate();
 	void Close();
 
-	void init_render_component(std::shared_ptr<RenderComponent> & render_component);
+	void init_render_component(const std::shared_ptr<RenderComponent> & render_component);
 
 	bool init_SDL();
 	bool init_GL();

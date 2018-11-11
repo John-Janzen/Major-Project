@@ -54,6 +54,7 @@
     <ClInclude Include="Game Objects\Header Files\Quad.h" />
     <ClInclude Include="Scenes\Header Files\Scene.h" />
     <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
+    <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

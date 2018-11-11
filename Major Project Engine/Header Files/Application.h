@@ -55,6 +55,7 @@ inline Application::Application(const std::size_t & num_of_threads)
 	entity_manager = std::make_unique<EntityManager>();
 	component_manager = std::make_unique<ComponentManager>();
 	renderer = std::make_unique<Render>();
+	FileLoader::Instance().Init();
 
 
 	if (!renderer->Load())
@@ -74,6 +75,7 @@ inline Application::~Application()
 	component_manager = nullptr;
 	renderer.reset();
 	renderer = nullptr;
+	FileLoader::Instance().Close();
 }
 
 inline bool Application::Load(std::unique_ptr<Scene> newScene)
