@@ -22,6 +22,9 @@ enum GAME_STATE
 	EXITING
 };
 
+static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
+static std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
+
 class Application
 {
 public:
@@ -46,9 +49,8 @@ protected:
 	
 	std::unique_ptr<Render> renderer;
 	std::unique_ptr<Input> input;
+	GLfloat frame_rate;
 
-	std::clock_t c_start;
-	std::chrono::time_point<std::chrono::steady_clock> t_start, t_end;
 };
 
 inline Application::Application(const std::size_t & num_of_threads)
@@ -61,12 +63,19 @@ inline Application::Application(const std::size_t & num_of_threads)
 	input = std::make_unique<Input>();
 	FileLoader::Instance().Init();
 
-
 	if (!renderer->Load())
 	{
 		printf("Error Initializing Renderer");
 		_state = EXITING;
 	}
+
+	int display_index = 0, mode_index = 0;
+	SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0 };
+
+	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
+		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+	}
+	frame_rate = (1 / (float)mode.refresh_rate) * 1000.0f;
 }
 
 inline Application::~Application()
@@ -84,8 +93,7 @@ inline Application::~Application()
 
 inline bool Application::Load(std::unique_ptr<Scene> newScene)
 {
-	c_start = std::clock();
-	t_start = std::chrono::high_resolution_clock::now();
+	start_time = std::chrono::system_clock::now();
 
 	if (!newScene->Load(entity_manager, component_manager))
 	{

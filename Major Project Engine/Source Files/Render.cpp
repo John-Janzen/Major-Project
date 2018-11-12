@@ -47,17 +47,17 @@ void Render::InitUpdate
 
 void Render::Update
 (
-	const GLfloat * project_value, 
-	const std::shared_ptr<RenderComponent> & rc, 
+	const GLfloat * project_value,
+	const std::shared_ptr<RenderComponent> & rc,
 	const std::shared_ptr<Transform> & transform
 )
 {
 	if (rc->get_model() != nullptr)
 	{
-		glBindVertexArray(rc->get_vertex_array());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->get_element_buffer());
+		glBindVertexArray(rc->get_v_array());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->get_e_buffer());
 
-		glUseProgram(rc->get_shader_program());
+		glUseProgram(rc->get_shader_prog());
 
 		glm::mat4 rotation = glm::mat4();
 		rotation = glm::translate(rotation, transform->get_pos());
@@ -65,8 +65,8 @@ void Render::Update
 		rotation = glm::rotate(rotation, transform->get_rot().x, glm::vec3(1.0f, 0.0f, 0.0f));
 		glm::mat4 model_matrix = glm::rotate(rotation, transform->get_rot().y, glm::vec3(0.0f, 1.0f, 0.0f));
 
-		glUniformMatrix4fv(rc->get_render_proj_loc(), 1, GL_FALSE, project_value);
-		glUniformMatrix4fv(rc->get_render_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
+		glUniformMatrix4fv(rc->get_proj_loc(), 1, GL_FALSE, project_value);
+		glUniformMatrix4fv(rc->get_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
 		glDrawElements(GL_TRIANGLES, rc->get_model()->ISize, GL_UNSIGNED_INT, NULL);
 
 		glBindVertexArray(0);
@@ -90,18 +90,18 @@ void Render::init_render_component(const std::shared_ptr<RenderComponent> & rend
 {
 	if (render_component->get_model() != nullptr)
 	{
-		glGenBuffers(1, &render_component->get_element_buffer());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_component->get_element_buffer());
+		glGenBuffers(1, &render_component->get_e_buffer());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_component->get_e_buffer());
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
 			(sizeof(GLuint) * render_component->get_model()->ISize), 
 			render_component->get_model()->getIndices(),
 			GL_STATIC_DRAW);
 
-		glGenVertexArrays(1, &render_component->get_vertex_array());
-		glBindVertexArray(render_component->get_vertex_array());
+		glGenVertexArrays(1, &render_component->get_v_array());
+		glBindVertexArray(render_component->get_v_array());
 
-		glGenBuffers(1, &render_component->get_vertex_buffer());
-		glBindBuffer(GL_ARRAY_BUFFER, render_component->get_vertex_buffer());
+		glGenBuffers(1, &render_component->get_v_buffer());
+		glBindBuffer(GL_ARRAY_BUFFER, render_component->get_v_buffer());
 		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * render_component->get_model()->VSize), 
 			render_component->get_model()->getVertices(), 
 			GL_STATIC_DRAW);
@@ -122,26 +122,25 @@ void Render::init_render_component(const std::shared_ptr<RenderComponent> & rend
 	}
 	if (render_component->get_v_shader() != nullptr && render_component->get_f_shader() != nullptr)
 	{
-		render_component->get_shader_program() = glCreateProgram();
+		render_component->set_shader_prog(glCreateProgram());
 
-		glAttachShader(render_component->get_shader_program(), render_component->get_v_shader()->getShaderID());
-		glAttachShader(render_component->get_shader_program(), render_component->get_f_shader()->getShaderID());
-		glLinkProgram(render_component->get_shader_program());
+		glAttachShader(render_component->get_shader_prog(), render_component->get_v_shader()->getShaderID());
+		glAttachShader(render_component->get_shader_prog(), render_component->get_f_shader()->getShaderID());
+		glLinkProgram(render_component->get_shader_prog());
 
 		GLint programSuccess = GL_FALSE;
-		glGetProgramiv(render_component->get_shader_program(), GL_LINK_STATUS, &programSuccess);
+		glGetProgramiv(render_component->get_shader_prog(), GL_LINK_STATUS, &programSuccess);
 		if (programSuccess != GL_TRUE)
 		{
-			printf("Error linking program %d!\n", render_component->get_shader_program());
+			printf("Error linking program %d!\n", render_component->get_shader_prog());
 		}
 		else
 		{
-			glUseProgram(render_component->get_shader_program());
+			glUseProgram(render_component->get_shader_prog());
 
-			render_component->get_render_model_loc() = glGetUniformLocation(render_component->get_shader_program(), "model_matrix");
-			render_component->get_render_proj_loc() = glGetUniformLocation(render_component->get_shader_program(), "projection_matrix");
-			
-			render_component->get_render_color_loc() = glGetUniformLocation(render_component->get_shader_program(), "color_vec");
+			render_component->set_model_loc(glGetUniformLocation(render_component->get_shader_prog(), "model_matrix"));
+			render_component->set_proj_loc(glGetUniformLocation(render_component->get_shader_prog(), "projection_matrix"));
+			render_component->set_color_loc(glGetUniformLocation(render_component->get_shader_prog(), "color_vec"));
 		}
 	}
 	else

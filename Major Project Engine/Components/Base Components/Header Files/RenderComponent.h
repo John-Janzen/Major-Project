@@ -19,29 +19,36 @@ public:
 	std::shared_ptr<Shader> get_v_shader() const { return current_v_shader; }
 	std::shared_ptr<Shader> get_f_shader() const { return current_f_shader; }
 
-	GLuint & get_vertex_buffer() { return vertex_buffer_obj; }
-	GLuint & get_vertex_array() { return vertex_array_obj; }
-	GLuint & get_element_buffer() { return element_buffer_obj; }
-	GLuint & get_shader_program() { return shader_program; }
+	GLuint & get_v_buffer() { return vert_buff_obj; }
+	GLuint & get_v_array() { return vert_arr_obj; }
+	GLuint & get_e_buffer() { return elem_buff_obj; }
 
-	GLint & get_render_proj_loc() { return render_projection_matrix_loc; }
-	GLint & get_render_model_loc() { return render_model_matrix_loc; }
-	GLint & get_render_color_loc() { return render_color_vec; }
+	const GLuint & get_shader_prog() { return shade_prog; }
+	void set_shader_prog(const GLuint & prog) { shade_prog = prog; }
+
+	const GLint & get_proj_loc() { return r_project_mat4_loc; }
+	void set_proj_loc(const GLint & matrix_loc) { r_project_mat4_loc = matrix_loc; }
+
+	const GLint & get_model_loc() { return r_model_mat4_loc; }
+	void set_model_loc(const GLint & matrix_loc) { r_model_mat4_loc = matrix_loc; }
+
+	const GLint & get_color_loc() { return r_color_vec4_loc; }
+	void set_color_loc(const GLint & matrix_loc) { r_color_vec4_loc = matrix_loc; }
 
 private:
-	int test = 5;
+
 	std::shared_ptr<Model> current_model;
 	std::shared_ptr<Shader> current_v_shader;
 	std::shared_ptr<Shader> current_f_shader;
 
-	GLint render_projection_matrix_loc;
-	GLint render_model_matrix_loc;
-	GLint render_color_vec;
+	GLint r_project_mat4_loc;
+	GLint r_model_mat4_loc;
+	GLint r_color_vec4_loc;
 
-	GLuint vertex_buffer_obj = 0;
-	GLuint vertex_array_obj = 0;
-	GLuint element_buffer_obj = 0;
-	GLuint shader_program = 0;
+	GLuint vert_buff_obj = 0;
+	GLuint vert_arr_obj = 0;
+	GLuint elem_buff_obj = 0;
+	GLuint shade_prog = 0;
 
 };
 

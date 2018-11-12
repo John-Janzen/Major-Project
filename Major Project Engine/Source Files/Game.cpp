@@ -11,14 +11,31 @@ bool Game::Load()
 	player_one = entity_manager->create_entity<Player>();
 	player_one->Load(component_manager);
 
+
 	_state = PLAYING;
-	t_end = std::chrono::high_resolution_clock::now();
-	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(t_end - t_start).count());
+	end_time = std::chrono::system_clock::now();
+	std::chrono::duration<double, std::milli> work_time = end_time - start_time;
+	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(work_time.count()));
 	return true;
 }
 
 bool Game::Game_Loop()
 {
+	start_time = std::chrono::system_clock::now();
+	std::chrono::duration<double, std::milli> work_time = start_time - end_time;
+
+	if (work_time.count() < frame_rate)
+	{
+		std::chrono::duration<double, std::milli> delta_ms(frame_rate - work_time.count());
+		auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
+		std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
+	}
+	
+	end_time = std::chrono::system_clock::now();
+	std::chrono::duration<double, std::milli> sleep_time = end_time - start_time;
+
+	//printf("Time: %f\n", (work_time + sleep_time).count());
+
 	switch (_state)
 	{
 	case LOADING:
@@ -26,8 +43,7 @@ bool Game::Game_Loop()
 		break;
 	case PLAYING:
 
-		input->Update(
-			sdl_event,
+		input->Update(sdl_event,
 			component_manager->get_component<PlayerControllerComponent>(player_one->get_id()),
 			component_manager->get_component<Transform>(player_one->get_id()));
 
@@ -60,7 +76,7 @@ bool Game::Game_Loop()
 			{
 				renderer->Update(
 					component_manager->get_component<CameraComponent>(player_one->get_id())->get_project_value(),
-					component_manager->get_component<RenderComponent>(element.first), 
+					component_manager->get_component<RenderComponent>(element.first),
 					component_manager->get_component<Transform>(element.first));
 			}
 		}
@@ -94,8 +110,8 @@ void Game::Close()
 	thread_manager.get()->Close();						// Close the Manager
 	renderer.get()->Close();
 	thread_manager.get()->print_total_jobs();			// Print the stats
-	t_end = std::chrono::high_resolution_clock::now();
-	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(t_end - t_start).count());
+	end_time = std::chrono::system_clock::now();
+	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(end_time - start_time).count());
 	game_running = false;
 }
 

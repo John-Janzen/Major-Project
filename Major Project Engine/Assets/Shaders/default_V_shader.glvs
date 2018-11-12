@@ -8,6 +8,6 @@ layout(location = 0) in vec3 position;
 out vec4 vs_fs_color;
 
 void main(void) { 
-	vs_fs_color = color_vec;
-	gl_Position = projection_matrix * (model_matrix * vec4(position, 1.0)); 
+	vs_fs_color = vec4(1.0, 0.0, 0.0, 1.0);
+	gl_Position = projection_matrix * (model_matrix * vec4(position, 1.0));
 } 
