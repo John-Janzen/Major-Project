@@ -9,6 +9,7 @@
 #include "Render.h"
 #include "Input.h"
 #include "SceneHeaders.h"
+#include "Timer.h"
 
 #include <vector>
 #include <ctime>
@@ -21,9 +22,6 @@ enum GAME_STATE
 	PLAYING,
 	EXITING
 };
-
-static std::chrono::system_clock::time_point start_time = std::chrono::system_clock::now();
-static std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now();
 
 class Application
 {
@@ -43,6 +41,7 @@ protected:
 	std::unique_ptr<ComponentManager> component_manager;
 
 	std::unique_ptr<Scene> current_scene;
+	std::unique_ptr<Timer> _timer;
 
 	bool game_running = true;
 	GAME_STATE _state;
@@ -61,6 +60,7 @@ inline Application::Application(const std::size_t & num_of_threads)
 	component_manager = std::make_unique<ComponentManager>();
 	renderer = std::make_unique<Render>();
 	input = std::make_unique<Input>();
+	_timer = std::make_unique<Timer>();
 	FileLoader::Instance().Init();
 
 	if (!renderer->Load())
@@ -75,7 +75,7 @@ inline Application::Application(const std::size_t & num_of_threads)
 	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
 		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 	}
-	frame_rate = (1 / (float)mode.refresh_rate) * 1000.0f;
+	_timer->set_time_lock((1000.0f / (float)mode.refresh_rate));
 }
 
 inline Application::~Application()
@@ -93,7 +93,6 @@ inline Application::~Application()
 
 inline bool Application::Load(std::unique_ptr<Scene> newScene)
 {
-	start_time = std::chrono::system_clock::now();
 
 	if (!newScene->Load(entity_manager, component_manager))
 	{

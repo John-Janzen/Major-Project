@@ -16,16 +16,22 @@ void Input::Close()
 
 }
 
-void Input::Update(const SDL_Event & sdl_event, const std::shared_ptr<PlayerControllerComponent>& control, const std::shared_ptr<Transform> & transform)
+void Input::Update
+(
+	const GLfloat & _dt,
+	const SDL_Event & sdl_event, 
+	const std::shared_ptr<PlayerControllerComponent>& control, 
+	const std::shared_ptr<Transform> & transform
+)
 {
 
 	if (control->get_type() == CONTROL_TYPE::MOUSE_KEYBOARD)
 	{
 		const Uint8 * keystate = SDL_GetKeyboardState(NULL);
-		if (keystate[SDL_SCANCODE_W]) transform->add_z_pos(0.01f);
-		if (keystate[SDL_SCANCODE_A]) transform->add_x_pos(0.01f);
-		if (keystate[SDL_SCANCODE_S]) transform->add_z_pos(-0.01f);
-		if (keystate[SDL_SCANCODE_D]) transform->add_x_pos(-0.01f);
+		if (keystate[SDL_SCANCODE_W]) transform->add_z_pos(5.0f * _dt);
+		if (keystate[SDL_SCANCODE_A]) transform->add_x_pos(5.0f * _dt);
+		if (keystate[SDL_SCANCODE_S]) transform->add_z_pos(-5.0f * _dt);
+		if (keystate[SDL_SCANCODE_D]) transform->add_x_pos(-5.0f * _dt);
 	}
 	else if (control->get_type() == CONTROL_TYPE::XBOX_CONTROLLER)
 	{

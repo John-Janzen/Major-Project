@@ -29,6 +29,7 @@
     <ClCompile Include="Source Files\Game.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
+    <ClCompile Include="Source Files\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\Base Components\Header Files\CameraComponent.h" />
@@ -60,6 +61,7 @@
     <ClInclude Include="Scenes\Header Files\Scene.h" />
     <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
     <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
+    <ClInclude Include="Header Files\Timer.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
