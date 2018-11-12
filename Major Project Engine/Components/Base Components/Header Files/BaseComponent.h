@@ -3,6 +3,8 @@
 #ifndef _BASECOMPONENT_H
 #define _BASECOMPONENT_H
 
+#include <memory>
+
 class BaseComponent
 {
 public:

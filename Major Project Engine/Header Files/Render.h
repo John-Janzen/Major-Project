@@ -21,12 +21,12 @@ public:
 	~Render();
 
 	bool Load();
-	void InitUpdate();
-	void Update(const std::shared_ptr<RenderComponent> & rc);
+	void InitUpdate(const std::shared_ptr<CameraComponent>& camera, const std::shared_ptr<Transform>& transform);
+	void Update(const GLfloat * project_value, const std::shared_ptr<RenderComponent>& rc, const std::shared_ptr<Transform>& transform);
 	void FinalUpdate();
 	void Close();
 
-	void init_render_component(std::shared_ptr<RenderComponent> & render_component);
+	void init_render_component(const std::shared_ptr<RenderComponent> & render_component);
 
 	bool init_SDL();
 	bool init_GL();
@@ -37,12 +37,6 @@ private:
 
 	const int SCREEN_WIDTH = 640;
 	const int SCREEN_HEIGHT = 480;
-
-	GLfloat test_rotate = 0.0f;
-
-	glm::mat4 projection_look_matrix;
-	glm::mat4 projection_matrix;
-	glm::mat4 look_matrix;
 };
 
 #endif // !_RENDER_H

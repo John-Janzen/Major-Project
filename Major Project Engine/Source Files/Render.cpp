@@ -23,43 +23,50 @@ bool Render::Load()
 		printf("GL Initialization failed, see function Load()");
 		return false;
 	}
-	projection_matrix = glm::perspective(glm::radians(60.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
-	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	return true;
 }
 
-void Render::InitUpdate()
+void Render::InitUpdate
+(
+	const std::shared_ptr<CameraComponent> & camera, 
+	const std::shared_ptr<Transform> & transform
+)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 
 	glm::mat4 model_matrix, rotation;
-	rotation = glm::rotate(rotation, 0.0f, glm::vec3(0, 0, 1));
-	rotation = glm::rotate(rotation, 0.0f, glm::vec3(1, 0, 0));
-	rotation = glm::rotate(rotation, 0.0f, glm::vec3(0, 1, 0));
-	model_matrix = glm::translate(rotation, glm::vec3(0.0f, 0.0f, -5.0f));
+	rotation = glm::rotate(rotation, transform->get_rot().z, glm::vec3(0, 0, 1));
+	rotation = glm::rotate(rotation, transform->get_rot().x, glm::vec3(1, 0, 0));
+	rotation = glm::rotate(rotation, transform->get_rot().y, glm::vec3(0, 1, 0));
+	model_matrix = glm::translate(rotation, transform->get_pos());
 
-	projection_look_matrix = projection_matrix * (look_matrix * model_matrix);
+	camera->set_project_look(model_matrix);
 }
 
-void Render::Update(const std::shared_ptr<RenderComponent> & rc)
+void Render::Update
+(
+	const GLfloat * project_value,
+	const std::shared_ptr<RenderComponent> & rc,
+	const std::shared_ptr<Transform> & transform
+)
 {
 	if (rc->get_model() != nullptr)
 	{
-		glBindVertexArray(rc->get_vertex_array());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->get_element_buffer());
+		glBindVertexArray(rc->get_v_array());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->get_e_buffer());
 
-		glUseProgram(rc->get_shader_program());
+		glUseProgram(rc->get_shader_prog());
 
 		glm::mat4 rotation = glm::mat4();
-		rotation = glm::translate(rotation, glm::vec3(0.0f, 0.0f, 0.0f));
-		rotation = glm::rotate(rotation, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-		rotation = glm::rotate(rotation, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-		glm::mat4 model_matrix = glm::rotate(rotation, test_rotate += 0.001, glm::vec3(0.0f, 1.0f, 0.0f));
+		rotation = glm::translate(rotation, transform->get_pos());
+		rotation = glm::rotate(rotation, transform->get_rot().z, glm::vec3(0.0f, 0.0f, 1.0f));
+		rotation = glm::rotate(rotation, transform->get_rot().x, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 model_matrix = glm::rotate(rotation, transform->get_rot().y, glm::vec3(0.0f, 1.0f, 0.0f));
 
-		glUniformMatrix4fv(rc->get_render_proj_loc(), 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
-		glUniformMatrix4fv(rc->get_render_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
+		glUniformMatrix4fv(rc->get_proj_loc(), 1, GL_FALSE, project_value);
+		glUniformMatrix4fv(rc->get_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
 		glDrawElements(GL_TRIANGLES, rc->get_model()->ISize, GL_UNSIGNED_INT, NULL);
 
 		glBindVertexArray(0);
@@ -79,22 +86,22 @@ void Render::Close()
 	SDL_Quit();
 }
 
-void Render::init_render_component(std::shared_ptr<RenderComponent> & render_component)
+void Render::init_render_component(const std::shared_ptr<RenderComponent> & render_component)
 {
 	if (render_component->get_model() != nullptr)
 	{
-		glGenBuffers(1, &render_component->get_element_buffer());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_component->get_element_buffer());
+		glGenBuffers(1, &render_component->get_e_buffer());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_component->get_e_buffer());
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
 			(sizeof(GLuint) * render_component->get_model()->ISize), 
 			render_component->get_model()->getIndices(),
 			GL_STATIC_DRAW);
 
-		glGenVertexArrays(1, &render_component->get_vertex_array());
-		glBindVertexArray(render_component->get_vertex_array());
+		glGenVertexArrays(1, &render_component->get_v_array());
+		glBindVertexArray(render_component->get_v_array());
 
-		glGenBuffers(1, &render_component->get_vertex_buffer());
-		glBindBuffer(GL_ARRAY_BUFFER, render_component->get_vertex_buffer());
+		glGenBuffers(1, &render_component->get_v_buffer());
+		glBindBuffer(GL_ARRAY_BUFFER, render_component->get_v_buffer());
 		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * render_component->get_model()->VSize), 
 			render_component->get_model()->getVertices(), 
 			GL_STATIC_DRAW);
@@ -115,26 +122,25 @@ void Render::init_render_component(std::shared_ptr<RenderComponent> & render_com
 	}
 	if (render_component->get_v_shader() != nullptr && render_component->get_f_shader() != nullptr)
 	{
-		render_component->get_shader_program() = glCreateProgram();
+		render_component->set_shader_prog(glCreateProgram());
 
-		glAttachShader(render_component->get_shader_program(), render_component->get_v_shader()->getShaderID());
-		glAttachShader(render_component->get_shader_program(), render_component->get_f_shader()->getShaderID());
-		glLinkProgram(render_component->get_shader_program());
+		glAttachShader(render_component->get_shader_prog(), render_component->get_v_shader()->getShaderID());
+		glAttachShader(render_component->get_shader_prog(), render_component->get_f_shader()->getShaderID());
+		glLinkProgram(render_component->get_shader_prog());
 
 		GLint programSuccess = GL_FALSE;
-		glGetProgramiv(render_component->get_shader_program(), GL_LINK_STATUS, &programSuccess);
+		glGetProgramiv(render_component->get_shader_prog(), GL_LINK_STATUS, &programSuccess);
 		if (programSuccess != GL_TRUE)
 		{
-			printf("Error linking program %d!\n", render_component->get_shader_program());
+			printf("Error linking program %d!\n", render_component->get_shader_prog());
 		}
 		else
 		{
-			glUseProgram(render_component->get_shader_program());
+			glUseProgram(render_component->get_shader_prog());
 
-			render_component->get_render_model_loc() = glGetUniformLocation(render_component->get_shader_program(), "model_matrix");
-			render_component->get_render_proj_loc() = glGetUniformLocation(render_component->get_shader_program(), "projection_matrix");
-			
-			render_component->get_render_color_loc() = glGetUniformLocation(render_component->get_shader_program(), "color_vec");
+			render_component->set_model_loc(glGetUniformLocation(render_component->get_shader_prog(), "model_matrix"));
+			render_component->set_proj_loc(glGetUniformLocation(render_component->get_shader_prog(), "projection_matrix"));
+			render_component->set_color_loc(glGetUniformLocation(render_component->get_shader_prog(), "color_vec"));
 		}
 	}
 	else
@@ -159,7 +165,7 @@ bool Render::init_SDL()
 	
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
+		sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
 		if (sdl_window == NULL)
 		{
 			printf("Error creating window");

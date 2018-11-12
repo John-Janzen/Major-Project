@@ -67,7 +67,7 @@ public:
 	template<class T>
 	std::shared_ptr<T> get_component(const int & entity_id)
 	{
-		std::shared_ptr<T> temp;
+		std::shared_ptr<T> temp = nullptr;
 		auto range = components.equal_range(entity_id);
 		std::for_each(range.first, range.second, [&temp](ComponentStorage::value_type & x)
 		{

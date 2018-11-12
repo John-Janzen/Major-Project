@@ -8,15 +8,16 @@
 #include <memory>
 #include <string>
 
-static const std::string model_to_load = "Assets/monkey.obj";
+static const std::string model_to_load = "Assets/Models/quad.obj";
 static const std::string shader_v_load = "Assets/Shaders/default_V_shader.glvs";
 static const std::string shader_f_load = "Assets/Shaders/default_F_shader.glfs";
 
 class QuadRenderComponent : public RenderComponent
 {
 public:
-	QuadRenderComponent();
-	~QuadRenderComponent();
+	QuadRenderComponent() 
+		: RenderComponent(model_to_load, shader_v_load, shader_f_load) {}
+	~QuadRenderComponent() {}
 
 private:
 
