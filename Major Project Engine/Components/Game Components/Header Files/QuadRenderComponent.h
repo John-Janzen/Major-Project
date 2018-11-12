@@ -15,8 +15,9 @@ static const std::string shader_f_load = "Assets/Shaders/default_F_shader.glfs";
 class QuadRenderComponent : public RenderComponent
 {
 public:
-	QuadRenderComponent();
-	~QuadRenderComponent();
+	QuadRenderComponent() 
+		: RenderComponent(model_to_load, shader_v_load, shader_f_load) {}
+	~QuadRenderComponent() {}
 
 private:
 

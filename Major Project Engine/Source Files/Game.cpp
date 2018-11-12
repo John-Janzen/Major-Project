@@ -7,6 +7,9 @@ Game::~Game() {}
 bool Game::Load()
 {
 	Application::Load(std::make_unique<MainScene>());
+	
+	player_one = entity_manager->create_entity<Player>();
+	player_one->Load(component_manager);
 
 	_state = PLAYING;
 	t_end = std::chrono::high_resolution_clock::now();
@@ -22,6 +25,12 @@ bool Game::Game_Loop()
 		this->Load();
 		break;
 	case PLAYING:
+
+		input->Update(
+			sdl_event,
+			component_manager->get_component<PlayerControllerComponent>(player_one->get_id()),
+			component_manager->get_component<Transform>(player_one->get_id()));
+
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{
 			switch (sdl_event.type)
@@ -35,14 +44,22 @@ bool Game::Game_Loop()
 					_state = EXITING;
 					break;
 				}
+				break;
+			default:
+				break;
 			}
 		}
-		renderer->InitUpdate();
+
+		renderer->InitUpdate(
+			component_manager->get_component<CameraComponent>(player_one->get_id()), 
+			component_manager->get_component<Transform>(player_one->get_id()));
+
 		for (auto & element : entity_manager->retreive_list())
 		{
 			if (component_manager->get_component<RenderComponent>(element.first) != nullptr)
 			{
 				renderer->Update(
+					component_manager->get_component<CameraComponent>(player_one->get_id())->get_project_value(),
 					component_manager->get_component<RenderComponent>(element.first), 
 					component_manager->get_component<Transform>(element.first));
 			}
@@ -65,7 +82,6 @@ bool Game::Game_Loop()
 	//	}
 	//}
 	//ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
-	t_end = std::chrono::high_resolution_clock::now();
 
 	/*if (std::chrono::duration<double, std::milli>(t_end - t_start).count() > 5000)
 		_state = EXITING;*/
@@ -78,9 +94,9 @@ void Game::Close()
 	thread_manager.get()->Close();						// Close the Manager
 	renderer.get()->Close();
 	thread_manager.get()->print_total_jobs();			// Print the stats
+	t_end = std::chrono::high_resolution_clock::now();
 	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(t_end - t_start).count());
 	game_running = false;
-	getchar();
 }
 
 

@@ -15,6 +15,10 @@ public:
 	bool Load();
 	bool Game_Loop();
 	void Close();
+
+private:
+	std::shared_ptr<Player> player_one;
+	SDL_Event sdl_event;
 };
 
 #endif // !_GAME_H

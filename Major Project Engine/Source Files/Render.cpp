@@ -23,27 +23,34 @@ bool Render::Load()
 		printf("GL Initialization failed, see function Load()");
 		return false;
 	}
-	projection_matrix = glm::perspective(glm::radians(60.0f), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
-	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	return true;
 }
 
-void Render::InitUpdate()
+void Render::InitUpdate
+(
+	const std::shared_ptr<CameraComponent> & camera, 
+	const std::shared_ptr<Transform> & transform
+)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 
 	glm::mat4 model_matrix, rotation;
-	rotation = glm::rotate(rotation, 0.0f, glm::vec3(0, 0, 1));
-	rotation = glm::rotate(rotation, 0.0f, glm::vec3(1, 0, 0));
-	rotation = glm::rotate(rotation, 0.0f, glm::vec3(0, 1, 0));
-	model_matrix = glm::translate(rotation, glm::vec3(0.0f, 0.0f, -5.0f));
+	rotation = glm::rotate(rotation, transform->get_rot().z, glm::vec3(0, 0, 1));
+	rotation = glm::rotate(rotation, transform->get_rot().x, glm::vec3(1, 0, 0));
+	rotation = glm::rotate(rotation, transform->get_rot().y, glm::vec3(0, 1, 0));
+	model_matrix = glm::translate(rotation, transform->get_pos());
 
-	projection_look_matrix = projection_matrix * (look_matrix * model_matrix);
+	camera->set_project_look(model_matrix);
 }
 
-void Render::Update(const std::shared_ptr<RenderComponent> & rc, const std::shared_ptr<Transform> & transform)
+void Render::Update
+(
+	const GLfloat * project_value, 
+	const std::shared_ptr<RenderComponent> & rc, 
+	const std::shared_ptr<Transform> & transform
+)
 {
 	if (rc->get_model() != nullptr)
 	{
@@ -58,7 +65,7 @@ void Render::Update(const std::shared_ptr<RenderComponent> & rc, const std::shar
 		rotation = glm::rotate(rotation, transform->get_rot().x, glm::vec3(1.0f, 0.0f, 0.0f));
 		glm::mat4 model_matrix = glm::rotate(rotation, transform->get_rot().y, glm::vec3(0.0f, 1.0f, 0.0f));
 
-		glUniformMatrix4fv(rc->get_render_proj_loc(), 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
+		glUniformMatrix4fv(rc->get_render_proj_loc(), 1, GL_FALSE, project_value);
 		glUniformMatrix4fv(rc->get_render_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
 		glDrawElements(GL_TRIANGLES, rc->get_model()->ISize, GL_UNSIGNED_INT, NULL);
 
@@ -159,7 +166,7 @@ bool Render::init_SDL()
 	
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
+		sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
 		if (sdl_window == NULL)
 		{
 			printf("Error creating window");
