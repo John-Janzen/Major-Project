@@ -52,7 +52,7 @@ void ThreadManager::allocate_jobs()
 	}
 }
 
-void ThreadManager::register_job(Job_Type type, std::function<void(Content*)> function)
+void ThreadManager::register_job(Job_Type type, std::function<void(const std::shared_ptr<Content> &)> function)
 {
 	job_list->emplace(std::make_unique<Job>(type, function));
 }

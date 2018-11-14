@@ -11,14 +11,14 @@ bool Game::Load()
 	player_one = entity_manager->create_entity<Player>();
 	player_one->Load(component_manager);
 
-	_timer->End();
+	timer->End();
 	_state = PLAYING;
 	return true;
 }
 
 bool Game::Game_Loop()
 {
-	_timer->wait_time();
+	timer->wait_time();
 
 	switch (_state)
 	{
@@ -27,7 +27,7 @@ bool Game::Game_Loop()
 		break;
 	case PLAYING:
 
-		input->Update(_timer->get_delta_time(), sdl_event,
+		input->Update(timer->get_delta_time(), sdl_event,
 			component_manager->get_component<PlayerControllerComponent>(player_one->get_id()),
 			component_manager->get_component<Transform>(player_one->get_id()));
 
@@ -94,7 +94,7 @@ void Game::Close()
 	thread_manager.get()->Close();						// Close the Manager
 	renderer.get()->Close();
 	thread_manager.get()->print_total_jobs();			// Print the stats
-	_timer->End();
+	timer->End();
 	game_running = false;
 }
 

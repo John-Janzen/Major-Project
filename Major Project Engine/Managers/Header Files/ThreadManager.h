@@ -6,6 +6,8 @@
 #include "Thread.h"
 #include "BlockingQueue.h"
 
+#include <memory>
+
 /*
 This Manager class is created as a singleton because
 we don't need multiple instances of the thread manager.
@@ -43,7 +45,7 @@ public:
 	To register a job in the manager any class can call this function
 	with the job type and function.
 	*/
-	void register_job(Job_Type type, std::function<void(Content*)> function);
+	void register_job(Job_Type type, std::function<void(const std::shared_ptr<Content>&)> function);
 
 	/*
 	Register a job that the someone already made with the
@@ -75,6 +77,8 @@ public:
 	isn't an easy way to destruct a singleton.
 	*/
 	void stop_threads();
+
+	std::size_t get_num_threads() { return num_of_threads; }
 
 private:
 	Thread ** threads;

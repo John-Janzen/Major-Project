@@ -6,9 +6,13 @@
 #include "ThreadManager.h"
 #include "ComponentManager.h"
 #include "EntityManager.h"
+
 #include "Render.h"
 #include "Input.h"
+#include "TestSystem.h"
+
 #include "SceneHeaders.h"
+
 #include "Timer.h"
 
 #include <vector>
@@ -36,18 +40,19 @@ public:
 	//bool load_scene();
 
 protected:
-	std::unique_ptr<ThreadManager> thread_manager;
+	std::shared_ptr<ThreadManager> thread_manager;
 	std::unique_ptr<EntityManager> entity_manager;
 	std::unique_ptr<ComponentManager> component_manager;
 
 	std::unique_ptr<Scene> current_scene;
-	std::unique_ptr<Timer> _timer;
+	std::unique_ptr<Timer> timer;
 
 	bool game_running = true;
 	GAME_STATE _state;
 	
 	std::unique_ptr<Render> renderer;
 	std::unique_ptr<Input> input;
+	std::unique_ptr<TestSystem> test_system;
 	GLfloat frame_rate;
 
 };
@@ -55,13 +60,18 @@ protected:
 inline Application::Application(const std::size_t & num_of_threads)
 	: _state(LOADING)
 {
-	thread_manager = std::make_unique<ThreadManager>(num_of_threads);
+	thread_manager = std::make_shared<ThreadManager>(num_of_threads);
 	entity_manager = std::make_unique<EntityManager>();
 	component_manager = std::make_unique<ComponentManager>();
+
 	renderer = std::make_unique<Render>();
 	input = std::make_unique<Input>();
-	_timer = std::make_unique<Timer>();
+	timer = std::make_unique<Timer>();
+	test_system = std::make_unique<TestSystem>(thread_manager);
+
 	FileLoader::Instance().Init();
+
+	test_system->Load();
 
 	if (!renderer->Load())
 	{
@@ -75,7 +85,7 @@ inline Application::Application(const std::size_t & num_of_threads)
 	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
 		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 	}
-	_timer->set_time_lock((1000.0f / (float)mode.refresh_rate));
+	timer->set_time_lock((1000.0f / (float)mode.refresh_rate));
 }
 
 inline Application::~Application()

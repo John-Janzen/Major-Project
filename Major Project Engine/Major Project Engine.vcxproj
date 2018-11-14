@@ -30,6 +30,7 @@
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
     <ClCompile Include="Source Files\Timer.cpp" />
+    <ClCompile Include="Source Files\TestSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\Base Components\Header Files\CameraComponent.h" />
@@ -62,6 +63,7 @@
     <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
     <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
     <ClInclude Include="Header Files\Timer.h" />
+    <ClInclude Include="Header Files\TestSystem.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

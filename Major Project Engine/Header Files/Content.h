@@ -3,22 +3,21 @@
 #ifndef _CONTENT_H
 #define _CONTENT_H
 
+#include <vector>
+
 struct Content
 {
 	virtual ~Content() {};
-
-
 };
 
 class InitialContent : public Content
 {
 public:
-	int num1, num2;
+	std::vector<int> copy_section;
 
-	InitialContent(const int & x, const int & y) : num1(x), num2(y) {}
+	InitialContent(const std::vector<int> & vec) : copy_section(vec) {}
 	~InitialContent() {};
 private:
-	InitialContent();
 };
 
 #endif // !_CONTENT_H

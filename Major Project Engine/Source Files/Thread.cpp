@@ -35,7 +35,7 @@ void Thread::Execution()
 	{
 		if (current_job)
 		{
-			current_job.get()->get_function()(current_job->get_content());
+			current_job->get_function()(current_job->get_content());
 			count++;
 			current_job.reset();
 		}
@@ -58,7 +58,7 @@ void Thread::Stop()
 
 bool Thread::check_availability()
 {
-	return (current_job.get() == nullptr);
+	return (current_job == nullptr);
 }
 
 std::unique_ptr<Job> * Thread::get_location()
