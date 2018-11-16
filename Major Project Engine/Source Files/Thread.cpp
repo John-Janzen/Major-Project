@@ -37,6 +37,7 @@ void Thread::Execution()
 		{
 			current_job->get_function()(current_job->get_content());
 			count++;
+			current_job->notify();
 			current_job.reset();
 		}
 		else

@@ -5,8 +5,6 @@
 
 #include "EntityManager.h"
 #include "ComponentManager.h"
-#include "ComponentHeaders.h"
-#include "GameHeaders.h"
 
 class Scene
 {
@@ -14,7 +12,7 @@ public:
 	Scene();
 	virtual ~Scene();
 
-	virtual bool Load(const std::unique_ptr<EntityManager> & e_manager, const std::unique_ptr<ComponentManager> & c_manager) = 0;
+	virtual bool Load() = 0;
 
 	virtual bool Unload() = 0;
 

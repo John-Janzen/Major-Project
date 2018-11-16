@@ -7,6 +7,7 @@
 #include "BlockingQueue.h"
 
 #include <memory>
+#include <vector>
 
 /*
 This Manager class is created as a singleton because
@@ -21,12 +22,18 @@ class ThreadManager
 {
 public:
 
-	ThreadManager(const std::size_t & size);
+	static ThreadManager& Instance()
+	{
+		static ThreadManager inst;
+		return inst;
+	}
 
 	/*
 	Deletes the threads and job list.
 	*/
 	~ThreadManager();
+
+	void Init(const std::size_t & size);
 
 	/*
 	Stops the threads.
@@ -82,6 +89,7 @@ public:
 
 private:
 	Thread ** threads;
+	ThreadManager() {}
 
 	std::size_t num_of_threads;
 

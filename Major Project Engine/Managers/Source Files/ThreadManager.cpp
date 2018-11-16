@@ -1,6 +1,15 @@
 #include "ThreadManager.h"
 
-ThreadManager::ThreadManager(const std::size_t & size)
+ThreadManager::~ThreadManager()
+{
+	for (std::size_t i = 0; i < num_of_threads; i++)
+	{
+		delete(threads[i]);
+	}
+	delete(job_list);
+}
+
+void ThreadManager::Init(const std::size_t & size)
 {
 	num_of_threads = size;
 	threads = new Thread*[size];
@@ -25,15 +34,6 @@ ThreadManager::ThreadManager(const std::size_t & size)
 		threads[i] = new Thread(name);
 	}
 	job_list = new BlockingQueue<std::unique_ptr<Job>>();
-}
-
-ThreadManager::~ThreadManager()
-{
-	for (std::size_t i = 0; i < num_of_threads; i++)
-	{
-		delete(threads[i]);
-	}
-	delete(job_list);
 }
 
 void ThreadManager::Close()

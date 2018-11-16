@@ -16,8 +16,25 @@ class ComponentManager
 {
 public:
 
-	~ComponentManager()
+	static ComponentManager& Instance()
 	{
+		static ComponentManager inst;
+		return inst;
+	}
+
+	~ComponentManager() {}
+
+	void Init() 
+	{
+		components = ComponentStorage();
+	}
+
+	void Close() 
+	{
+		std::for_each(components.begin(), components.end(), [](ComponentStorage::value_type & comp) {
+			comp.second.reset();
+			comp.second = nullptr;
+		});
 		components.clear();
 	}
 
@@ -95,6 +112,8 @@ public:
 	}
 
 private:
+	ComponentManager() {}
+
 	ComponentStorage components;
 };
 

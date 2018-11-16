@@ -7,6 +7,7 @@
 
 #include <unordered_map>
 #include <type_traits>
+#include <memory>
 
 typedef int EntityID;
 typedef std::map<EntityID, std::shared_ptr<Entity>> EntityStorage;
@@ -14,9 +15,29 @@ typedef std::map<EntityID, std::shared_ptr<Entity>> EntityStorage;
 class EntityManager
 {
 public:
-	EntityManager() : id_counter(0x100) {}
 
-	~EntityManager() { entities.clear(); }
+	static EntityManager& Instance()
+	{
+		static EntityManager inst;
+		return inst;
+	}
+
+	~EntityManager() {}
+
+	void Init()
+	{
+		id_counter = 0x100;
+		entities = EntityStorage();
+	}
+
+	void Close()
+	{
+		std::for_each(entities.begin(), entities.end(), [] (EntityStorage::value_type& entity) {
+			entity.second.reset();
+			entity.second = nullptr;
+		});
+		entities.clear();
+	}
 
 	std::shared_ptr<Entity> create_entity()
 	{
@@ -73,6 +94,9 @@ public:
 	}
 
 private:
+
+	EntityManager() {}
+
 	EntityStorage entities;
 	EntityID id_counter;
 };

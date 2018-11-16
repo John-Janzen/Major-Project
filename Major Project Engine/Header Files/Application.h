@@ -38,11 +38,10 @@ public:
 	virtual void Close() = 0;
 
 	//bool load_scene();
+	void init_managers(const std::size_t & size);
+	void close_managers();
 
 protected:
-	std::shared_ptr<ThreadManager> thread_manager;
-	std::unique_ptr<EntityManager> entity_manager;
-	std::unique_ptr<ComponentManager> component_manager;
 
 	std::unique_ptr<Scene> current_scene;
 	std::unique_ptr<Timer> timer;
@@ -60,14 +59,11 @@ protected:
 inline Application::Application(const std::size_t & num_of_threads)
 	: _state(LOADING)
 {
-	thread_manager = std::make_shared<ThreadManager>(num_of_threads);
-	entity_manager = std::make_unique<EntityManager>();
-	component_manager = std::make_unique<ComponentManager>();
-
+	this->init_managers(num_of_threads);
 	renderer = std::make_unique<Render>();
 	input = std::make_unique<Input>();
 	timer = std::make_unique<Timer>();
-	test_system = std::make_unique<TestSystem>(thread_manager);
+	test_system = std::make_unique<TestSystem>();
 
 	FileLoader::Instance().Init();
 
@@ -90,33 +86,49 @@ inline Application::Application(const std::size_t & num_of_threads)
 
 inline Application::~Application()
 {
-	thread_manager.reset();
-	thread_manager = nullptr;
-	entity_manager.reset();
-	entity_manager = nullptr;
-	component_manager.reset();
-	component_manager = nullptr;
 	renderer.reset();
 	renderer = nullptr;
-	FileLoader::Instance().Close();
+	input.reset();
+	input = nullptr;
+	timer.reset();
+	timer = nullptr;
+	test_system.reset();
+	test_system = nullptr;
+	this->close_managers();
 }
 
 inline bool Application::Load(std::unique_ptr<Scene> newScene)
 {
 
-	if (!newScene->Load(entity_manager, component_manager))
+	if (!newScene->Load())
 	{
 		printf("Error Making current scene");
 		return false;
 	}
 	current_scene = std::move(newScene);
 
-	for (auto & element : component_manager->find_all_of_type<RenderComponent>())
+	for (auto & element : ComponentManager::Instance().find_all_of_type<RenderComponent>())
 	{
 		renderer->init_render_component(element);
 	}
 
 	return true;
+}
+
+inline void Application::init_managers(const std::size_t & size)
+{
+	ThreadManager::Instance().Init(size);
+	ComponentManager::Instance().Init();
+	EntityManager::Instance().Init();
+	FileLoader::Instance().Init();
+}
+
+inline void Application::close_managers()
+{
+	ThreadManager::Instance().Close();
+	ComponentManager::Instance().Close();
+	EntityManager::Instance().Close();
+	FileLoader::Instance().Close();
 }
 
 #endif // !_APPLICATION_H

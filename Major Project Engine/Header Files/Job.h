@@ -4,7 +4,6 @@
 #define _JOB_H
 
 #include "Content.h"
-#include "System.h"
 
 #include <functional>
 #include <memory>
@@ -20,7 +19,7 @@ enum Job_Type
 	NULL_TYPE,
 };
 
-constexpr auto MAX_OBSERVERS = 2;
+constexpr auto MAX_OBSERVERS = 1;
 
 /*
 * Job class that holds the data for the threads
@@ -39,9 +38,8 @@ class Job
 public:
 
 	Job(Job_Type type, std::function<void(const std::shared_ptr<Content> &)> function, std::shared_ptr<Content> data = nullptr)
-		: _type(type), _func(function), _content(data) 
+		: _type(type), _func(function), _content(data)
 	{
-		
 	}
 
 	~Job()
@@ -75,10 +73,11 @@ public:
 		return _content;
 	}
 
-	void add_observer(std::unique_ptr<Job> & awaiting_job)
+	void add_observer(std::unique_ptr<Job> * awaiting_job)
 	{
-		_observers[num_observers] = awaiting_job.get();
+		_observers[num_observers] = awaiting_job;
 		num_observers++;
+		awaiting_job->get()->_awaiting++;
 	}
 
 	void notify()
@@ -87,7 +86,8 @@ public:
 		{
 			if (_observers[i] != nullptr)
 			{
-				_observers[i]->OnNotify(*this);
+				(*_observers[i])->OnNotify(*this);
+				_observers[i] = nullptr;
 			}
 		}
 		num_observers = 0;
@@ -95,14 +95,17 @@ public:
 
 	void OnNotify(const Job & job)
 	{
-		
+		_awaiting--;
 	}
-	System * _system;
+
+	const bool & get_awaiting()
+	{
+		return _awaiting > 0 ? true : false;
+	}
 private:
 
-	Job * _observers[MAX_OBSERVERS] = { nullptr };
-	std::atomic_int8_t num_observers = 0, _awaiting = 0;
-
+	std::unique_ptr<Job> *  _observers[MAX_OBSERVERS] = { nullptr };
+	std::atomic<int> num_observers = 0, _awaiting = 0;
 	
 	Job_Type _type;
 	std::function<void(const std::shared_ptr<Content> &)> _func;
