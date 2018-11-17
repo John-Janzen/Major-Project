@@ -13,7 +13,7 @@
 #include <glm.hpp>
 #include <fstream>
 #include <sstream>
-#include <glew.h>
+#include <GL/glew.h>
 #include <chrono>
 #include <iostream>
 

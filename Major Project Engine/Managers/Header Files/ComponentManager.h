@@ -16,18 +16,11 @@ class ComponentManager
 {
 public:
 
-	static ComponentManager& Instance()
-	{
-		static ComponentManager inst;
-		return inst;
-	}
-
-	~ComponentManager() {}
-
-	void Init() 
+	ComponentManager() 
 	{
 		components = ComponentStorage();
 	}
+	~ComponentManager() {}
 
 	void Close() 
 	{
@@ -112,7 +105,6 @@ public:
 	}
 
 private:
-	ComponentManager() {}
 
 	ComponentStorage components;
 };

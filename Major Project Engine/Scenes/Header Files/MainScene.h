@@ -13,7 +13,7 @@ public:
 	bool Load();
 	bool Unload();
 private:
-
+	EntityID _player1_ID;
 };
 
 #endif // !

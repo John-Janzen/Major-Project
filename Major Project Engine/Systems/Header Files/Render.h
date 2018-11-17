@@ -8,7 +8,7 @@
 #include "RenderComponent.h"
 
 #include <SDL.h>
-#include <glew.h>
+#include <GL/glew.h>
 #include <iostream>
 #include <gtc\matrix_transform.hpp>
 #include <gtx\euler_angles.hpp>

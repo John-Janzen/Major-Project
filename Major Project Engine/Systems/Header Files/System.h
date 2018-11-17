@@ -7,6 +7,14 @@
 #include "ComponentManager.h"
 #include "EntityManager.h"
 
+enum SYSTEM_TYPE
+{
+	NULL_SYSTEM,
+	RENDER_SYSTEM,
+	INPUT_SYSTEM,
+	TEST_SYSTEM
+};
+
 class System
 {
 public:

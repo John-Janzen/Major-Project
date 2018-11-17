@@ -27,9 +27,6 @@
     <ClCompile Include="Managers\Source Files\ThreadManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Render.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Components\Base Components\Source Files\RenderComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -42,13 +39,16 @@
     <ClCompile Include="Game Objects\Source Files\Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\Input.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source Files\Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source Files\TestSystem.cpp">
+    <ClCompile Include="Systems\Source Files\Render.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\Source Files\Input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Systems\Source Files\TestSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -65,9 +65,6 @@
     <ClInclude Include="Header Files\BlockingQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Entity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Header Files\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -78,12 +75,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Managers\Header Files\ThreadManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Header Files\System.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Header Files\Render.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Managers\Header Files\ComponentManager.h">
@@ -131,9 +122,6 @@
     <ClInclude Include="Game Objects\Header Files\Player.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\Input.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Components\Base Components\Header Files\CameraComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -143,7 +131,19 @@
     <ClInclude Include="Header Files\Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Header Files\TestSystem.h">
+    <ClInclude Include="Systems\Header Files\Render.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\Header Files\TestSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\Header Files\Input.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Systems\Header Files\System.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game Objects\Header Files\Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

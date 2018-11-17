@@ -3,7 +3,7 @@
 #ifndef _RENDEREXTERNALS_H
 #define _RENDEREXTERNALS_H
 
-#include <glew.h>
+#include <GL\glew.h>
 #include <cstddef>
 
 struct Model

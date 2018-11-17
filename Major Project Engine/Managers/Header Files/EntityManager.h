@@ -16,19 +16,11 @@ class EntityManager
 {
 public:
 
-	static EntityManager& Instance()
+	EntityManager() : id_counter(0x100)
 	{
-		static EntityManager inst;
-		return inst;
-	}
-
-	~EntityManager() {}
-
-	void Init()
-	{
-		id_counter = 0x100;
 		entities = EntityStorage();
 	}
+	~EntityManager() {}
 
 	void Close()
 	{
@@ -94,8 +86,6 @@ public:
 	}
 
 private:
-
-	EntityManager() {}
 
 	EntityStorage entities;
 	EntityID id_counter;
