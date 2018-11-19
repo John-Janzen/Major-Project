@@ -225,8 +225,8 @@ inline void FileLoader::obj_file_importer(
 		std::shared_ptr<Model> new_model = std::make_shared<Model>();	
 		new_model->setVertices(mallocSpace(finalData));
 		new_model->setIndices(mallocSpace(indices));
-		new_model->ISize = indices.size();
-		new_model->VSize = finalData.size();
+		new_model->ISize = (GLsizei)indices.size();
+		new_model->VSize = (GLsizei)finalData.size();
 		model_loc = new_model;
 
 		add_model(path, new_model);

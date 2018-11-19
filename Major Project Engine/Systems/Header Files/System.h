@@ -4,8 +4,7 @@
 #define _SYSTEM_H
 
 #include "ThreadManager.h"
-#include "ComponentManager.h"
-#include "EntityManager.h"
+#include "Scene.h"
 
 enum SYSTEM_TYPE
 {

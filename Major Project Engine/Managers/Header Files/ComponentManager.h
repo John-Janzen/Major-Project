@@ -45,7 +45,7 @@ public:
 		return full_list;
 	}
 
-	template<class T>
+	template <class T>
 	void add_component(const int & entity_id, std::shared_ptr<T> comp)
 	{
 		if (!has_component<T>(entity_id))
@@ -54,7 +54,20 @@ public:
 		}
 		else
 		{
-			printf("Duplicate Components not allowed, %d", entity_id);
+			printf("Duplicate Components not allowed, ID: %d", entity_id);
+		}
+	}
+
+	template <class T>
+	void add_component(std::shared_ptr<T> comp)
+	{
+		if (!has_component<T>(0))
+		{
+			components.emplace(0, std::move(comp));
+		}
+		else
+		{
+			printf("Duplicate Components not allowed, NO ID Available");
 		}
 	}
 
@@ -74,22 +87,34 @@ public:
 		return found;
 	}
 
-	template<class T>
-	std::shared_ptr<T> get_component(const int & entity_id)
+	template <class T>
+	std::shared_ptr<T> & get_component()
 	{
-		std::shared_ptr<T> temp = nullptr;
+		for (auto & element : components)
+		{
+			if (std::dynamic_pointer_cast<T>(element.second) != nullptr)
+			{
+				return std::static_pointer_cast<T>(element.second);
+			}
+		}
+	}
+
+	template <class T>
+	std::shared_ptr<T> & get_component(const int & entity_id)
+	{
+		std::shared_ptr<T> * temp = nullptr;
 		auto range = components.equal_range(entity_id);
 		std::for_each(range.first, range.second, [&temp](ComponentStorage::value_type & x)
 		{
 			if (std::dynamic_pointer_cast<T>(x.second) != nullptr)
 			{
-				temp = std::static_pointer_cast<T>(x.second);
+				temp = &std::static_pointer_cast<T>(x.second);
 			}
 		});
 		return temp;
 	}
 
-	template<class T>
+	template <class T>
 	bool has_component(const int & entity_id)
 	{
 		bool found = false;

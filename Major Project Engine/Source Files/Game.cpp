@@ -25,9 +25,7 @@ bool Game::Game_Loop()
 		break;
 	case PLAYING:
 
-		input->Update(timer->get_delta_time(), sdl_event,
-			current_scene->get_comp_manager()->get_component<PlayerControllerComponent>(_player1_ID),
-			current_scene->get_comp_manager()->get_component<Transform>(_player1_ID));
+		input->Update(timer->get_delta_time(), sdl_event, );
 
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{
@@ -48,21 +46,7 @@ bool Game::Game_Loop()
 			}
 		}
 
-		renderer->InitUpdate(
-			current_scene->get_comp_manager()->get_component<CameraComponent>(player_one->get_id()),
-			current_scene->get_comp_manager()->get_component<Transform>(player_one->get_id()));
-
-		for (auto & element : current_scene->get_ent_manager()->retreive_list())
-		{
-			if (current_scene->get_comp_manager()->get_component<RenderComponent>(element.first) != nullptr)
-			{
-				renderer->Update(
-					current_scene->get_comp_manager()->get_component<CameraComponent>(player_one->get_id())->get_project_value(),
-					current_scene->get_comp_manager()->get_component<RenderComponent>(element.first),
-					current_scene->get_comp_manager()->get_component<Transform>(element.first));
-			}
-		}
-		renderer->FinalUpdate();
+		renderer->UpdateLoop(component_manager, entity_manager);
 
 		break;
 	case EXITING:
@@ -115,10 +99,7 @@ bool Game::Load_Scene(const SCENE_SELECTION & type)
 		newScene = nullptr;
 	}
 
-	for (auto & element : current_scene->get_comp_manager()->find_all_of_type<RenderComponent>())
-	{
-		renderer->init_render_component(element);
-	}
+	renderer->init_render_component(current_scene);
 
 	return true;
 }

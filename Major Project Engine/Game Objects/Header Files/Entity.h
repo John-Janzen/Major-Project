@@ -4,6 +4,7 @@
 #define _ENTITY_H
 
 #include "ComponentManager.h"
+#include "Transform.h"
 
 #include <map>
 #include <typeinfo>
@@ -23,10 +24,14 @@ public:
 	void set_death() { death_flag = true; }
 	bool get_death() { return death_flag; }
 
+	std::shared_ptr<Transform> & get_transform() { return _transform; }
+
 private:
 	std::string _name;
 	int _id;
 	bool death_flag;
+protected:
+	std::shared_ptr<Transform> _transform;
 };
 
 

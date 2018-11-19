@@ -22,12 +22,7 @@ public:
 
 	virtual bool Unload() = 0;
 
-	const std::unique_ptr<ComponentManager> & get_comp_manager() const { return component_manager; }
-	const std::unique_ptr<EntityManager> & get_ent_manager() const { return entity_manager; }
-
 protected:
-	std::unique_ptr<EntityManager> entity_manager;
-	std::unique_ptr<ComponentManager> component_manager;
 };
 
 inline Scene::Scene() {}

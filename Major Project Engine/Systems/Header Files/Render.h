@@ -4,8 +4,6 @@
 #define _RENDER_H
 
 #include "System.h"
-#include "Entity.h"
-#include "RenderComponent.h"
 
 #include <SDL.h>
 #include <GL/glew.h>
@@ -21,12 +19,15 @@ public:
 	~Render();
 
 	bool Load();
-	void InitUpdate(const std::shared_ptr<CameraComponent>& camera, const std::shared_ptr<Transform>& transform);
-	void Update(const GLfloat * project_value, const std::shared_ptr<RenderComponent>& rc, const std::shared_ptr<Transform>& transform);
+	void InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std::shared_ptr<Transform> & tran);
+	void UpdateLoop(const std::unique_ptr<ComponentManager> & c_manager, const std::unique_ptr<EntityManager> & e_manager, EntityID _player);
+	void ComponentUpdate(GLfloat * project_value,
+		const std::shared_ptr<RenderComponent> & rc,
+		const std::shared_ptr<Transform> & transform);
 	void FinalUpdate();
 	void Close();
 
-	void init_render_component(const std::shared_ptr<RenderComponent> & render_component);
+	void init_render_component(const std::unique_ptr<ComponentManager> & c_manager);
 
 	bool init_SDL();
 	bool init_GL();
@@ -34,6 +35,8 @@ public:
 private:
 	SDL_Window * sdl_window;
 	SDL_GLContext sdl_context;
+
+	GLfloat * project_value_ptr;
 
 	const int SCREEN_WIDTH = 640;
 	const int SCREEN_HEIGHT = 480;

@@ -19,12 +19,9 @@ void Input::Close()
 void Input::Update
 (
 	const GLfloat & _dt,
-	const SDL_Event & sdl_event, 
-	const std::shared_ptr<PlayerControllerComponent>& control, 
-	const std::shared_ptr<Transform> & transform
+	const SDL_Event & sdl_event,
 )
 {
-
 	if (control->get_type() == CONTROL_TYPE::MOUSE_KEYBOARD)
 	{
 		const Uint8 * keystate = SDL_GetKeyboardState(NULL);

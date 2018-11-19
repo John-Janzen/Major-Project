@@ -1,10 +1,10 @@
 #pragma once
-#include "BaseComponent.h"
-class Transform :
-	public BaseComponent
+
+class Transform
 {
 public:
 	Transform(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale);
+	Transform();
 	~Transform();
 
 	const glm::vec3 & get_pos() { return _position; }
@@ -37,6 +37,12 @@ private:
 
 inline Transform::Transform(glm::vec3 pos = glm::vec3(), glm::vec3 rot = glm::vec3(), glm::vec3 scale = glm::vec3(1.0f))
 	: _position(pos), _rotation(rot), _scale(scale)
+{
+
+}
+
+inline Transform::Transform()
+	: _position(glm::vec3()), _rotation(glm::vec3()), _scale(glm::vec3(1.0f))
 {
 
 }
