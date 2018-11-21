@@ -42,9 +42,6 @@ public:
 	void init_managers(const std::size_t & size);
 	void close_managers();
 
-	const std::unique_ptr<ComponentManager> & get_comp_manager() const { return component_manager; }
-	const std::unique_ptr<EntityManager> & get_ent_manager() const { return entity_manager; }
-
 protected:
 
 	std::unique_ptr<Timer> timer;
@@ -57,10 +54,6 @@ protected:
 	std::unique_ptr<TestSystem> test_system;
 
 	std::unique_ptr<Scene> current_scene;
-	std::unique_ptr<EntityManager> entity_manager;
-	std::unique_ptr<ComponentManager> component_manager;
-
-	EntityID _player1_ID;
 
 	GLfloat frame_rate;
 };

@@ -146,5 +146,11 @@
     <ClInclude Include="Game Objects\Header Files\Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Game Objects\Header Files\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Game Components\Header Files\PlayerRenderComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

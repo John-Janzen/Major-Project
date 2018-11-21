@@ -20,7 +20,8 @@ public:
 
 	void Update(const GLfloat & _dt,
 		const SDL_Event & sdl_event, 
-		const std::unique_ptr<Scene> & current_scene);
+		const CONTROL_TYPE & control,
+		const std::shared_ptr<Transform> & transform);
 
 	void change_input();
 private:

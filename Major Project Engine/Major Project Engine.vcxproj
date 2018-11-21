@@ -33,6 +33,7 @@
     <ClCompile Include="Systems\Source Files\TestSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Game Objects\Header Files\Camera.h" />
     <ClInclude Include="Components\Base Components\Header Files\CameraComponent.h" />
     <ClInclude Include="Components\Base Components\Header Files\ComponentHeaders.h" />
     <ClInclude Include="Components\Game Components\Header Files\GameComponents.h" />
@@ -40,6 +41,7 @@
     <ClInclude Include="Header Files\FileLoader.h" />
     <ClInclude Include="Header Files\RenderExternals.h" />
     <ClInclude Include="Components\Base Components\Header Files\PlayerControllerComponent.h" />
+    <ClInclude Include="Components\Game Components\Header Files\PlayerRenderComponent.h" />
     <ClInclude Include="Systems\Header Files\Input.h" />
     <ClInclude Include="Game Objects\Header Files\Player.h" />
     <ClInclude Include="Scenes\Header Files\MainScene.h" />

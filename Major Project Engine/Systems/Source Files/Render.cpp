@@ -43,21 +43,18 @@ void Render::InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std
 
 void Render::UpdateLoop
 (
-	const std::unique_ptr<ComponentManager> & c_manager,
-	const std::unique_ptr<EntityManager> & e_manager,
-	EntityID _player
+	const std::unique_ptr<Scene> & current_scene
 )
 {
-	this->InitUpdate(c_manager->get_component<CameraComponent>(_player), e_manager->find_entity(_player)->get_transform());
+	this->InitUpdate(current_scene->get_comp_manager()->get_component<CameraComponent>(current_scene->get_camera_id()),
+		current_scene->get_ent_manager()->find_entity(current_scene->get_player_id())->get_transform());
 
-	for (auto & entity : e_manager->retreive_list())
+	std::shared_ptr<RenderComponent> rc;
+	for (auto & entity : current_scene->get_ent_manager()->retreive_list())
 	{
-		if (c_manager->get_component<RenderComponent>(entity.first) != nullptr)
+		if ((rc = current_scene->get_comp_manager()->get_component<RenderComponent>(entity.first)) != nullptr)
 		{
-			this->ComponentUpdate(
-				project_value_ptr,
-				c_manager->get_component<RenderComponent>(entity.first),
-				entity.second->get_transform());
+			this->ComponentUpdate( project_value_ptr, rc, entity.second->get_transform());
 		}
 	}
 

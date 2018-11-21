@@ -4,7 +4,6 @@
 #define _QUAD_H
 
 #include "Entity.h"
-#include "QuadRenderComponent.h"
 
 class Quad :
 	public Entity

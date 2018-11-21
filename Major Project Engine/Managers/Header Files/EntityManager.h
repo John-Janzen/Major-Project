@@ -45,6 +45,14 @@ public:
 	}
 
 	template <class T>
+	std::shared_ptr<T> create_entity(EntityID & id)
+	{
+		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(std::string("Default" + ' ' + id_counter), id_counter));
+		id = inserted.first->first;
+		return std::static_pointer_cast<T>(inserted.first->second);
+	}
+
+	template <class T>
 	std::shared_ptr<T> create_entity(const std::string & name)
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
@@ -60,7 +68,7 @@ public:
 	}
 
 	template <class T>
-	std::shared_ptr<T> create_entity(const std::string & name, int & entity_id)
+	std::shared_ptr<T> create_entity(const std::string & name, EntityID & entity_id)
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
 		entity_id = inserted.first->first;

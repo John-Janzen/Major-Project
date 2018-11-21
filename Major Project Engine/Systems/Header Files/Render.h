@@ -20,7 +20,7 @@ public:
 
 	bool Load();
 	void InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std::shared_ptr<Transform> & tran);
-	void UpdateLoop(const std::unique_ptr<ComponentManager> & c_manager, const std::unique_ptr<EntityManager> & e_manager, EntityID _player);
+	void UpdateLoop(const std::unique_ptr<Scene> & current_scene);
 	void ComponentUpdate(GLfloat * project_value,
 		const std::shared_ptr<RenderComponent> & rc,
 		const std::shared_ptr<Transform> & transform);

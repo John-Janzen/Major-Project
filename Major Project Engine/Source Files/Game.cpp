@@ -17,6 +17,7 @@ bool Game::Load()
 bool Game::Game_Loop()
 {
 	timer->wait_time();
+	
 	switch (_state)
 	{
 	case LOADING:
@@ -24,8 +25,11 @@ bool Game::Game_Loop()
 		this->Load();
 		break;
 	case PLAYING:
-
-		input->Update(timer->get_delta_time(), sdl_event, );
+	{
+		CONTROL_TYPE pc_cp = current_scene->get_comp_manager()->get_component<PlayerControllerComponent>()->get_type();
+		input->Update(timer->get_delta_time(), sdl_event,
+			pc_cp,
+			current_scene->get_ent_manager()->find_entity(current_scene->get_player_id())->get_transform());
 
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{
@@ -46,9 +50,10 @@ bool Game::Game_Loop()
 			}
 		}
 
-		renderer->UpdateLoop(component_manager, entity_manager);
+		renderer->UpdateLoop(current_scene);
 
 		break;
+	}
 	case EXITING:
 		this->Close();
 		break;
@@ -87,19 +92,19 @@ bool Game::Load_Scene(const SCENE_SELECTION & type)
 	default:
 		break;
 	}
-	if (newScene == nullptr && !newScene->Load())
-	{
-		printf("Error Making current scene");
-		return false;
-	}
-	else
+	if (newScene != nullptr && newScene->Load())
 	{
 		current_scene = std::move(newScene);
 		newScene.reset();
 		newScene = nullptr;
 	}
+	else
+	{
+		printf("Error Making current scene");
+		return false;
+	}
 
-	renderer->init_render_component(current_scene);
+	renderer->init_render_component(current_scene->get_comp_manager());
 
 	return true;
 }

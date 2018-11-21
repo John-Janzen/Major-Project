@@ -4,6 +4,7 @@
 #define _COMPONENTHEADER_H
 
 #include "ComponentHeaders.h"
+#include "GameComponents.h"
 
 #include <unordered_map>
 #include <algorithm>
@@ -88,27 +89,27 @@ public:
 	}
 
 	template <class T>
-	std::shared_ptr<T> & get_component()
+	std::shared_ptr<T> * get_component()
 	{
-		for (auto & element : components)
+		for (ComponentStorage::iterator it = components.begin(); it != components.end(); ++it)
 		{
-			if (std::dynamic_pointer_cast<T>(element.second) != nullptr)
+			if (std::dynamic_pointer_cast<T>(it->second) != nullptr)
 			{
-				return std::static_pointer_cast<T>(element.second);
+				return &std::static_pointer_cast<T>(it->second);
 			}
 		}
 	}
 
 	template <class T>
-	std::shared_ptr<T> & get_component(const int & entity_id)
+	const std::shared_ptr<T> & get_component(const int & entity_id)
 	{
-		std::shared_ptr<T> * temp = nullptr;
+		std::shared_ptr<T> temp = nullptr;
 		auto range = components.equal_range(entity_id);
 		std::for_each(range.first, range.second, [&temp](ComponentStorage::value_type & x)
 		{
 			if (std::dynamic_pointer_cast<T>(x.second) != nullptr)
 			{
-				temp = &std::static_pointer_cast<T>(x.second);
+				temp = std::static_pointer_cast<T>(x.second);
 			}
 		});
 		return temp;

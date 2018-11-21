@@ -7,7 +7,7 @@ MainScene::MainScene()
 
 MainScene::~MainScene() 
 {
-
+	Scene::~Scene();
 }
 
 bool MainScene::Load()
