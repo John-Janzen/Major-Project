@@ -47,7 +47,7 @@ void Render::UpdateLoop
 )
 {
 	this->InitUpdate(current_scene->get_comp_manager()->get_component<CameraComponent>(current_scene->get_camera_id()),
-		current_scene->get_ent_manager()->find_entity(current_scene->get_player_id())->get_transform());
+		current_scene->get_ent_manager()->find_entity(current_scene->get_camera_id())->get_transform());
 
 	std::shared_ptr<RenderComponent> rc;
 	for (auto & entity : current_scene->get_ent_manager()->retreive_list())
@@ -217,7 +217,7 @@ bool Render::init_GL()
 {
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 

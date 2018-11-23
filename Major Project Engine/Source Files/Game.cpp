@@ -26,10 +26,7 @@ bool Game::Game_Loop()
 		break;
 	case PLAYING:
 	{
-		CONTROL_TYPE pc_cp = current_scene->get_comp_manager()->get_component<PlayerControllerComponent>()->get_type();
-		input->Update(timer->get_delta_time(), sdl_event,
-			pc_cp,
-			current_scene->get_ent_manager()->find_entity(current_scene->get_player_id())->get_transform());
+		input->Update(timer->get_delta_time(), current_scene);
 
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{

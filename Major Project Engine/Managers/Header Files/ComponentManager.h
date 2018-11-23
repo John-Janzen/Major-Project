@@ -89,19 +89,20 @@ public:
 	}
 
 	template <class T>
-	std::shared_ptr<T> * get_component()
+	std::shared_ptr<T> get_component()
 	{
 		for (ComponentStorage::iterator it = components.begin(); it != components.end(); ++it)
 		{
 			if (std::dynamic_pointer_cast<T>(it->second) != nullptr)
 			{
-				return &std::static_pointer_cast<T>(it->second);
+				return std::static_pointer_cast<T>(it->second);
 			}
 		}
+		return nullptr;
 	}
 
 	template <class T>
-	const std::shared_ptr<T> & get_component(const int & entity_id)
+	std::shared_ptr<T> get_component(const int & entity_id)
 	{
 		std::shared_ptr<T> temp = nullptr;
 		auto range = components.equal_range(entity_id);

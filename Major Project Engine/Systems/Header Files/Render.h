@@ -38,8 +38,8 @@ private:
 
 	GLfloat * project_value_ptr;
 
-	const int SCREEN_WIDTH = 640;
-	const int SCREEN_HEIGHT = 480;
+	const int SCREEN_WIDTH = 1280;
+	const int SCREEN_HEIGHT = 720;
 };
 
 #endif // !_RENDER_H

@@ -19,10 +19,20 @@ void Input::Close()
 void Input::Update
 (
 	const GLfloat & _dt,
-	const SDL_Event & sdl_event,
-	const CONTROL_TYPE & control,
-	const std::shared_ptr<Transform> & transform
+	const std::unique_ptr<Scene> & current_scene
 )
+{
+	std::shared_ptr<PlayerControllerComponent> pc_cp;
+	for (auto & entity : current_scene->get_ent_manager()->retreive_list())
+	{
+		if ((pc_cp = current_scene->get_comp_manager()->get_component<PlayerControllerComponent>(entity.first)) != nullptr)
+		{
+			player_controls(_dt, pc_cp->get_type(), entity.second->get_transform());
+		}
+	}
+}
+
+void Input::player_controls(const GLfloat & _dt, const CONTROL_TYPE & control, const std::shared_ptr<Transform> & transform)
 {
 	if (control == CONTROL_TYPE::MOUSE_KEYBOARD)
 	{

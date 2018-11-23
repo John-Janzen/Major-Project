@@ -71,13 +71,10 @@ inline Application::Application(const std::size_t & num_of_threads)
 inline Application::~Application()
 {
 	renderer.reset();
-	renderer = nullptr;
 	input.reset();
-	input = nullptr;
 	timer.reset();
-	timer = nullptr;
 	test_system.reset();
-	test_system = nullptr;
+	current_scene.reset();
 	this->close_managers();
 }
 
