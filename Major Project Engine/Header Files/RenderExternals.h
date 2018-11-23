@@ -3,14 +3,14 @@
 #ifndef _RENDEREXTERNALS_H
 #define _RENDEREXTERNALS_H
 
-#include <glew.h>
+#include <GL\glew.h>
 #include <cstddef>
 
 struct Model
 {
 	const GLfloat * _vertices;
 	const GLuint * _indices;
-	std::size_t VSize = 0, ISize = 0;
+	GLsizei VSize = 0, ISize = 0;
 
 	Model() { _vertices = nullptr; _indices = nullptr; }
 	Model(const GLfloat * vert, const GLuint * ind, const GLsizei & is, const GLsizei & vs)

@@ -5,7 +5,7 @@
 
 #include "BaseComponent.h"
 
-#include <glew.h>
+#include <GL/glew.h>
 #include <glm.hpp>
 #include <gtc\matrix_transform.hpp>
 #include <gtx\euler_angles.hpp>
@@ -18,7 +18,7 @@ public:
 	CameraComponent();
 	~CameraComponent();
 
-	void set_project_look(const glm::mat4 & matrix) { projection_look_matrix = projection_matrix * (look_matrix * matrix); }
+	GLfloat * set_project_look(const glm::mat4 & matrix) { return glm::value_ptr(projection_look_matrix = projection_matrix * (look_matrix * matrix)); }
 	GLfloat * get_project_value() { return glm::value_ptr(projection_look_matrix); }
 
 private:

@@ -4,6 +4,7 @@
 #define _COMPONENTHEADER_H
 
 #include "ComponentHeaders.h"
+#include "GameComponents.h"
 
 #include <unordered_map>
 #include <algorithm>
@@ -16,18 +17,11 @@ class ComponentManager
 {
 public:
 
-	static ComponentManager& Instance()
-	{
-		static ComponentManager inst;
-		return inst;
-	}
-
-	~ComponentManager() {}
-
-	void Init() 
+	ComponentManager() 
 	{
 		components = ComponentStorage();
 	}
+	~ComponentManager() {}
 
 	void Close() 
 	{
@@ -52,7 +46,7 @@ public:
 		return full_list;
 	}
 
-	template<class T>
+	template <class T>
 	void add_component(const int & entity_id, std::shared_ptr<T> comp)
 	{
 		if (!has_component<T>(entity_id))
@@ -61,7 +55,20 @@ public:
 		}
 		else
 		{
-			printf("Duplicate Components not allowed, %d", entity_id);
+			printf("Duplicate Components not allowed, ID: %d", entity_id);
+		}
+	}
+
+	template <class T>
+	void add_component(std::shared_ptr<T> comp)
+	{
+		if (!has_component<T>(0))
+		{
+			components.emplace(0, std::move(comp));
+		}
+		else
+		{
+			printf("Duplicate Components not allowed, NO ID Available");
 		}
 	}
 
@@ -81,7 +88,20 @@ public:
 		return found;
 	}
 
-	template<class T>
+	template <class T>
+	std::shared_ptr<T> get_component()
+	{
+		for (ComponentStorage::iterator it = components.begin(); it != components.end(); ++it)
+		{
+			if (std::dynamic_pointer_cast<T>(it->second) != nullptr)
+			{
+				return std::static_pointer_cast<T>(it->second);
+			}
+		}
+		return nullptr;
+	}
+
+	template <class T>
 	std::shared_ptr<T> get_component(const int & entity_id)
 	{
 		std::shared_ptr<T> temp = nullptr;
@@ -96,7 +116,7 @@ public:
 		return temp;
 	}
 
-	template<class T>
+	template <class T>
 	bool has_component(const int & entity_id)
 	{
 		bool found = false;
@@ -112,7 +132,6 @@ public:
 	}
 
 private:
-	ComponentManager() {}
 
 	ComponentStorage components;
 };

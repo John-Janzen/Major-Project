@@ -13,7 +13,6 @@ public:
 	bool Load();
 	bool Unload();
 private:
-
 };
 
 #endif // !

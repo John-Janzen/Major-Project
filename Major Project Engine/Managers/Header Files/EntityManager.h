@@ -16,19 +16,11 @@ class EntityManager
 {
 public:
 
-	static EntityManager& Instance()
+	EntityManager() : id_counter(0x100)
 	{
-		static EntityManager inst;
-		return inst;
-	}
-
-	~EntityManager() {}
-
-	void Init()
-	{
-		id_counter = 0x100;
 		entities = EntityStorage();
 	}
+	~EntityManager() {}
 
 	void Close()
 	{
@@ -45,26 +37,47 @@ public:
 		return std::static_pointer_cast<Entity>(inserted.first->second);
 	}
 
-	template<class T>
+	template <class T>
 	std::shared_ptr<T> create_entity()
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(std::string("Default" + ' ' + id_counter), id_counter));
 		return std::static_pointer_cast<T>(inserted.first->second);
 	}
 
-	template<class T>
+	template <class T>
+	std::shared_ptr<T> create_entity(EntityID & id)
+	{
+		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(std::string("Default" + ' ' + id_counter), id_counter));
+		id = inserted.first->first;
+		return std::static_pointer_cast<T>(inserted.first->second);
+	}
+
+	template <class T>
 	std::shared_ptr<T> create_entity(const std::string & name)
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
 		return std::static_pointer_cast<T>(inserted.first->second);
 	}
 
-	template<class T>
+	template <class T>
 	const int & create_entity(const std::string & name, std::shared_ptr<T> & entity)
 	{
 		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
 		entity = std::static_pointer_cast<T>(inserted.first->second);
 		return inserted.first->first;
+	}
+
+	template <class T>
+	std::shared_ptr<T> create_entity(const std::string & name, EntityID & entity_id)
+	{
+		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
+		entity_id = inserted.first->first;
+		return std::static_pointer_cast<T>(inserted.first->second);
+	}
+
+	std::shared_ptr<Entity> & find_entity(const EntityID & _id)
+	{
+		return entities.find(_id)->second;
 	}
 
 	void flag_dead_entity(const EntityID & entity_id)
@@ -94,8 +107,6 @@ public:
 	}
 
 private:
-
-	EntityManager() {}
 
 	EntityStorage entities;
 	EntityID id_counter;

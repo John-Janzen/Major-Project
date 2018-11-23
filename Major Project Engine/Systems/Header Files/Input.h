@@ -18,10 +18,9 @@ public:
 	bool Load();
 	void Close();
 
-	void Update(const GLfloat & _dt, 
-		const SDL_Event & sdl_event, 
-		const std::shared_ptr<PlayerControllerComponent> & control, 
-		const std::shared_ptr<Transform> & transform);
+	void Update(const GLfloat & _dt, const std::unique_ptr<Scene> & current_scene);
+
+	void player_controls(const GLfloat & _dt, const CONTROL_TYPE & control, const std::shared_ptr<Transform> & transform);
 
 	void change_input();
 private:

@@ -10,7 +10,7 @@ bool TestSystem::Load()
 	testing_field = std::vector<int>();
 	//srand(time(NULL));
 
-	/*for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 100; i++)
 	{
 		testing_field.emplace_back(std::rand() % 100 + 1);
 	}
@@ -24,7 +24,7 @@ bool TestSystem::Load()
 		jobs[i]->add_observer(&parent_job);
 		ThreadManager::Instance().register_job(std::move(jobs[i]));
 	}
-	ThreadManager::Instance().register_job(std::move(parent_job));*/
+	ThreadManager::Instance().register_job(std::move(parent_job));
 	return true;
 }
 

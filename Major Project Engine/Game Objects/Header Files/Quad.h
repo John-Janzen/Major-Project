@@ -4,7 +4,6 @@
 #define _QUAD_H
 
 #include "Entity.h"
-#include "QuadRenderComponent.h"
 
 class Quad :
 	public Entity
@@ -12,7 +11,7 @@ class Quad :
 public:
 	Quad(const std::string & name, int id);
 	~Quad();
-	void Load();
+	void Load(std::unique_ptr<ComponentManager> & c_manager);
 };
 
 

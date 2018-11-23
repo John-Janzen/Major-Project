@@ -33,7 +33,8 @@ public:
 	explicit Application(const std::size_t & num_of_threads);
 	~Application();
 
-	virtual bool Load(std::unique_ptr<Scene> newScene);
+	virtual bool Load() = 0;
+	bool Load_App();
 	virtual bool Game_Loop() = 0;
 	virtual void Close() = 0;
 
@@ -43,7 +44,6 @@ public:
 
 protected:
 
-	std::unique_ptr<Scene> current_scene;
 	std::unique_ptr<Timer> timer;
 
 	bool game_running = true;
@@ -52,8 +52,10 @@ protected:
 	std::unique_ptr<Render> renderer;
 	std::unique_ptr<Input> input;
 	std::unique_ptr<TestSystem> test_system;
-	GLfloat frame_rate;
 
+	std::unique_ptr<Scene> current_scene;
+
+	GLfloat frame_rate;
 };
 
 inline Application::Application(const std::size_t & num_of_threads)
@@ -64,7 +66,20 @@ inline Application::Application(const std::size_t & num_of_threads)
 	input = std::make_unique<Input>();
 	timer = std::make_unique<Timer>();
 	test_system = std::make_unique<TestSystem>();
+}
 
+inline Application::~Application()
+{
+	renderer.reset();
+	input.reset();
+	timer.reset();
+	test_system.reset();
+	current_scene.reset();
+	this->close_managers();
+}
+
+inline bool Application::Load_App()
+{
 	FileLoader::Instance().Init();
 
 	test_system->Load();
@@ -82,35 +97,6 @@ inline Application::Application(const std::size_t & num_of_threads)
 		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 	}
 	timer->set_time_lock((1000.0f / (float)mode.refresh_rate));
-}
-
-inline Application::~Application()
-{
-	renderer.reset();
-	renderer = nullptr;
-	input.reset();
-	input = nullptr;
-	timer.reset();
-	timer = nullptr;
-	test_system.reset();
-	test_system = nullptr;
-	this->close_managers();
-}
-
-inline bool Application::Load(std::unique_ptr<Scene> newScene)
-{
-
-	if (!newScene->Load())
-	{
-		printf("Error Making current scene");
-		return false;
-	}
-	current_scene = std::move(newScene);
-
-	for (auto & element : ComponentManager::Instance().find_all_of_type<RenderComponent>())
-	{
-		renderer->init_render_component(element);
-	}
 
 	return true;
 }
@@ -118,16 +104,12 @@ inline bool Application::Load(std::unique_ptr<Scene> newScene)
 inline void Application::init_managers(const std::size_t & size)
 {
 	ThreadManager::Instance().Init(size);
-	ComponentManager::Instance().Init();
-	EntityManager::Instance().Init();
 	FileLoader::Instance().Init();
 }
 
 inline void Application::close_managers()
 {
 	ThreadManager::Instance().Close();
-	ComponentManager::Instance().Close();
-	EntityManager::Instance().Close();
 	FileLoader::Instance().Close();
 }
 

@@ -7,12 +7,12 @@ MainScene::MainScene()
 
 MainScene::~MainScene() 
 {
-
 }
 
 bool MainScene::Load()
-{
-	EntityManager::Instance().create_entity<Quad>("Quad")->Load();
+{	
+	entity_manager->create_entity<Quad>("Quad")->Load(component_manager);
+	entity_manager->create_entity<Player>("Player", _player1_ID)->Load(component_manager);
 	return true;
 }
 
