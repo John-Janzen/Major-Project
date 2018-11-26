@@ -16,7 +16,7 @@ public:
 	void Start();
 	void End();
 
-	const std::chrono::steady_clock::rep & elapsed_work();
+	const std::chrono::system_clock::rep & elapsed_work();
 	void wait_time();
 
 	void Print(const std::chrono::duration<double, std::milli> & time);
@@ -27,8 +27,8 @@ public:
 	void set_time_lock(const float & time) { current_time_lock = time; }
 
 private:
-	std::chrono::steady_clock::time_point start_time;
-	std::chrono::steady_clock::time_point end_time;
+	std::chrono::system_clock::time_point start_time;
+	std::chrono::system_clock::time_point end_time;
 
 	float delta_time;
 	float current_time_lock;

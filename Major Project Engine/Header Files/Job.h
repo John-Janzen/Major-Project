@@ -30,7 +30,7 @@ enum MESSAGE_TYPE
 using JobFunction = std::function<bool(Content *&)>;
 
 template<class T>
-JobFunction bind_function(T const & sys, bool(T::* pFunc)(Content *&))
+JobFunction bind_function(bool(T::* pFunc)(Content *&), T * const sys = nullptr)
 {
 	return std::bind(pFunc, sys, std::placeholders::_1);
 }

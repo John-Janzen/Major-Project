@@ -2,25 +2,25 @@
 
 Timer::Timer()
 {
-	start_time = std::chrono::steady_clock::now();
-	end_time = std::chrono::steady_clock::now();
+	start_time = std::chrono::system_clock::now();
+	end_time = std::chrono::system_clock::now();
 }
 
 Timer::~Timer() {}
 
 void Timer::Start()
 {
-	start_time = std::chrono::steady_clock::now();
+	start_time = std::chrono::system_clock::now();
 }
 
 void Timer::End()
 {
-	end_time = std::chrono::steady_clock::now();
+	end_time = std::chrono::system_clock::now();
 	this->set_delta_time();
-	//this->Print(end_time - start_time);
+	this->Print(end_time - start_time);
 }
 
-const std::chrono::steady_clock::rep & Timer::elapsed_work()
+const std::chrono::system_clock::rep & Timer::elapsed_work()
 {
 	return std::chrono::duration<double, std::milli>(start_time - end_time).count();
 }

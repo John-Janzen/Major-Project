@@ -63,7 +63,7 @@ void ThreadManager::register_job(Job * & job)
 	job = nullptr;
 }
 
-void ThreadManager::register_job(Job * & job, Job * & parent_job)
+void ThreadManager::register_job(Job * job, Job * parent_job)
 {
 	parent_job->increment_wait();
 	job->set_parent(parent_job);

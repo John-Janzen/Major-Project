@@ -63,7 +63,7 @@ public:
 	*/
 	void register_job(Job * & job);
 
-	void register_job(Job * & job, Job * & parent_job);
+	void register_job(Job * job, Job * parent_job);
 
 	/*
 	Check if there is no jobs in the queue.
