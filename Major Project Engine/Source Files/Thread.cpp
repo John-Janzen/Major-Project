@@ -1,5 +1,5 @@
 #include "Thread.h"
-
+#include "ThreadManager.h"
 /*
 * Constructor that registers a name for the
 * thread class.
@@ -16,8 +16,7 @@ Thread::Thread(const std::string & name)
 */
 Thread::~Thread() 
 {
-	current_job.reset();
-	current_job = nullptr;
+	delete(current_job);
 }
 
 /*
@@ -35,9 +34,17 @@ void Thread::Execution()
 	{
 		if (current_job)
 		{
-			current_job.get()->get_function()(current_job->get_content());
-			count++;
-			current_job.reset();
+			if (current_job->get_function()(current_job->get_content()))
+			{
+				count++;
+				delete(current_job);
+				current_job = nullptr;
+			}
+			else 
+			{
+				ThreadManager::Instance().register_job(current_job);
+				current_job = nullptr;
+			}
 		}
 		else
 		{
@@ -58,10 +65,10 @@ void Thread::Stop()
 
 bool Thread::check_availability()
 {
-	return (current_job.get() == nullptr);
+	return (current_job == nullptr);
 }
 
-std::unique_ptr<Job> * Thread::get_location()
+Job * & Thread::get_location()
 {
-	return &current_job;
+	return current_job;
 }

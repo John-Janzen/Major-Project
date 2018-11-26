@@ -4,7 +4,11 @@
 #define _JOB_H
 
 #include "Content.h"
+
 #include <functional>
+#include <memory>
+#include <atomic>
+#include <vector>
 
 /*
 * List of Job Types that the threads will
@@ -14,8 +18,22 @@
 enum Job_Type
 {
 	NULL_TYPE,
-
 };
+
+enum MESSAGE_TYPE
+{
+	NULL_MSG,
+	P_EQUIVOCATEJOB
+};
+
+//typedef bool(*JobFunction)(const Content * &);
+using JobFunction = std::function<bool(Content *&)>;
+
+template<class T>
+JobFunction bind_function(bool(T::* pFunc)(Content *&), T * const sys = nullptr)
+{
+	return std::bind(pFunc, sys, std::placeholders::_1);
+}
 
 /*
 * Job class that holds the data for the threads
@@ -33,36 +51,61 @@ class Job
 {
 public:
 
-	Job(Job_Type type, std::function<void(Content*)> function, Content* data = nullptr)
-		: _type(type), _func(function), _content(data) {}
+	Job(JobFunction function, Content * data = nullptr)
+		: _func(function), _content(data)
+	{
+	}
 
 	~Job()
 	{
-		_type = NULL_TYPE;
 		_func = NULL;
-		delete(_content);
-	}
-
-	/* Gets the type of the job */
-	Job_Type get_type()
-	{
-		return _type;
+		if (_content != nullptr) delete(_content);
+		if (_parent_job != nullptr)
+		{
+			_parent_job->OnNotify();
+			_parent_job = nullptr;
+		}
 	}
 
 	/* Gets the function of the job */
-	std::function<void(Content*)> get_function()
+	JobFunction get_function()
 	{
 		return _func;
 	}
 
-	Content * get_content()
+	Content * & get_content()
 	{
 		return _content;
 	}
+
+	void set_parent(Job * & parent)
+	{
+		_parent_job = parent;
+	}
+
+	void increment_wait()
+	{
+		_awaiting++;
+	}
+
+	void OnNotify()
+	{
+		_awaiting--;
+	}
+
+	std::atomic_int & get_waiting()
+	{
+		return _awaiting;
+	}
+
 private:
-	Job_Type _type;
-	std::function<void(Content*)> _func;
+
+	std::atomic<int> _awaiting = 0;
+	Job * _parent_job;
+	
+	JobFunction _func;
 	Content * _content;
+
 };
 
 #endif // !_JOB_H

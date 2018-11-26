@@ -4,5 +4,6 @@
 #define _GAMECOMPONENTS_H
 
 #include "QuadRenderComponent.h"
+#include "PlayerRenderComponent.h"
 
 #endif // !_GAMECOMPONENTS_H

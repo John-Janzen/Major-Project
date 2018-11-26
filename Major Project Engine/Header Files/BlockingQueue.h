@@ -24,8 +24,18 @@ public:
 		std::lock_guard<std::mutex> lock(_mutex);
 		if (!_queue.empty())
 		{
-			location = std::move(_queue.front());
-			_queue.pop();
+			if (_queue.front()->get_waiting() <= 0)
+			{
+				location = std::move(_queue.front());
+				_queue.front() = nullptr;
+				_queue.pop();
+			}
+			else
+			{
+				_queue.emplace(std::move(_queue.front()));
+				_queue.front() = nullptr;
+				_queue.pop();
+			}
 			return true;
 		}
 		return false;
@@ -34,7 +44,7 @@ public:
 	void emplace(T item)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		_queue.emplace(std::move(item));
+		_queue.emplace(item);
 	}
 
 	bool empty()

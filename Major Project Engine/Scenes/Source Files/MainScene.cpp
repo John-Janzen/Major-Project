@@ -7,12 +7,12 @@ MainScene::MainScene()
 
 MainScene::~MainScene() 
 {
-
 }
 
-bool MainScene::Load(const std::unique_ptr<EntityManager> & e_manager, const std::unique_ptr<ComponentManager> & c_manager)
-{
-	e_manager->create_entity<Quad>("Quad")->Load(c_manager);
+bool MainScene::Load()
+{	
+	entity_manager->create_entity<Quad>("Quad")->Load(component_manager);
+	entity_manager->create_entity<Player>("Player", _player1_ID)->Load(component_manager);
 	return true;
 }
 

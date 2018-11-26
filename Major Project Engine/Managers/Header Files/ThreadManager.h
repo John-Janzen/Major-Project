@@ -6,6 +6,9 @@
 #include "Thread.h"
 #include "BlockingQueue.h"
 
+#include <memory>
+#include <vector>
+
 /*
 This Manager class is created as a singleton because
 we don't need multiple instances of the thread manager.
@@ -15,16 +18,25 @@ with this class by calling register_job.
 Furthermore, main thread is going to be the only one to
 use most of these functions.
 */
+class System;
 class ThreadManager
 {
 public:
 
-	ThreadManager(const std::size_t & size);
+	static const std::size_t MAX_THREADS = 8;
+
+	static ThreadManager& Instance()
+	{
+		static ThreadManager inst;
+		return inst;
+	}
 
 	/*
 	Deletes the threads and job list.
 	*/
 	~ThreadManager();
+
+	void Init(const std::size_t & size);
 
 	/*
 	Stops the threads.
@@ -43,13 +55,15 @@ public:
 	To register a job in the manager any class can call this function
 	with the job type and function.
 	*/
-	void register_job(Job_Type type, std::function<void(Content*)> function);
+	void register_job(JobFunction function, Content * content);
 
 	/*
 	Register a job that the someone already made with the
 	make_unique function.
 	*/
-	void register_job(std::unique_ptr<Job> job);
+	void register_job(Job * & job);
+
+	void register_job(Job * job, Job * parent_job);
 
 	/*
 	Check if there is no jobs in the queue.
@@ -76,14 +90,17 @@ public:
 	*/
 	void stop_threads();
 
+	std::size_t get_num_threads() { return num_of_threads; }
+
 private:
-	Thread ** threads;
+	Thread * threads[MAX_THREADS];
+	ThreadManager() {}
 
 	std::size_t num_of_threads;
 
 	// List of jobs available
 	// std::queue<std::unique_ptr<Job>> job_list;
-	BlockingQueue<std::unique_ptr<Job>> * job_list;
+	BlockingQueue<Job*> * job_list;
 };
 
 #endif // !_THREADMANAGER_H

@@ -1,9 +1,17 @@
 #include "ThreadManager.h"
 
-ThreadManager::ThreadManager(const std::size_t & size)
+ThreadManager::~ThreadManager()
+{
+	for (std::size_t i = 0; i < num_of_threads; i++)
+	{
+		delete(threads[i]);
+	}
+	delete(job_list);
+}
+
+void ThreadManager::Init(const std::size_t & size)
 {
 	num_of_threads = size;
-	threads = new Thread*[size];
 	std::string name;
 	for (std::size_t i = 0; i < size; i++)
 	{
@@ -24,16 +32,7 @@ ThreadManager::ThreadManager(const std::size_t & size)
 		}
 		threads[i] = new Thread(name);
 	}
-	job_list = new BlockingQueue<std::unique_ptr<Job>>();
-}
-
-ThreadManager::~ThreadManager()
-{
-	for (std::size_t i = 0; i < num_of_threads; i++)
-	{
-		delete(threads[i]);
-	}
-	delete(job_list);
+	job_list = new BlockingQueue<Job*>();
 }
 
 void ThreadManager::Close()
@@ -47,20 +46,29 @@ void ThreadManager::allocate_jobs()
 	{
 		if (threads[i]->check_availability())
 		{
-			job_list->pop(*threads[i]->get_location());
+			job_list->pop(threads[i]->get_location());
 		}
 	}
 }
 
-void ThreadManager::register_job(Job_Type type, std::function<void(Content*)> function)
+void ThreadManager::register_job(JobFunction function, Content * content = nullptr)
 {
-	job_list->emplace(std::make_unique<Job>(type, function));
+	job_list->emplace(new Job(function, content));
 }
 
 
-void ThreadManager::register_job(std::unique_ptr<Job> job)
+void ThreadManager::register_job(Job * & job)
 {
-	job_list->emplace(std::move(job));
+	job_list->emplace(job);
+	job = nullptr;
+}
+
+void ThreadManager::register_job(Job * job, Job * parent_job)
+{
+	parent_job->increment_wait();
+	job->set_parent(parent_job);
+	job_list->emplace(job);
+	job = nullptr;
 }
 
 bool ThreadManager::jobs_empty()

@@ -13,7 +13,7 @@
 #include <glm.hpp>
 #include <fstream>
 #include <sstream>
-#include <glew.h>
+#include <GL/glew.h>
 #include <chrono>
 #include <iostream>
 
@@ -38,9 +38,9 @@ public:
 
 	void Close();
 
-	void add_model(const std::string & path, const std::shared_ptr<Model> & pair);
+	void add_model(const std::string & path, const std::shared_ptr<Model> & model) { _models.emplace(path, model); }
 
-	void add_shader(const std::string & path, const std::shared_ptr<Shader> & shader);
+	void add_shader(const std::string & path, const std::shared_ptr<Shader> & shader) { _shaders.emplace(path, shader); }
 
 	void loadShaderFromFile(const std::string & path, const GLenum & type, std::shared_ptr<Shader> & shader);
 
@@ -76,28 +76,17 @@ inline void FileLoader::Close()
 {
 	_models.clear();
 	_shaders.clear();
-
 }
 
-inline void FileLoader::add_model(const std::string & path, const std::shared_ptr<Model> & model)
+inline void FileLoader::loadShaderFromFile(const std::string & path, const GLenum & type, std::shared_ptr<Shader> & shader_loc)
 {
-	_models.emplace(path, model);
-}
-
-inline void FileLoader::add_shader(const std::string & path, const std::shared_ptr<Shader> & shader)
-{
-	if (shader->_shaderID == GL_VERTEX_SHADER)
+	std::unordered_map<std::string, std::shared_ptr<Shader>>::iterator it;
+	if ((it = _shaders.find(path)) != _shaders.end())
 	{
-		_shaders.emplace(path, shader);
+		shader_loc = (*it).second;
+		return;
 	}
-	else if (shader->_type == GL_FRAGMENT_SHADER)
-	{
-		_shaders.emplace(path, shader);
-	}
-}
 
-inline void FileLoader::loadShaderFromFile(const std::string & path, const GLenum & type, std::shared_ptr<Shader> & shader)
-{
 	GLuint shaderID = 0;
 	std::string shaderString;
 	std::ifstream sourceFile(path.c_str());
@@ -127,7 +116,7 @@ inline void FileLoader::loadShaderFromFile(const std::string & path, const GLenu
 		printf("Unable to open file %s\n", path.c_str());
 		return;
 	}
-	add_shader(path, shader = std::make_shared<Shader>(shaderID, type));
+	add_shader(path, shader_loc = std::make_shared<Shader>(shaderID, type));
 	printf("Shader Loaded: %s\n", path.c_str());
 }
 
@@ -236,14 +225,12 @@ inline void FileLoader::obj_file_importer(
 		std::shared_ptr<Model> new_model = std::make_shared<Model>();	
 		new_model->setVertices(mallocSpace(finalData));
 		new_model->setIndices(mallocSpace(indices));
-		new_model->ISize = indices.size();
-		new_model->VSize = finalData.size();
+		new_model->ISize = (GLsizei)indices.size();
+		new_model->VSize = (GLsizei)finalData.size();
 		model_loc = new_model;
 
 		add_model(path, new_model);
 
-
-		//_models.emplace(std::make_pair(std::string(path), new_model));
 		printf("Model Loaded: %s\n", path.c_str());
 		model_count++;
 	}

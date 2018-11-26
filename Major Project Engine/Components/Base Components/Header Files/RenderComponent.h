@@ -7,6 +7,7 @@
 #include "FileLoader.h"
 
 #include <memory>
+#include <string>
 
 class RenderComponent : public BaseComponent
 {
@@ -35,8 +36,10 @@ public:
 	const GLint & get_color_loc() { return r_color_vec4_loc; }
 	void set_color_loc(const GLint & matrix_loc) { r_color_vec4_loc = matrix_loc; }
 
-private:
 
+protected:
+
+private:
 	std::shared_ptr<Model> current_model;
 	std::shared_ptr<Shader> current_v_shader;
 	std::shared_ptr<Shader> current_f_shader;

@@ -10,10 +10,9 @@ class MainScene :
 public:
 	MainScene();
 	~MainScene();
-	bool Load(const std::unique_ptr<EntityManager> & e_manager, const std::unique_ptr<ComponentManager> & c_manager);
+	bool Load();
 	bool Unload();
 private:
-
 };
 
 #endif // !

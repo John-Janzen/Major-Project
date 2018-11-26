@@ -5,5 +5,6 @@
 
 #include "Quad.h"
 #include "Player.h"
+#include "Camera.h"
 
 #endif // !_GAMEHEADERS_H

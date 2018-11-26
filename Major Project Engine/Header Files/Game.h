@@ -16,8 +16,9 @@ public:
 	bool Game_Loop();
 	void Close();
 
+	bool Load_Scene(const SCENE_SELECTION & type);
+
 private:
-	std::shared_ptr<Player> player_one;
 	SDL_Event sdl_event;
 };
 
