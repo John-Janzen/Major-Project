@@ -24,7 +24,7 @@ public:
 	void Execution();
 	void Stop();
 	bool check_availability();
-	std::unique_ptr<Job> * get_location();
+	Job * & get_location();
 
 	/*
 	* Prints available stats.
@@ -44,7 +44,7 @@ private:
 	// Only one instance needed for these
 	// No need for copying
 	std::unique_ptr<std::thread> _thread;
-	std::unique_ptr<Job> current_job;
+	Job * current_job;
 };
 
 #endif // !_THREAD_H

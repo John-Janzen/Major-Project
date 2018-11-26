@@ -3,7 +3,10 @@
 TestSystem::TestSystem()
 {}
 
-TestSystem::~TestSystem() {}
+TestSystem::~TestSystem() 
+{
+	std::cout << "Test System destructor called" << std::endl;
+}
 
 bool TestSystem::Load()
 {
@@ -14,17 +17,22 @@ bool TestSystem::Load()
 	{
 		testing_field.emplace_back(std::rand() % 100 + 1);
 	}
-	std::unique_ptr<Job> jobs[4] = { nullptr };
+	results[0] = new int(0);
+	results[1] = new int(0);
+	results[2] = new int(0);
+	results[3] = new int(0);
+	Job * parent_job = new Job(bind_function(*this, &TestSystem::return_process));
 
-	std::unique_ptr<Job> parent_job = std::make_unique<Job>(NULL_TYPE, std::bind(&TestSystem::return_process, std::ref(*this), std::placeholders::_1));
+	Job * jobs[4] = { nullptr };
+
 	for (int i = 0; i < ThreadManager::Instance().get_num_threads(); i++)
-	{	
+	{
 		std::vector<int> testing(testing_field.begin() + (i * (100 / ThreadManager::Instance().get_num_threads())), testing_field.begin() + ((i + 1) * (100 / ThreadManager::Instance().get_num_threads())));
-		jobs[i] = std::make_unique<Job>(NULL_TYPE, std::bind(&TestSystem::process, std::ref(*this), std::placeholders::_1), std::make_shared<InitialContent>(testing));
-		jobs[i]->add_observer(&parent_job);
-		ThreadManager::Instance().register_job(std::move(jobs[i]));
+		
+		jobs[i] = new Job(bind_function(*this, &TestSystem::process), new InitialContent(testing, results[i]));
+		ThreadManager::Instance().register_job(jobs[i], parent_job);
 	}
-	ThreadManager::Instance().register_job(std::move(parent_job));
+	ThreadManager::Instance().register_job(parent_job);
 	return true;
 }
 
@@ -33,22 +41,24 @@ void TestSystem::Close()
 
 }
 
-void TestSystem::process(const std::shared_ptr<Content> & content)
+bool TestSystem::process(Content * & content)
 {
-	std::shared_ptr<InitialContent> IContent = std::static_pointer_cast<InitialContent>(content);
+	InitialContent * IContent = static_cast<InitialContent*>(content);
 	int total = 0, count = 0;
 	for (int i : IContent->copy_section)
 	{
 		total += i;
 		count++;
 	}
+	*IContent->result = total;
 
-	IContent.reset();
+	IContent = nullptr;
+	return true;
 }
 
-void TestSystem::return_process(const std::shared_ptr<Content> & content)
+bool TestSystem::return_process(Content * & content)
 {
 	if (content == nullptr) {}
 
-
+	return true;
 }
