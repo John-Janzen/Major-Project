@@ -207,6 +207,10 @@ bool Render::init_SDL()
 					printf("Error initializing GLEW! %s", glewGetErrorString(glewError));
 					return false;
 				}
+				/*if (SDL_GL_SetSwapInterval(1) < 0)
+				{
+					printf("Warning: Unable to set VSync! SDL_Error: %s\n", SDL_GetError());
+				}*/
 			}
 		}
 	}

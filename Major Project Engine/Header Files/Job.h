@@ -8,6 +8,7 @@
 #include <functional>
 #include <memory>
 #include <atomic>
+#include <vector>
 
 /*
 * List of Job Types that the threads will
@@ -19,7 +20,20 @@ enum Job_Type
 	NULL_TYPE,
 };
 
-constexpr auto MAX_OBSERVERS = 1;
+enum MESSAGE_TYPE
+{
+	NULL_MSG,
+	P_EQUIVOCATEJOB
+};
+
+//typedef bool(*JobFunction)(const Content * &);
+using JobFunction = std::function<bool(Content *&)>;
+
+template<class T>
+JobFunction bind_function(bool(T::* pFunc)(Content *&), T * const sys = nullptr)
+{
+	return std::bind(pFunc, sys, std::placeholders::_1);
+}
 
 /*
 * Job class that holds the data for the threads
@@ -37,79 +51,60 @@ class Job
 {
 public:
 
-	Job(Job_Type type, std::function<void(const std::shared_ptr<Content> &)> function, std::shared_ptr<Content> data = nullptr)
-		: _type(type), _func(function), _content(data)
+	Job(JobFunction function, Content * data = nullptr)
+		: _func(function), _content(data)
 	{
 	}
 
 	~Job()
 	{
-		_type = NULL_TYPE;
 		_func = NULL;
-		_content.reset();
-		_content = nullptr;
-		for (int i = 0; i < num_observers; i++)
+		if (_content != nullptr) delete(_content);
+		if (_parent_job != nullptr)
 		{
-			_observers[i] = nullptr;
+			_parent_job->OnNotify();
+			_parent_job = nullptr;
 		}
-		num_observers = 0;
-		_awaiting = 0;
-	}
-
-	/* Gets the type of the job */
-	Job_Type get_type()
-	{
-		return _type;
 	}
 
 	/* Gets the function of the job */
-	std::function<void(const std::shared_ptr<Content> &)> get_function()
+	JobFunction get_function()
 	{
 		return _func;
 	}
 
-	std::shared_ptr<Content> & get_content()
+	Content * & get_content()
 	{
 		return _content;
 	}
 
-	void add_observer(std::unique_ptr<Job> * awaiting_job)
+	void set_parent(Job * & parent)
 	{
-		_observers[num_observers] = awaiting_job;
-		num_observers++;
-		awaiting_job->get()->_awaiting++;
+		_parent_job = parent;
 	}
 
-	void notify()
+	void increment_wait()
 	{
-		for (int i = 0; i < num_observers; i++)
-		{
-			if (_observers[i] != nullptr)
-			{
-				(*_observers[i])->OnNotify(*this);
-				_observers[i] = nullptr;
-			}
-		}
-		num_observers = 0;
+		_awaiting++;
 	}
 
-	void OnNotify(const Job & job)
+	void OnNotify()
 	{
 		_awaiting--;
 	}
 
-	const bool & get_awaiting()
+	std::atomic_int & get_waiting()
 	{
-		return _awaiting > 0 ? true : false;
+		return _awaiting;
 	}
+
 private:
 
-	std::unique_ptr<Job> *  _observers[MAX_OBSERVERS] = { nullptr };
-	std::atomic<int> num_observers = 0, _awaiting = 0;
+	std::atomic<int> _awaiting = 0;
+	Job * _parent_job;
 	
-	Job_Type _type;
-	std::function<void(const std::shared_ptr<Content> &)> _func;
-	std::shared_ptr<Content> _content;
+	JobFunction _func;
+	Content * _content;
 
 };
 

@@ -10,14 +10,19 @@ struct Content
 	virtual ~Content() {};
 };
 
-class InitialContent : public Content
+struct InitialContent : public Content
 {
-public:
 	std::vector<int> copy_section;
+	int * result;
 
-	InitialContent(const std::vector<int> & vec) : copy_section(vec) {}
-	~InitialContent() {};
-private:
+	InitialContent(const std::vector<int> & vec, int * & end_loc) : copy_section(vec)
+	{
+		result = end_loc;
+	};
+	~InitialContent() 
+	{ 
+		result = nullptr; 
+	};
 };
 
 #endif // !_CONTENT_H

@@ -19,13 +19,15 @@ public:
 	~Render();
 
 	bool Load();
+	void Close();
+
 	void InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std::shared_ptr<Transform> & tran);
 	void UpdateLoop(const std::unique_ptr<Scene> & current_scene);
 	void ComponentUpdate(GLfloat * project_value,
 		const std::shared_ptr<RenderComponent> & rc,
 		const std::shared_ptr<Transform> & transform);
 	void FinalUpdate();
-	void Close();
+
 
 	void init_render_component(const std::unique_ptr<ComponentManager> & c_manager);
 

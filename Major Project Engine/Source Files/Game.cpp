@@ -57,17 +57,8 @@ bool Game::Game_Loop()
 	default:
 		break;
 	}
-	//if (!thread_manager.get()->jobs_full())			// As long as the list of jobs is not full 
-	//{													// Add more dummy jobs
-	//	for (int i = 0; i < 3; i++)
-	//	{
-	//		random_job_function(nullptr);
-	//	}
-	//}
 	ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
 
-	/*if (std::chrono::duration<double, std::milli>(t_end - t_start).count() > 5000)
-		_state = EXITING;*/
 	return game_running;
 }
 

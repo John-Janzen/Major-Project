@@ -24,8 +24,8 @@ public:
 private:
 	GLfloat _fov = 60.0f;
 	GLfloat _near = 0.1f, _far = 100.0f;
-	const int SCREEN_WIDTH = 640;
-	const int SCREEN_HEIGHT = 480;
+	const int SCREEN_WIDTH = 1280;
+	const int SCREEN_HEIGHT = 720;
 
 	glm::mat4 projection_look_matrix;
 	glm::mat4 projection_matrix;
