@@ -17,7 +17,6 @@ bool Game::Load()
 bool Game::Game_Loop()
 {
 	timer->wait_time();
-	
 	switch (_state)
 	{
 	case LOADING:
@@ -48,7 +47,7 @@ bool Game::Game_Loop()
 		}
 
 		renderer->UpdateLoop(current_scene);
-
+		//std::this_thread::sleep_for(std::chrono::milliseconds(2));
 		break;
 	}
 	case EXITING:
@@ -58,6 +57,7 @@ bool Game::Game_Loop()
 		break;
 	}
 	ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
+
 
 	return game_running;
 }

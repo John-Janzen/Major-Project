@@ -2,49 +2,55 @@
 
 Timer::Timer()
 {
-	start_time = std::chrono::system_clock::now();
-	end_time = std::chrono::system_clock::now();
+	start_time = SteadyClock::now();
+	frame_rate_control = SteadyClock::now();
+	end_time = SteadyClock::now();
 }
 
 Timer::~Timer() {}
 
 void Timer::Start()
 {
-	start_time = std::chrono::system_clock::now();
+	start_time = SteadyClock::now();
 }
 
 void Timer::End()
 {
-	end_time = std::chrono::system_clock::now();
+	end_time = SteadyClock::now();
 	this->set_delta_time();
-	this->Print(end_time - start_time);
+	//this->Print(end_time - start_time);
 }
 
-const std::chrono::system_clock::rep & Timer::elapsed_work()
+const MilliDuration Timer::elapsed_work()
 {
-	return std::chrono::duration<double, std::milli>(start_time - end_time).count();
+	return MilliDuration(start_time - end_time);
 }
 
 void Timer::wait_time()
 {
 	this->Start();
-	if (this->elapsed_work() < current_time_lock)
+	auto work_time = this->elapsed_work();
+	if (work_time < current_time_lock)
 	{
-		std::chrono::duration<double, std::milli> delta_ms(current_time_lock - this->elapsed_work());
-		auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
-		std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
+		if (MilliDuration(start_time - frame_rate_control) >= MilliDuration(1000))
+		{
+			frame_rate_control = SteadyClock::now();
+			printf("Frames %u\n", frame_count);
+			frame_count = 0u;
+		}
+		frame_count++;
+		std::this_thread::sleep_for(current_time_lock - work_time);
+		//printf("%d FrameSleep elapsed: %f\n", frame_count, MilliDuration(SteadyClock::now() - start_time).count());
 	}
 	this->End();
 }
 
-void Timer::Print(const std::chrono::duration<double, std::milli> & time)
+void Timer::Print(const MilliDuration & time)
 {
-	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(time.count()));
+	printf("Time ended: %f\n", time.count());
 }
 
 void Timer::set_delta_time()
 {
-	using ms = std::chrono::duration<float, std::milli>;
-	delta_time = std::chrono::duration_cast<ms>(end_time - start_time).count() / 1000.0f;
-	//delta_time = std::chrono::duration_cast<std::chrono::microseconds>(start_time - end_time).count() / 1000.0f;
+	delta_time = MilliDuration(end_time - start_time).count() / 1000.0f;
 }
