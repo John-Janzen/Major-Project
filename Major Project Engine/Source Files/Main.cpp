@@ -24,7 +24,7 @@ Initializes and runs everything in the engine.
 int main(int argc, char * args[])
 {
 
-	Application * game = new Game(std::thread::hardware_concurrency() / 2);
+	Application * game = new Game(0);
 	
 	while (game->Game_Loop());
 

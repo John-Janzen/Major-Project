@@ -58,7 +58,6 @@ bool Game::Game_Loop()
 	}
 	ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
 
-
 	return game_running;
 }
 

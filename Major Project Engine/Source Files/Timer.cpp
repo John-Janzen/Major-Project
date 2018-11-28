@@ -2,55 +2,56 @@
 
 Timer::Timer()
 {
-	start_time = SteadyClock::now();
-	frame_rate_control = SteadyClock::now();
-	end_time = SteadyClock::now();
+	current_time_frame = frame_rate_control = d_start = d_end = hr_clock::now();
 }
 
 Timer::~Timer() {}
 
+void Timer::Restart()
+{
+	current_time_frame = hr_clock::now();
+}
+
 void Timer::Start()
 {
-	start_time = SteadyClock::now();
+	d_start = hr_clock::now();
 }
 
 void Timer::End()
 {
-	end_time = SteadyClock::now();
+	d_end = hr_clock::now();
 	this->set_delta_time();
 	//this->Print(end_time - start_time);
-}
-
-const MilliDuration Timer::elapsed_work()
-{
-	return MilliDuration(start_time - end_time);
 }
 
 void Timer::wait_time()
 {
 	this->Start();
-	auto work_time = this->elapsed_work();
-	if (work_time < current_time_lock)
+	// COMES HAPPENS BEFORE (10ms HAVE PASSED)
+	if (mil_duration(hr_clock::now() - current_time_frame) < current_time_lock)		// AS LONG AS THE WORK_TIME IS LESS THAN THE FRAMETIME NEEDED (60FPS LOCK) -> (16.66ms)
 	{
-		if (MilliDuration(start_time - frame_rate_control) >= MilliDuration(1000))
+		frame_count++;																										// INCREMENT FRAME
+		if (mil_duration(current_time_frame - frame_rate_control) >= mil_duration(std::chrono::seconds(1)))		// CHECK IF DURATION OF FRAME IS GREATER THAN A SECOND
 		{
-			frame_rate_control = SteadyClock::now();
-			printf("Frames %u\n", frame_count);
-			frame_count = 0u;
+			frame_rate_control = hr_clock::now();									// RESET THE FRAME TIME TO NOW
+			frame_count = 0u;														// RESET FRAME COUNT
 		}
-		frame_count++;
-		std::this_thread::sleep_for(current_time_lock - work_time);
-		//printf("%d FrameSleep elapsed: %f\n", frame_count, MilliDuration(SteadyClock::now() - start_time).count());
+		std::this_thread::sleep_until(current_time_frame += current_time_lock);		// SLEEP FROM THE CURRENT FRAMETIME BELOW TO THE BEGINNING OF THE NEXT FRAME
+		printf("%d FrameSleep elapsed: %f\n", frame_count, std::chrono::duration<double, std::milli>(hr_clock::now() - current_time_frame).count());		// PRINT RESULTS
+	}
+	else
+	{
+		this->Restart();																// OR WE RESTART THE FRAMETIME
 	}
 	this->End();
 }
 
-void Timer::Print(const MilliDuration & time)
+void Timer::Print(const mil_duration & time)
 {
 	printf("Time ended: %f\n", time.count());
 }
 
 void Timer::set_delta_time()
 {
-	delta_time = MilliDuration(end_time - start_time).count() / 1000.0f;
+	delta_time = std::chrono::duration<float, std::milli>(d_end - d_start).count() / 1000.0f;
 }

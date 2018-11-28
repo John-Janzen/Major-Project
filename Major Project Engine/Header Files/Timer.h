@@ -7,8 +7,8 @@
 #include <iostream>
 #include <thread>
 
-using SteadyClock = std::chrono::high_resolution_clock;
-using MilliDuration = std::chrono::duration<double, std::milli>;
+using hr_clock = std::chrono::high_resolution_clock;
+using mil_duration = std::chrono::duration<long long, std::nano>;
 
 class Timer
 {
@@ -16,26 +16,30 @@ public:
 	Timer();
 	~Timer();
 
+	void Restart();
 	void Start();
 	void End();
 
-	const MilliDuration elapsed_work();
 	void wait_time();
 
-	void Print(const MilliDuration & time);
+	void Print(const mil_duration & time);
 
 	void set_delta_time();
 	const float & get_delta_time() { return delta_time; }
 
-	void set_time_lock(const MilliDuration & time) { current_time_lock = time - MilliDuration(0.5); }
+	void set_time_lock(const float time) 
+	{
+		current_time_lock = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double, std::milli>(time)); 
+	}
 
 private:
-	SteadyClock::time_point start_time;
-	SteadyClock::time_point end_time;
-	SteadyClock::time_point frame_rate_control;
+	hr_clock::time_point current_time_frame;
+	hr_clock::time_point frame_rate_control;
+
+	hr_clock::time_point d_start, d_end;
 
 	float delta_time;
-	MilliDuration current_time_lock;
+	mil_duration current_time_lock;
 
 	int frame_count = 0;
 };

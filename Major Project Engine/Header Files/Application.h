@@ -96,7 +96,7 @@ inline bool Application::Load_App()
 	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
 		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 	}
-	timer->set_time_lock(MilliDuration(1000.0f / (float)mode.refresh_rate));
+	timer->set_time_lock(1000.0f / (float)mode.refresh_rate);
 
 	return true;
 }
