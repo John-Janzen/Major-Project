@@ -19,7 +19,7 @@ void Input::Close()
 void Input::Update
 (
 	const GLfloat & _dt,
-	const std::unique_ptr<Scene> & current_scene
+	const Scene * current_scene
 )
 {
 	std::shared_ptr<PlayerControllerComponent> pc_cp;

@@ -25,7 +25,7 @@ public:
 	bool return_process(Content * & content);
 private:
 	std::vector<int> testing_field;
-	int * results[4];
+	int results[4];
 };
 
 #endif // !_TESTSYSTEM_H

@@ -43,7 +43,7 @@ void Render::InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std
 
 void Render::UpdateLoop
 (
-	const std::unique_ptr<Scene> & current_scene
+	const Scene * current_scene
 )
 {
 	this->InitUpdate(current_scene->get_comp_manager()->get_component<CameraComponent>(current_scene->get_camera_id()),
@@ -73,7 +73,22 @@ void Render::ComponentUpdate
 		glBindVertexArray(rc->get_v_array());
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->get_e_buffer());
 
-		glUseProgram(rc->get_shader_prog());
+		glUseProgram(*rc->get_shader_prog());
+
+		if (rc->get_texture() != nullptr && rc->get_texture()->TextureID != 0)
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, rc->get_texture()->TextureID);
+			glUniform4f(rc->get_color_loc(), rc->get_color().x, rc->get_color().y, rc->get_color().z, rc->get_color().w);
+		}
+		else
+		{
+			glm::vec4 _color = glm::vec4(1.0f, 0.411f, 0.705f, 1.0f);
+			glUniform4f(rc->get_color_loc(), _color.x, _color.y, _color.z, _color.w);
+		}
+
+		glUniform1i(rc->r_text_unit, 0);
+		glUniform4f(rc->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
 
 		glm::mat4 rotation = glm::mat4();
 		rotation = glm::translate(rotation, transform->get_pos());
@@ -85,6 +100,8 @@ void Render::ComponentUpdate
 		glUniformMatrix4fv(rc->get_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
 		glDrawElements(GL_TRIANGLES, rc->get_model()->ISize, GL_UNSIGNED_INT, NULL);
 
+		glBindTexture(GL_TEXTURE_2D, 0);
+
 		glBindVertexArray(0);
 		glUseProgram(0);
 	}
@@ -92,6 +109,7 @@ void Render::ComponentUpdate
 
 void Render::FinalUpdate()
 {
+	//SDL_RenderPresent(sdl_render);
 	SDL_GL_SwapWindow(sdl_window);
 }
 
@@ -104,24 +122,24 @@ void Render::Close()
 
 void Render::init_render_component(const std::unique_ptr<ComponentManager> & c_manager)
 {
-	for (auto & render_component : c_manager->find_all_of_type<RenderComponent>())
+	for (auto & rc_cp : c_manager->find_all_of_type<RenderComponent>())
 	{
-		if (render_component->get_model() != nullptr)
+		if (rc_cp->get_model() != nullptr)
 		{
-			glGenBuffers(1, &render_component->get_e_buffer());
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_component->get_e_buffer());
+			glGenBuffers(1, &rc_cp->get_e_buffer());
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc_cp->get_e_buffer());
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-				(sizeof(GLuint) * render_component->get_model()->ISize),
-				render_component->get_model()->getIndices(),
+				(sizeof(GLuint) * rc_cp->get_model()->ISize),
+				rc_cp->get_model()->getIndices(),
 				GL_STATIC_DRAW);
 
-			glGenVertexArrays(1, &render_component->get_v_array());
-			glBindVertexArray(render_component->get_v_array());
+			glGenVertexArrays(1, &rc_cp->get_v_array());
+			glBindVertexArray(rc_cp->get_v_array());
 
-			glGenBuffers(1, &render_component->get_v_buffer());
-			glBindBuffer(GL_ARRAY_BUFFER, render_component->get_v_buffer());
-			glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * render_component->get_model()->VSize),
-				render_component->get_model()->getVertices(),
+			glGenBuffers(1, &rc_cp->get_v_buffer());
+			glBindBuffer(GL_ARRAY_BUFFER, rc_cp->get_v_buffer());
+			glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * rc_cp->get_model()->VSize),
+				rc_cp->get_model()->getVertices(),
 				GL_STATIC_DRAW);
 
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
@@ -138,32 +156,73 @@ void Render::init_render_component(const std::unique_ptr<ComponentManager> & c_m
 		{
 			printf("Object skipped no available model\n");
 		}
-		if (render_component->get_v_shader() != nullptr && render_component->get_f_shader() != nullptr)
+		if (rc_cp->get_v_shader() != nullptr && rc_cp->get_f_shader() != nullptr)
 		{
-			render_component->set_shader_prog(glCreateProgram());
+			const GLuint * program = rc_cp->set_shader_prog(glCreateProgram());
 
-			glAttachShader(render_component->get_shader_prog(), render_component->get_v_shader()->getShaderID());
-			glAttachShader(render_component->get_shader_prog(), render_component->get_f_shader()->getShaderID());
-			glLinkProgram(render_component->get_shader_prog());
+			glAttachShader(*program, rc_cp->get_v_shader()->getShaderID());
+			glAttachShader(*program, rc_cp->get_f_shader()->getShaderID());
+			glLinkProgram(*program);
 
 			GLint programSuccess = GL_FALSE;
-			glGetProgramiv(render_component->get_shader_prog(), GL_LINK_STATUS, &programSuccess);
+			glGetProgramiv(*program, GL_LINK_STATUS, &programSuccess);
 			if (programSuccess != GL_TRUE)
 			{
-				printf("Error linking program %d!\n", render_component->get_shader_prog());
+				printf("Error linking program %d!\n", rc_cp->get_shader_prog());
 			}
 			else
 			{
-				glUseProgram(render_component->get_shader_prog());
+				glUseProgram(*program);
 
-				render_component->set_model_loc(glGetUniformLocation(render_component->get_shader_prog(), "model_matrix"));
-				render_component->set_proj_loc(glGetUniformLocation(render_component->get_shader_prog(), "projection_matrix"));
-				render_component->set_color_loc(glGetUniformLocation(render_component->get_shader_prog(), "color_vec"));
+				rc_cp->set_model_loc(glGetUniformLocation(*program, "model_matrix"));
+				rc_cp->set_proj_loc(glGetUniformLocation(*program, "projection_matrix"));
+				rc_cp->set_color_loc(glGetUniformLocation(*program, "color_vec"));
+
+				rc_cp->r_text_adj_w = glGetUniformLocation(*program, "texture_width_adj");
+				rc_cp->r_text_adj_h = glGetUniformLocation(*program, "texture_height_adj");
+
+				if (rc_cp->get_texture() != nullptr && rc_cp->get_texture()->TextureID != 0)
+				{
+					glUniform1i(glGetUniformLocation(*program, "tex_available"), 1);
+					glUniform1f(rc_cp->r_text_adj_w, rc_cp->get_texture()->imgWidth / (GLfloat)rc_cp->get_texture()->texWidth);
+					glUniform1f(rc_cp->r_text_adj_h, rc_cp->get_texture()->imgHeight / (GLfloat)rc_cp->get_texture()->texHeight);
+				}
+				else
+				{
+					glUniform1i(glGetUniformLocation(*program, "tex_available"), 0);
+				}
+
+				rc_cp->r_text_color = glGetUniformLocation(*program, "tex_color");
+				rc_cp->r_text_unit = glGetUniformLocation(*program, "tex_unit");
 			}
+			program = nullptr;
 		}
 		else
 		{
 			printf("Object skipped no available shaders\n");
+		}
+		if (rc_cp->get_texture() != nullptr)
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glGenTextures(1, &rc_cp->get_texture()->TextureID);
+			glBindTexture(GL_TEXTURE_2D, rc_cp->get_texture()->TextureID);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+				rc_cp->get_texture()->texWidth,
+				rc_cp->get_texture()->texWidth,
+				0, GL_RGBA, GL_UNSIGNED_BYTE,
+				rc_cp->get_texture()->get_data());
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		else
+		{
+			printf("Object skipped no available texture\n");
 		}
 	}
 }

@@ -4,10 +4,17 @@ uniform mat4 model_matrix;
 uniform mat4 projection_matrix; 
 uniform vec4 color_vec;
 
-layout(location = 0) in vec3 position; 
+uniform float texture_width_adj;
+uniform float texture_height_adj;
+
+layout(location = 0) in vec3 position;
+layout(location = 1)in vec2 in_tex_coord;
+out vec2 out_tex_coord;
 out vec4 vs_fs_color;
 
 void main(void) { 
-	vs_fs_color = vec4(1.0, 0.0, 0.0, 1.0);
-	gl_Position = projection_matrix * (model_matrix * vec4(position, 1.0));
+	vs_fs_color = color_vec;
+	out_tex_coord.x = in_tex_coord.x * texture_width_adj;
+	out_tex_coord.y = in_tex_coord.y * texture_height_adj;
+	gl_Position = projection_matrix * (model_matrix * vec4(position, 1.0)); 
 } 

@@ -9,7 +9,6 @@ bool Game::Load()
 	//Application::Load(std::make_unique<MainScene>());
 	this->Load_Scene(MAIN_SCENE);
 	
-	timer->End();
 	_state = PLAYING;
 	return true;
 }
@@ -47,7 +46,6 @@ bool Game::Game_Loop()
 		}
 
 		renderer->UpdateLoop(current_scene);
-		//std::this_thread::sleep_for(std::chrono::milliseconds(2));
 		break;
 	}
 	case EXITING:
@@ -57,35 +55,26 @@ bool Game::Game_Loop()
 		break;
 	}
 	ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
-
 	return game_running;
 }
 
 void Game::Close()
 {
 	ThreadManager::Instance().print_total_jobs();			// Print the stats
-
 	game_running = false;
 }
 
 bool Game::Load_Scene(const SCENE_SELECTION & type)
 {
-	std::unique_ptr<Scene> newScene;
 	switch (type)
 	{
 	case MAIN_SCENE:
-		newScene = std::make_unique<MainScene>();
+		current_scene = new MainScene();
 		break;
 	default:
 		break;
 	}
-	if (newScene != nullptr && newScene->Load())
-	{
-		current_scene = std::move(newScene);
-		newScene.reset();
-		newScene = nullptr;
-	}
-	else
+	if (!(current_scene != nullptr && current_scene->Load()))
 	{
 		printf("Error Making current scene");
 		return false;

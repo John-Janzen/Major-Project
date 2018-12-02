@@ -53,7 +53,7 @@ protected:
 	std::unique_ptr<Input> input;
 	std::unique_ptr<TestSystem> test_system;
 
-	std::unique_ptr<Scene> current_scene;
+	Scene * current_scene;
 
 	GLfloat frame_rate;
 };
@@ -74,7 +74,12 @@ inline Application::~Application()
 	input.reset();
 	timer.reset();
 	test_system.reset();
-	current_scene.reset();
+	
+	if (current_scene != nullptr)
+	{
+		delete(current_scene);
+		current_scene = nullptr;
+	}
 	this->close_managers();
 }
 

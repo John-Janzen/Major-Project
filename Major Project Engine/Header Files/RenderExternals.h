@@ -29,6 +29,21 @@ struct Model
 	const GLuint * getIndices() { return _indices; }
 };
 
+struct Texture
+{
+	const GLuint * _texture;
+	GLuint imgWidth, imgHeight, texWidth, texHeight;
+	GLuint TextureID;
+
+	Texture(const GLuint * data, const GLuint & imgW, const GLuint & imgH, const GLuint & texW, const GLuint & texH)
+		: _texture{ data }, imgWidth(imgW), imgHeight(imgH), texWidth(texW), texHeight(texH) {}
+
+	~Texture() { if (TextureID != 0) glDeleteTextures(1, _texture); }
+
+	void set_data(const GLuint * arr) { _texture = arr; }
+	const GLuint * get_data() { return _texture; }
+};
+
 struct Shader
 {
 	const GLuint _shaderID;

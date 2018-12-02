@@ -6,7 +6,9 @@
 #include "System.h"
 
 #include <SDL.h>
-#include <GL/glew.h>
+#include <gl\GL.h>
+#include <gl\GLU.h>
+#include <GL\glew.h>
 #include <iostream>
 #include <gtc\matrix_transform.hpp>
 #include <gtx\euler_angles.hpp>
@@ -22,7 +24,7 @@ public:
 	void Close();
 
 	void InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std::shared_ptr<Transform> & tran);
-	void UpdateLoop(const std::unique_ptr<Scene> & current_scene);
+	void UpdateLoop(const Scene * current_scene);
 	void ComponentUpdate(GLfloat * project_value,
 		const std::shared_ptr<RenderComponent> & rc,
 		const std::shared_ptr<Transform> & transform);
@@ -37,6 +39,7 @@ public:
 private:
 	SDL_Window * sdl_window;
 	SDL_GLContext sdl_context;
+	SDL_Renderer * sdl_render;
 
 	GLfloat * project_value_ptr;
 

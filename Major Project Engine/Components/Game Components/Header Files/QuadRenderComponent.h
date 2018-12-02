@@ -11,8 +11,9 @@ public:
 	QuadRenderComponent() 
 		: RenderComponent(
 			std::string("Assets/Models/quad.obj"), 
-			std::string("Assets/Shaders/default_V_shader.glvs"), 
-			std::string("Assets/Shaders/default_F_shader.glfs")) 
+			std::string("Assets/Shaders/default_V_shader.glvs"),
+			std::string("Assets/Shaders/default_F_shader.glfs"),
+			std::string("Assets/Textures/test_texture.png"))
 	{}
 
 	~QuadRenderComponent() {}
