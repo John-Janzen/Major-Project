@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Systems\Source Files\Physics.cpp" />
     <ClCompile Include="Source Files\FileLoader.cpp" />
     <ClCompile Include="Systems\Source Files\Input.cpp" />
     <ClCompile Include="Game Objects\Source Files\Player.cpp" />
@@ -43,6 +44,7 @@
     <ClInclude Include="Header Files\RenderExternals.h" />
     <ClInclude Include="Components\Base Components\Header Files\PlayerControllerComponent.h" />
     <ClInclude Include="Components\Game Components\Header Files\PlayerRenderComponent.h" />
+    <ClInclude Include="Systems\Header Files\Physics.h" />
     <ClInclude Include="Systems\Header Files\Input.h" />
     <ClInclude Include="Game Objects\Header Files\Player.h" />
     <ClInclude Include="Scenes\Header Files\MainScene.h" />

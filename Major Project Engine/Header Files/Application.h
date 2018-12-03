@@ -9,6 +9,7 @@
 
 #include "Render.h"
 #include "Input.h"
+#include "Physics.h"
 #include "TestSystem.h"
 
 #include "SceneHeaders.h"
@@ -52,6 +53,7 @@ protected:
 	std::unique_ptr<Render> renderer;
 	std::unique_ptr<Input> input;
 	std::unique_ptr<TestSystem> test_system;
+	std::unique_ptr<Physics> physics;
 
 	Scene * current_scene;
 
@@ -88,6 +90,7 @@ inline bool Application::Load_App()
 	FileLoader::Instance().Init();
 
 	test_system->Load();
+	physics->Load();
 
 	if (!renderer->Load())
 	{

@@ -45,6 +45,8 @@ bool Game::Game_Loop()
 			}
 		}
 
+		physics->Update();
+
 		renderer->UpdateLoop(current_scene);
 		break;
 	}
