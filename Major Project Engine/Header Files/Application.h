@@ -66,6 +66,7 @@ inline Application::Application(const std::size_t & num_of_threads)
 	this->init_managers(num_of_threads);
 	renderer = std::make_unique<Render>();
 	input = std::make_unique<Input>();
+	physics = std::make_unique<Physics>();
 	timer = std::make_unique<Timer>();
 	test_system = std::make_unique<TestSystem>();
 }

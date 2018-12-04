@@ -6,7 +6,7 @@ Physics::Physics()
 	dispatcher = new btCollisionDispatcher(collisionConfiguration);
 
 	overlappingPairCache = new btDbvtBroadphase();
-	solver = new btSequentialImpulseConstraintSolver();
+	solver = new btSequentialImpulseConstraintSolver;
 
 	dynamicWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 }
@@ -64,9 +64,8 @@ void Physics::Update()
 
 bool Physics::Load()
 {
+	dynamicWorld->setGravity(btVector3(0, -10, 0));
 	{
-		dynamicWorld->setGravity(btVector3(0, -10, 0));
-
 		btCollisionShape * groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
 		collisionShapes.push_back(groundShape);
 		btTransform groundTransform;
@@ -88,7 +87,7 @@ bool Physics::Load()
 	}
 
 	{
-		btCollisionShape * colShape = new btSphereShape(btScalar(1.));
+		btCollisionShape * colShape = new btSphereShape(btScalar(1.f));
 		collisionShapes.push_back(colShape);
 
 		btTransform startTransform;

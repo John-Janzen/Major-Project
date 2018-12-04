@@ -17,7 +17,6 @@ void Timer::wait_time()
 	// COMES HAPPENS BEFORE (10ms HAVE PASSED)
 	if (ms_duration(hr_clock::now() - current_time_frame) < current_time_lock)		// AS LONG AS THE WORK_TIME IS LESS THAN THE FRAMETIME NEEDED (60FPS LOCK) -> (16.66ms)
 	{
-
 		frame_count++;																// INCREMENT FRAME
 		if (ms_duration(current_time_frame - frame_rate_control) >= ms_duration(std::chrono::seconds(1)))		// CHECK IF DURATION OF FRAME IS GREATER THAN A SECOND
 		{
@@ -32,7 +31,7 @@ void Timer::wait_time()
 				break;
 			std::this_thread::yield();
 		}
-		printf("%d FrameSleep elapsed: %f\n", frame_count, std::chrono::duration<double, std::milli>(hr_clock::now() - current_time_frame).count());		// PRINT RESULTS
+		//printf("%d FrameSleep elapsed: %f\n", frame_count, std::chrono::duration<double, std::milli>(hr_clock::now() - current_time_frame).count());		// PRINT RESULTS
 		this->set_delta_time();
 		current_time_frame = hr_clock::now();
 	}

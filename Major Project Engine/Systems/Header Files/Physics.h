@@ -1,6 +1,7 @@
 #pragma once
 #include "System.h"
 
+#include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 #include <stdio.h>
 
