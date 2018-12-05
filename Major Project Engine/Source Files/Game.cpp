@@ -9,7 +9,6 @@ bool Game::Load()
 	//Application::Load(std::make_unique<MainScene>());
 	this->Load_Scene(MAIN_SCENE);
 	
-	_state = PLAYING;
 	return true;
 }
 

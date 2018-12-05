@@ -4,14 +4,14 @@ Input::Input() {}
 
 Input::~Input() {}
 
-bool Input::Load()
+bool Input::Load(const Content * content)
 {
 	SDL_Init(SDL_INIT_GAMECONTROLLER);
 	SDL_Init(SDL_INIT_EVENTS);
 	return true;
 }
 
-void Input::Close()
+void Input::Close(const Content * content)
 {
 
 }

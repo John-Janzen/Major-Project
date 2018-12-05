@@ -20,6 +20,8 @@ public:
 
 	void wait_time();
 
+	bool checkTimeLimit();
+
 	void Print(const ms_duration & time);
 
 	void set_delta_time();

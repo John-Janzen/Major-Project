@@ -8,7 +8,7 @@ TestSystem::~TestSystem()
 	std::cout << "Test System destructor called" << std::endl;
 }
 
-bool TestSystem::Load()
+bool TestSystem::Load(const Content * content)
 {
 	//testing_field = std::vector<int>();
 	////srand(time(NULL));
@@ -32,14 +32,14 @@ bool TestSystem::Load()
 	return true;
 }
 
-void TestSystem::Close()
+void TestSystem::Close(const Content * content)
 {
 
 }
 
-bool TestSystem::process(Content * & content)
+bool TestSystem::process(const Content * content)
 {
-	InitialContent * IContent = static_cast<InitialContent*>(content);
+	const InitialContent * IContent = dynamic_cast<const InitialContent*>(content);
 	int total = 0, count = 0;
 	for (int i : IContent->copy_section)
 	{
@@ -52,7 +52,7 @@ bool TestSystem::process(Content * & content)
 	return true;
 }
 
-bool TestSystem::return_process(Content * & content)
+bool TestSystem::return_process(const Content * content)
 {
 	if (content == nullptr) {}
 

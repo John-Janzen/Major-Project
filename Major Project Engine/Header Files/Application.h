@@ -45,15 +45,15 @@ public:
 
 protected:
 
-	std::unique_ptr<Timer> timer;
+	std::shared_ptr<Timer> timer;
 
 	bool game_running = true;
 	GAME_STATE _state;
 	
-	std::unique_ptr<Render> renderer;
-	std::unique_ptr<Input> input;
-	std::unique_ptr<TestSystem> test_system;
-	std::unique_ptr<Physics> physics;
+	Render * renderer;
+	Input * input;
+	TestSystem * test_system;
+	Physics * physics;
 
 	Scene * current_scene;
 
@@ -64,19 +64,21 @@ inline Application::Application(const std::size_t & num_of_threads)
 	: _state(LOADING)
 {
 	this->init_managers(num_of_threads);
-	renderer = std::make_unique<Render>();
-	input = std::make_unique<Input>();
-	physics = std::make_unique<Physics>();
-	timer = std::make_unique<Timer>();
-	test_system = std::make_unique<TestSystem>();
+	renderer = new Render();
+	input = new Input();
+	physics = new Physics();
+	timer = std::make_shared<Timer>();
+	test_system = new TestSystem();
 }
 
 inline Application::~Application()
 {
-	renderer.reset();
-	input.reset();
+	delete renderer;
+	delete input;
+	delete physics;
+	delete test_system;
 	timer.reset();
-	test_system.reset();
+	timer = nullptr;
 	
 	if (current_scene != nullptr)
 	{
@@ -88,16 +90,11 @@ inline Application::~Application()
 
 inline bool Application::Load_App()
 {
-	FileLoader::Instance().Init();
-
-	test_system->Load();
-	physics->Load();
-
-	if (!renderer->Load())
-	{
-		printf("Error Initializing Renderer");
-		_state = EXITING;
-	}
+	//FileLoader::Instance().Init();
+	
+	ThreadManager::Instance().register_job(bind_function(&TestSystem::Load, test_system));
+	ThreadManager::Instance().register_job(bind_function(&Physics::Load, physics));
+	ThreadManager::Instance().register_job(bind_function(&Render::Load, renderer), nullptr, RENDER_TYPE);
 
 	int display_index = 0, mode_index = 0;
 	SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0 };

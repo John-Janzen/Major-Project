@@ -4,8 +4,8 @@
 * Constructor that registers a name for the
 * thread class.
 */
-Thread::Thread(const std::string & name)
-	:_name(name)
+Thread::Thread(const std::string & name, const THREAD_TYPE type)
+	:_name(name), t_type(type)
 {
 	_thread = std::make_unique<std::thread>(&Thread::Execution, this);
 }

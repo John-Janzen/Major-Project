@@ -15,8 +15,8 @@ public:
 	Input();
 	~Input();
 
-	bool Load();
-	void Close();
+	bool Load(const Content * content);
+	void Close(const Content * content);
 
 	void Update(const GLfloat & _dt, const Scene * current_scene);
 

@@ -15,10 +15,12 @@ void ThreadManager::Init(const std::size_t & size)
 	std::string name;
 	for (std::size_t i = 0; i < size; i++)
 	{
+		THREAD_TYPE type = ANY_THREAD;
 		switch (i)
 		{
 		case 0:
 			name = "Albert";
+			type = RENDER_THREAD;
 			break;
 		case 1:
 			name = "Curie";
@@ -29,8 +31,10 @@ void ThreadManager::Init(const std::size_t & size)
 		case 3:
 			name = "Dennis";
 			break;
+		default:
+			break;
 		}
-		threads[i] = new Thread(name);
+		threads[i] = new Thread(name, type);
 	}
 	job_list = new BlockingQueue<Job*>();
 }
@@ -42,18 +46,36 @@ void ThreadManager::Close()
 
 void ThreadManager::allocate_jobs()
 {
-	for (std::size_t i = 0; i < num_of_threads && !jobs_empty(); i++)
+	while (!jobs_empty())
 	{
-		if (threads[i]->check_availability())
+		for (std::size_t i = 0; i < num_of_threads && !jobs_empty(); i++)
 		{
-			job_list->pop(threads[i]->get_location());
+			if (job_list->front()->get_type() == RENDER_TYPE)
+			{
+				if (threads[0]->check_availability())
+				{
+					job_list->pop(threads[0]->get_location());
+				}
+				else
+				{
+					job_list->front_to_back();
+					continue;
+				}
+			}
+			else
+			{
+				if (threads[i]->check_availability())
+				{
+					job_list->pop(threads[i]->get_location());
+				}
+			}
 		}
 	}
 }
 
-void ThreadManager::register_job(JobFunction function, Content * content = nullptr)
+void ThreadManager::register_job(JobFunction function, Content * content, const JOB_TYPE type)
 {
-	job_list->emplace(new Job(function, content));
+	job_list->emplace(new Job(function, content, type));
 }
 
 

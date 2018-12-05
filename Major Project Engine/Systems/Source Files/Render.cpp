@@ -11,19 +11,16 @@ Render::~Render()
 
 }
 
-bool Render::Load()
+bool Render::Load(const Content * content)
 {
 	if (!init_SDL())
 	{
 		printf("SDL Initialization failed, see function Load()");
-		return false;
 	}
 	if (!init_GL())
 	{
 		printf("GL Initialization failed, see function Load()");
-		return false;
 	}
-
 	return true;
 }
 
@@ -113,7 +110,7 @@ void Render::FinalUpdate()
 	SDL_GL_SwapWindow(sdl_window);
 }
 
-void Render::Close()
+void Render::Close(const Content * content)
 {
 	SDL_DestroyWindow(sdl_window);
 	sdl_window = NULL;

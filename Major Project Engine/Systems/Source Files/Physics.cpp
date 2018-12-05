@@ -58,11 +58,11 @@ void Physics::Update()
 		{
 			trans = obj->getWorldTransform();
 		}
-		printf("World pos object %d = %f, %f, %f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
+		//printf("World pos object %d = %f, %f, %f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 	}
 }
 
-bool Physics::Load()
+bool Physics::Load(const Content * content)
 {
 	dynamicWorld->setGravity(btVector3(0, -10, 0));
 	{
@@ -109,11 +109,10 @@ bool Physics::Load()
 
 		dynamicWorld->addRigidBody(body);
 	}
-
 	return true;
 }
 
-void Physics::Close()
+void Physics::Close(const Content * content)
 {
 
 }

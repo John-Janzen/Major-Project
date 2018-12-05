@@ -10,6 +10,14 @@
 #include <chrono>
 #include <string>
 
+enum THREAD_TYPE
+{
+	NULL_THREAD,
+	ANY_THREAD,
+	RENDER_THREAD,
+	IO_THREAD
+};
+
 /*
 * The thread wrapper class that encapsulate the standard
 * c++ library thread class. This will provide with additional
@@ -18,13 +26,14 @@
 class Thread
 {
 public:
-	Thread(const std::string & name);
+	Thread(const std::string & name, const THREAD_TYPE type = ANY_THREAD);
 	~Thread();
 
 	void Execution();
 	void Stop();
 	bool check_availability();
 	Job * & get_location();
+	const THREAD_TYPE get_type() { return t_type; }
 
 	/*
 	* Prints available stats.
@@ -37,6 +46,8 @@ public:
 	}
 
 private:
+	THREAD_TYPE t_type;
+
 	bool _running = true;
 	std::string _name;
 	int count = 0;

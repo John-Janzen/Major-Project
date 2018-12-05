@@ -14,8 +14,8 @@ public:
 
 	void Update();
 
-	bool Load();
-	void Close();
+	bool Load(const Content * content);
+	void Close(const Content * content);
 
 private:
 	btDefaultCollisionConfiguration * collisionConfiguration;

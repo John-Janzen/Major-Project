@@ -20,10 +20,11 @@ public:
 	System();
 	virtual ~System() = 0;
 
-	virtual bool Load() = 0;
-	virtual void Close() = 0;
+	virtual bool Load(const Content * content) = 0;
+	virtual void Close(const Content * content) = 0;
 
 private:
+
 };
 
 inline System::System() {}

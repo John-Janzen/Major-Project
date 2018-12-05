@@ -15,22 +15,19 @@
 * run. This will provide a verious number
 * of jobs and a priority later down the line.
 */
-enum Job_Type
+enum JOB_TYPE
 {
 	NULL_TYPE,
-};
-
-enum MESSAGE_TYPE
-{
-	NULL_MSG,
-	P_EQUIVOCATEJOB
+	ANY_TYPE,
+	RENDER_TYPE,
+	IO_TYPE,
 };
 
 //typedef bool(*JobFunction)(const Content * &);
-using JobFunction = std::function<bool(Content *&)>;
+using JobFunction = std::function<bool(const Content *)>;
 
 template<class T>
-JobFunction bind_function(bool(T::* pFunc)(Content *&), T * const sys = nullptr)
+JobFunction bind_function(bool(T::* pFunc)(const Content *), T * const sys = nullptr)
 {
 	return std::bind(pFunc, sys, std::placeholders::_1);
 }
@@ -51,8 +48,8 @@ class Job
 {
 public:
 
-	Job(JobFunction function, Content * data = nullptr)
-		: _func(function), _content(data)
+	Job(JobFunction function, Content * data = nullptr, const JOB_TYPE type = ANY_TYPE)
+		: _func(function), _content(data), j_type(type)
 	{
 	}
 
@@ -68,15 +65,11 @@ public:
 	}
 
 	/* Gets the function of the job */
-	JobFunction get_function()
-	{
-		return _func;
-	}
+	JobFunction get_function() { return _func; }
 
-	Content * & get_content()
-	{
-		return _content;
-	}
+	const Content * get_content() { return _content; }
+
+	const JOB_TYPE get_type() { return j_type; }
 
 	void set_parent(Job * & parent)
 	{
@@ -100,6 +93,7 @@ public:
 
 private:
 
+	JOB_TYPE j_type;
 	std::atomic<int> _awaiting = 0;
 	Job * _parent_job;
 	

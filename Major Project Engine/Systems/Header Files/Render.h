@@ -20,8 +20,8 @@ public:
 	Render();
 	~Render();
 
-	bool Load();
-	void Close();
+	bool Load(const Content * content);
+	void Close(const Content * content);
 
 	void InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std::shared_ptr<Transform> & tran);
 	void UpdateLoop(const Scene * current_scene);

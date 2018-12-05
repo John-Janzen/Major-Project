@@ -41,6 +41,11 @@ void Timer::wait_time()
 	}
 }
 
+bool Timer::checkTimeLimit()
+{
+	return (ms_duration(hr_clock::now() - current_time_frame) < (current_time_lock - std::chrono::milliseconds(1))) ? true : false;
+}
+
 void Timer::Print(const ms_duration & time)
 {
 	printf("Time ended: %f\n", time.count());
