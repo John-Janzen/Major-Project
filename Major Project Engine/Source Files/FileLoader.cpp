@@ -1,38 +1,16 @@
 #include "FileLoader.h"
 
-void FileLoader::FileLoader::Init()
+Shader * load_shader(const std::string & vert_path, const std::string & frag_path)
 {
-	_models = ModelsStorage();
-	_shaders = ShaderStorage();
-	_textures = TextureStorage();
-	ilInit();
-}
-
-void FileLoader::Close()
-{
-	_models.clear();
-	_shaders.clear();
-}
-
-void FileLoader::load_shader(const std::string & path, const GLenum & type, Shader * & shader_loc)
-{
-	std::unordered_map<std::string, Shader*>::iterator it;
-	if ((it = _shaders.find(path)) != _shaders.end())
-	{
-		shader_loc = (*it).second;
-		return;
-	}
-
 	GLuint shaderID = 0;
-	std::string shaderString;
-	std::ifstream sourceFile(path.c_str());
-	if (sourceFile.is_open())
+	std::string vertString = openFileRead(vert_path);
+	std::string fragString = openFileRead(frag_path);
+
+	if (!vertString.empty() && !fragString.empty())
 	{
-		shaderString.assign((std::istreambuf_iterator<char>(sourceFile)), std::istreambuf_iterator<char>());
-		sourceFile.close();
 		shaderID = glCreateShader(type);
 
-		const GLchar* shaderSource = shaderString.c_str();
+		const GLchar* shaderSource = vertString.c_str();
 		glShaderSource(shaderID, 1, (const GLchar**)&shaderSource, NULL);
 
 		GLint shaderCompiled = GL_FALSE;
@@ -49,30 +27,40 @@ void FileLoader::load_shader(const std::string & path, const GLenum & type, Shad
 	}
 	else
 	{
+		printf("Issue loading Shaders\n");
+		return nullptr;
+	}
+	printf("Shader Loaded: %s & %s\n", vert_path.c_str(), frag_path.c_str());
+	return new Shader(,);
+}
+
+std::string openFileRead(const std::string & path)
+{
+	std::ifstream File(path.c_str());
+	std::string data;
+	if (File.is_open())
+	{
+		data.assign(std::istreambuf_iterator<char>(File), std::istreambuf_iterator<char>());
+		File.close();
+	}
+	else
+	{
 		printf("Unable to open file %s\n", path.c_str());
 		return;
 	}
-	add_shader(path, shader_loc = new Shader(shaderID, type));
-	printf("Shader Loaded: %s\n", path.c_str());
+	return std::string();
 }
 
-void FileLoader::load_obj_file(
-	const std::string & path,
-	Model * & model_loc)
+Model * load_obj_file(
+	const std::string & path)
 {
-	std::unordered_map<std::string, Model*>::iterator it;
-	if ((it = _models.find(path)) != _models.end())
-	{
-		model_loc = (*it).second;
-		return;
-	}
 
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> textures;
 	std::vector<glm::vec3> normals;
 	std::vector<GLuint> indices;
 	std::vector<GLfloat> finalData;
-
+	
 	std::map<std::string, GLuint>::iterator loc;
 	std::map<std::string, GLuint> library;
 
@@ -158,21 +146,13 @@ void FileLoader::load_obj_file(
 			}
 		}
 		fclose(file_stream);
-		Model * new_model = new Model();
-		new_model->setVertices(mallocSpace(finalData));
-		new_model->setIndices(mallocSpace(indices));
-		new_model->ISize = (GLsizei)indices.size();
-		new_model->VSize = (GLsizei)finalData.size();
-		model_loc = new_model;
-
-		add_model(path, new_model);
 
 		printf("Model Loaded: %s\n", path.c_str());
-		model_count++;
+		return new Model(mallocSpace(finalData), mallocSpace(indices), (GLsizei)indices.size(), (GLsizei)finalData.size());
 	}
 }
 
-void FileLoader::load_texture(const std::string & path, Texture * & text_loc)
+Texture * load_texture(const std::string & path)
 {
 	ILuint imgID = 0;
 	ilGenImages(1, &imgID);
@@ -198,19 +178,21 @@ void FileLoader::load_texture(const std::string & path, Texture * & text_loc)
 			void* _data = malloc(size);
 			ILubyte* data = ilGetData();
 			memcpy(_data, data, size);
-
-			Texture * new_texture = new Texture((GLuint*)_data, imgWidth, imgHeight, texWidth, texHeight);
-			text_loc = new_texture;
-			_textures.emplace(path, new_texture);
-
+			
 			printf("Texure Loaded: %s\n", path.c_str());
+
+			return new Texture((GLuint*)_data, imgWidth, imgHeight, texWidth, texHeight);
 		}
 		ilBindImage(0);
 		ilDeleteImages(1, &imgID);
+		return nullptr;
 	}
 	else
 	{
 		ILenum ilError = ilGetError();
 		printf("Error occured: %s\n", iluErrorString(ilError));
+		return nullptr;
 	}
 }
+
+

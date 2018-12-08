@@ -40,6 +40,11 @@ public:
 	void set_color(const glm::vec4 & v4_color) { _color = v4_color; }
 	void set_color(const glm::vec3 & v3_color) { _color = glm::vec4(v3_color, 1.0f); }
 
+	const std::string getModelPath() const { return model_path; }
+	const std::string getVShaderPath() const { return vertex_shader_path; }
+	const std::string getFShaderPath() const { return fragment_shader_path; }
+	const std::string getTexturePath() const { return texture_path; }
+
 	GLint r_text_adj_w;
 	GLint r_text_adj_h;
 
@@ -48,6 +53,11 @@ public:
 	GLint r_text_unit;
 
 protected:
+
+	std::string model_path;
+	std::string vertex_shader_path;
+	std::string fragment_shader_path;
+	std::string texture_path;
 
 private:
 	Model * current_model;

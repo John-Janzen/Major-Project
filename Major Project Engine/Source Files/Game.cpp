@@ -7,8 +7,8 @@ Game::~Game() {}
 bool Game::Load()
 {
 	//Application::Load(std::make_unique<MainScene>());
-	this->Load_App();
 	this->Load_Scene(MAIN_SCENE);
+	this->Load_App();
 	_state = PLAYING;
 	return true;
 }
@@ -65,7 +65,7 @@ void Game::Close()
 	game_running = false;
 }
 
-bool Game::Load_Scene(const SCENE_SELECTION & type)
+bool Game::Load_Scene(const SCENE_SELECTION type)
 {
 	switch (type)
 	{
@@ -80,8 +80,6 @@ bool Game::Load_Scene(const SCENE_SELECTION & type)
 		printf("Error Making current scene");
 		return false;
 	}
-
-	ThreadManager::Instance().register_job(new Job(bind_function(&Render::init_render_component, renderer), current_scene->get_comp_manager(), RENDER_TYPE));
 
 	return true;
 }

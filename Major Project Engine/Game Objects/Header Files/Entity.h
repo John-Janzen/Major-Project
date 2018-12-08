@@ -17,6 +17,11 @@ public:
 	Entity(const std::string & name, int id) : _name(name), _id(id), death_flag(false) {}
 	~Entity() {}
 
+	virtual void Load(ComponentManager * & c_manager)
+	{
+		_transform = new Transform();
+	};
+
 	int get_id() const { return _id; }
 	std::string get_name() const { return _name; }
 	void set_death() { death_flag = true; }

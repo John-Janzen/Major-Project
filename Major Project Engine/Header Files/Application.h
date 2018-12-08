@@ -156,6 +156,8 @@ inline bool Application::Load_App()
 	ThreadManager::Instance().register_job(bind_function(&Physics::Load, physics));
 	ThreadManager::Instance().register_job(bind_function(&Render::Load, renderer), sdl_context, RENDER_TYPE);
 
+	ThreadManager::Instance().register_job(bind_function(&Render::init_render_component, renderer), current_scene->get_comp_manager(), RENDER_TYPE);
+
 	return true;
 }
 

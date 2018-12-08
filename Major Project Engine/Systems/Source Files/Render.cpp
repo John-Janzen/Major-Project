@@ -120,107 +120,119 @@ bool Render::init_render_component(void * ptr)
 	ComponentManager * c_manager = static_cast<ComponentManager*>(ptr);
 	for (auto & rc_cp : c_manager->find_all_of_type<RenderComponent*>())
 	{
-		if (rc_cp->get_model() != nullptr)
+		rc_cp->getModelPath();
+	}
+	return true;
+}
+
+void Render::BindModel(RenderComponent * & rc_cp)
+{
+	if (rc_cp->get_model() != nullptr)
+	{
+		glGenBuffers(1, &rc_cp->get_e_buffer());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc_cp->get_e_buffer());
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			(sizeof(GLuint) * rc_cp->get_model()->ISize),
+			rc_cp->get_model()->getIndices(),
+			GL_STATIC_DRAW);
+
+		glGenVertexArrays(1, &rc_cp->get_v_array());
+		glBindVertexArray(rc_cp->get_v_array());
+
+		glGenBuffers(1, &rc_cp->get_v_buffer());
+		glBindBuffer(GL_ARRAY_BUFFER, rc_cp->get_v_buffer());
+		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * rc_cp->get_model()->VSize),
+			rc_cp->get_model()->getVertices(),
+			GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(5 * sizeof(GL_FLOAT)));
+		glEnableVertexAttribArray(2);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+	else
+	{
+		printf("Object skipped no available model\n");
+	}
+}
+
+void Render::BindTexture(RenderComponent * & rc_cp)
+{
+	if (rc_cp->get_texture() != nullptr)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glGenTextures(1, &rc_cp->get_texture()->TextureID);
+		glBindTexture(GL_TEXTURE_2D, rc_cp->get_texture()->TextureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+			rc_cp->get_texture()->texWidth,
+			rc_cp->get_texture()->texWidth,
+			0, GL_RGBA, GL_UNSIGNED_BYTE,
+			rc_cp->get_texture()->get_data());
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	else
+	{
+		printf("Object skipped no available texture\n");
+	}
+}
+
+void Render::BindShader(RenderComponent * & rc_cp)
+{
+	if (rc_cp->get_shader() != nullptr)
+	{
+		const GLuint program = *rc_cp->set_shader_prog(glCreateProgram());
+
+		glAttachShader(program, rc_cp->get_shader()->getShaderID());
+		glLinkProgram(program);
+
+		GLint programSuccess = GL_FALSE;
+		glGetProgramiv(program, GL_LINK_STATUS, &programSuccess);
+		if (programSuccess != GL_TRUE)
 		{
-			glGenBuffers(1, &rc_cp->get_e_buffer());
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc_cp->get_e_buffer());
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-				(sizeof(GLuint) * rc_cp->get_model()->ISize),
-				rc_cp->get_model()->getIndices(),
-				GL_STATIC_DRAW);
-
-			glGenVertexArrays(1, &rc_cp->get_v_array());
-			glBindVertexArray(rc_cp->get_v_array());
-
-			glGenBuffers(1, &rc_cp->get_v_buffer());
-			glBindBuffer(GL_ARRAY_BUFFER, rc_cp->get_v_buffer());
-			glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * rc_cp->get_model()->VSize),
-				rc_cp->get_model()->getVertices(),
-				GL_STATIC_DRAW);
-
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(5 * sizeof(GL_FLOAT)));
-			glEnableVertexAttribArray(2);
-
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindVertexArray(0);
+			printf("Error linking program %d!\n", rc_cp->get_shader_prog());
 		}
 		else
 		{
-			printf("Object skipped no available model\n");
-		}
-		if (rc_cp->get_shader() != nullptr)
-		{
-			const GLuint * program = rc_cp->set_shader_prog(glCreateProgram());
+			glUseProgram(program);
 
-			glAttachShader(*program, rc_cp->get_shader()->getShaderID());
-			glLinkProgram(*program);
+			rc_cp->set_model_loc(glGetUniformLocation(program, "model_matrix"));
+			rc_cp->set_proj_loc(glGetUniformLocation(program, "projection_matrix"));
+			rc_cp->set_color_loc(glGetUniformLocation(program, "color_vec"));
 
-			GLint programSuccess = GL_FALSE;
-			glGetProgramiv(*program, GL_LINK_STATUS, &programSuccess);
-			if (programSuccess != GL_TRUE)
+			rc_cp->r_text_adj_w = glGetUniformLocation(program, "texture_width_adj");
+			rc_cp->r_text_adj_h = glGetUniformLocation(program, "texture_height_adj");
+
+			if (rc_cp->get_texture() != nullptr && rc_cp->get_texture()->TextureID != 0)
 			{
-				printf("Error linking program %d!\n", rc_cp->get_shader_prog());
+				glUniform1i(glGetUniformLocation(program, "tex_available"), 1);
+				glUniform1f(rc_cp->r_text_adj_w, rc_cp->get_texture()->imgWidth / (GLfloat)rc_cp->get_texture()->texWidth);
+				glUniform1f(rc_cp->r_text_adj_h, rc_cp->get_texture()->imgHeight / (GLfloat)rc_cp->get_texture()->texHeight);
 			}
 			else
 			{
-				glUseProgram(*program);
-
-				rc_cp->set_model_loc(glGetUniformLocation(*program, "model_matrix"));
-				rc_cp->set_proj_loc(glGetUniformLocation(*program, "projection_matrix"));
-				rc_cp->set_color_loc(glGetUniformLocation(*program, "color_vec"));
-
-				rc_cp->r_text_adj_w = glGetUniformLocation(*program, "texture_width_adj");
-				rc_cp->r_text_adj_h = glGetUniformLocation(*program, "texture_height_adj");
-
-				if (rc_cp->get_texture() != nullptr && rc_cp->get_texture()->TextureID != 0)
-				{
-					glUniform1i(glGetUniformLocation(*program, "tex_available"), 1);
-					glUniform1f(rc_cp->r_text_adj_w, rc_cp->get_texture()->imgWidth / (GLfloat)rc_cp->get_texture()->texWidth);
-					glUniform1f(rc_cp->r_text_adj_h, rc_cp->get_texture()->imgHeight / (GLfloat)rc_cp->get_texture()->texHeight);
-				}
-				else
-				{
-					glUniform1i(glGetUniformLocation(*program, "tex_available"), 0);
-				}
-
-				rc_cp->r_text_color = glGetUniformLocation(*program, "tex_color");
-				rc_cp->r_text_unit = glGetUniformLocation(*program, "tex_unit");
+				glUniform1i(glGetUniformLocation(program, "tex_available"), 0);
 			}
-			program = nullptr;
-		}
-		else
-		{
-			printf("Object skipped no available shaders\n");
-		}
-		if (rc_cp->get_texture() != nullptr)
-		{
-			glActiveTexture(GL_TEXTURE0);
-			glGenTextures(1, &rc_cp->get_texture()->TextureID);
-			glBindTexture(GL_TEXTURE_2D, rc_cp->get_texture()->TextureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
-				rc_cp->get_texture()->texWidth,
-				rc_cp->get_texture()->texWidth,
-				0, GL_RGBA, GL_UNSIGNED_BYTE,
-				rc_cp->get_texture()->get_data());
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
-		else
-		{
-			printf("Object skipped no available texture\n");
+			rc_cp->r_text_color = glGetUniformLocation(program, "tex_color");
+			rc_cp->r_text_unit = glGetUniformLocation(program, "tex_unit");
 		}
 	}
-	return true;
+	else
+	{
+		printf("Object skipped no available shaders\n");
+	}
 }
 
 bool Render::init_SDL(SDL_GLContext context)

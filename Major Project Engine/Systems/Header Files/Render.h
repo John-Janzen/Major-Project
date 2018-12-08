@@ -14,6 +14,10 @@
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
 
+typedef std::unordered_map<std::string, Model*> ModelsStorage;
+typedef std::unordered_map<std::string, Shader*> ShaderStorage;
+typedef std::unordered_map<std::string, Texture*> TextureStorage;
+
 class Render : public System
 {
 public:
@@ -32,6 +36,12 @@ public:
 
 	bool init_render_component(void * ptr);
 
+	void BindModel(RenderComponent *& rc_cp);
+
+	void BindTexture(RenderComponent *& rc_cp);
+
+	void BindShader(RenderComponent *& rc_cp);
+
 	bool init_SDL(SDL_GLContext context);
 	bool init_GL();
 
@@ -41,6 +51,10 @@ private:
 	GLfloat * project_value_ptr;
 
 	int screen_width, screen_height;
+
+	ModelsStorage _models;
+	ShaderStorage _shaders;
+	TextureStorage _textures;
 };
 
 #endif // !_RENDER_H

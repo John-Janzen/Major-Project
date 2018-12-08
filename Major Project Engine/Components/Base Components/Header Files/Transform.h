@@ -35,7 +35,7 @@ private:
 	glm::vec3 _scale;
 };
 
-inline Transform::Transform(glm::vec3 pos = glm::vec3(), glm::vec3 rot = glm::vec3(), glm::vec3 scale = glm::vec3(1.0f))
+inline Transform::Transform(glm::vec3 pos, glm::vec3 rot, glm::vec3 scale)
 	: _position(pos), _rotation(rot), _scale(scale)
 {
 

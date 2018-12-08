@@ -10,12 +10,11 @@ class PlayerRenderComponent :
 {
 public:
 	PlayerRenderComponent()
-		: RenderComponent(
-			std::string("Assets/Models/cube.obj"),
-			std::string("Assets/Shaders/default_V_shader.glvs"),
-			std::string("Assets/Shaders/default_F_shader.glfs"),
-			std::string("Assets/Textures/Checkers.png"))
 	{
+		model_path = std::string("Assets/Models/cube.obj");
+		vertex_shader_path = std::string("Assets/Shaders/default_V_shader.glvs");
+		fragment_shader_path = std::string("Assets/Shaders/default_F_shader.glfs");
+		texture_path = std::string("Assets/Textures/Checkers.png");
 	}
 	~PlayerRenderComponent() {}
 
