@@ -19,9 +19,9 @@
 #include <chrono>
 #include <iostream>
 
-typedef std::unordered_map<std::string, std::shared_ptr<Model>> ModelsStorage;
-typedef std::unordered_map<std::string, std::shared_ptr<Shader>> ShaderStorage;
-typedef std::unordered_map<std::string, std::shared_ptr<Texture>> TextureStorage;
+typedef std::unordered_map<std::string, Model*> ModelsStorage;
+typedef std::unordered_map<std::string, Shader*> ShaderStorage;
+typedef std::unordered_map<std::string, Texture*> TextureStorage;
 
 class FileLoader
 {
@@ -41,17 +41,17 @@ public:
 
 	void Close();
 
-	void add_model(const std::string & path, const std::shared_ptr<Model> & model) { _models.emplace(path, model); }
+	void add_model(const std::string & path, Model * model) { _models.emplace(path, model); }
 
-	void add_shader(const std::string & path, const std::shared_ptr<Shader> & shader) { _shaders.emplace(path, shader); }
+	void add_shader(const std::string & path, Shader * shader) { _shaders.emplace(path, shader); }
 
-	void add_texture(const std::string & path, const std::shared_ptr<Texture> & texture) { _textures.emplace(path, texture); }
+	void add_texture(const std::string & path, Texture * texture) { _textures.emplace(path, texture); }
 
-	void load_shader(const std::string & path, const GLenum & type, std::shared_ptr<Shader> & shader);
+	void load_shader(const std::string & path, const GLenum & type, Shader * & shader);
 
-	void load_obj_file(const std::string & path, std::shared_ptr<Model> & model_loc);
+	void load_obj_file(const std::string & path, Model * & model_loc);
 
-	void load_texture(const std::string & path, std::shared_ptr<Texture> & model_loc);
+	void load_texture(const std::string & path, Texture * & model_loc);
 
 private:
 	FileLoader() {}
@@ -87,6 +87,8 @@ private:
 
 	unsigned int model_count = 0;
 	unsigned int texture_count = 0;
+
+	
 };
 
 #endif // !_FILELOADER_H

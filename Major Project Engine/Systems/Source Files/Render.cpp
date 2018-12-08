@@ -1,19 +1,19 @@
 #include "Render.h"
 
-Render::Render() 
-	: System()
+Render::Render(SDL_Window * & window, const int width, const int height)
+	: sdl_window(window), screen_width(width), screen_height(height)
 {
 
 }
 
 Render::~Render() 
 {
-
+	sdl_window = nullptr;
 }
 
-bool Render::Load(const Content * content)
+bool Render::Load(void* content)
 {
-	if (!init_SDL())
+	if (!init_SDL(static_cast<SDL_GLContext>(content)))
 	{
 		printf("SDL Initialization failed, see function Load()");
 	}
@@ -24,7 +24,7 @@ bool Render::Load(const Content * content)
 	return true;
 }
 
-void Render::InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std::shared_ptr<Transform> & tran)
+void Render::InitUpdate(CameraComponent * & c_cp, const Transform * tran)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
@@ -40,16 +40,17 @@ void Render::InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std
 
 void Render::UpdateLoop
 (
-	const Scene * current_scene
+	void * ptr
 )
 {
-	this->InitUpdate(current_scene->get_comp_manager()->get_component<CameraComponent>(current_scene->get_camera_id()),
+	Scene * current_scene = static_cast<Scene*>(ptr);
+	this->InitUpdate(current_scene->get_comp_manager()->get_component<CameraComponent*>(current_scene->get_camera_id()),
 		current_scene->get_ent_manager()->find_entity(current_scene->get_camera_id())->get_transform());
 
-	std::shared_ptr<RenderComponent> rc;
+	RenderComponent * rc;
 	for (auto & entity : current_scene->get_ent_manager()->retreive_list())
 	{
-		if ((rc = current_scene->get_comp_manager()->get_component<RenderComponent>(entity.first)) != nullptr)
+		if ((rc = current_scene->get_comp_manager()->get_component<RenderComponent*>(entity.first)) != nullptr)
 		{
 			this->ComponentUpdate( project_value_ptr, rc, entity.second->get_transform());
 		}
@@ -61,8 +62,8 @@ void Render::UpdateLoop
 void Render::ComponentUpdate
 (
 	GLfloat * project_value,
-	const std::shared_ptr<RenderComponent> & rc,
-	const std::shared_ptr<Transform> & transform
+	RenderComponent * & rc,
+	const Transform * transform
 )
 {
 	if (rc->get_model() != nullptr)
@@ -110,16 +111,14 @@ void Render::FinalUpdate()
 	SDL_GL_SwapWindow(sdl_window);
 }
 
-void Render::Close(const Content * content)
+void Render::Close(void* content)
 {
-	SDL_DestroyWindow(sdl_window);
-	sdl_window = NULL;
-	SDL_Quit();
 }
 
-void Render::init_render_component(const std::unique_ptr<ComponentManager> & c_manager)
+bool Render::init_render_component(void * ptr)
 {
-	for (auto & rc_cp : c_manager->find_all_of_type<RenderComponent>())
+	ComponentManager * c_manager = static_cast<ComponentManager*>(ptr);
+	for (auto & rc_cp : c_manager->find_all_of_type<RenderComponent*>())
 	{
 		if (rc_cp->get_model() != nullptr)
 		{
@@ -153,12 +152,11 @@ void Render::init_render_component(const std::unique_ptr<ComponentManager> & c_m
 		{
 			printf("Object skipped no available model\n");
 		}
-		if (rc_cp->get_v_shader() != nullptr && rc_cp->get_f_shader() != nullptr)
+		if (rc_cp->get_shader() != nullptr)
 		{
 			const GLuint * program = rc_cp->set_shader_prog(glCreateProgram());
 
-			glAttachShader(*program, rc_cp->get_v_shader()->getShaderID());
-			glAttachShader(*program, rc_cp->get_f_shader()->getShaderID());
+			glAttachShader(*program, rc_cp->get_shader()->getShaderID());
 			glLinkProgram(*program);
 
 			GLint programSuccess = GL_FALSE;
@@ -222,64 +220,30 @@ void Render::init_render_component(const std::unique_ptr<ComponentManager> & c_m
 			printf("Object skipped no available texture\n");
 		}
 	}
+	return true;
 }
 
-bool Render::init_SDL()
+bool Render::init_SDL(SDL_GLContext context)
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
+	Uint32 subsystem_init = SDL_WasInit(SDL_INIT_VIDEO);
+	if (!(subsystem_init & SDL_INIT_VIDEO))
 	{
 		printf("SDL INIT VIDEO failed! SDL_ERROR: %s\n", SDL_GetError());
 		return false;
 	}
 	else
 	{
-		SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
-		if (sdl_window == NULL)
-		{
-			printf("Error creating window");
-			return false;
-		}
-		else
-		{
-			sdl_context = SDL_GL_CreateContext(sdl_window);
-			if (sdl_context == NULL)
-			{
-				printf("OpenGL context could not be created! SDL_Error: %s\n", SDL_GetError());
-				return false;
-			}
-			else
-			{
-				glewExperimental = GL_TRUE;
-				GLenum glewError = glewInit();
-				if (glewError != GLEW_OK)
-				{
-					printf("Error initializing GLEW! %s", glewGetErrorString(glewError));
-					return false;
-				}
-				/*if (SDL_GL_SetSwapInterval(1) < 0)
-				{
-					printf("Warning: Unable to set VSync! SDL_Error: %s\n", SDL_GetError());
-				}*/
-			}
-		}
+		SDL_GL_MakeCurrent(sdl_window, context);
 	}
 	return true;
 }
 
 bool Render::init_GL()
 {
-	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	glViewport(0, 0, screen_width, screen_height);
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
-
 	return true;
 }

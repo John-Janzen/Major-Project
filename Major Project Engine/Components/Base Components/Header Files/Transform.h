@@ -7,9 +7,9 @@ public:
 	Transform();
 	~Transform();
 
-	const glm::vec3 & get_pos() { return _position; }
-	const glm::vec3 & get_rot() { return _rotation; }
-	const glm::vec3 & get_scale() { return _scale; }
+	const glm::vec3 & get_pos() const { return _position; }
+	const glm::vec3 & get_rot() const { return _rotation; }
+	const glm::vec3 & get_scale() const { return _scale; }
 
 	void add_x_pos(const GLfloat & n) { _position.x += n; }
 	void add_y_pos(const GLfloat & n) { _position.y += n; }

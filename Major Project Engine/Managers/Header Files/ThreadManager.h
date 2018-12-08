@@ -55,13 +55,13 @@ public:
 	To register a job in the manager any class can call this function
 	with the job type and function.
 	*/
-	void register_job(JobFunction function, Content * content = nullptr, const JOB_TYPE j_type = JOB_TYPE::ANY_TYPE);
+	void register_job(JobFunction function, void* content = nullptr, const JOB_TYPE j_type = JOB_TYPE::ANY_TYPE);
 
 	/*
 	Register a job that the someone already made with the
 	make_unique function.
 	*/
-	void register_job(Job * & job);
+	void register_job(Job * job);
 
 	void register_job(Job * job, Job * parent_job);
 
@@ -95,6 +95,8 @@ public:
 private:
 	Thread * threads[MAX_THREADS];
 	ThreadManager() {}
+
+	Thread * io_thread = nullptr;
 
 	std::size_t num_of_threads;
 

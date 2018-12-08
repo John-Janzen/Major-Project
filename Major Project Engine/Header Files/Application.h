@@ -45,7 +45,7 @@ public:
 
 protected:
 
-	std::shared_ptr<Timer> timer;
+	Timer * timer;
 
 	bool game_running = true;
 	GAME_STATE _state;
@@ -58,51 +58,103 @@ protected:
 	Scene * current_scene;
 
 	GLfloat frame_rate;
+	SDL_Window * sdl_window;
+	SDL_GLContext sdl_context, sdl_init_context;
+
+	const int SCREEN_WIDTH = 1280;
+	const int SCREEN_HEIGHT = 720;
 };
 
 inline Application::Application(const std::size_t & num_of_threads)
 	: _state(LOADING)
 {
 	this->init_managers(num_of_threads);
-	renderer = new Render();
+	renderer = new Render(sdl_window, SCREEN_WIDTH, SCREEN_HEIGHT);
 	input = new Input();
 	physics = new Physics();
-	timer = std::make_shared<Timer>();
+	timer = new Timer();
 	test_system = new TestSystem();
 }
 
 inline Application::~Application()
 {
-	delete renderer;
-	delete input;
-	delete physics;
-	delete test_system;
-	timer.reset();
-	timer = nullptr;
+	if (renderer != nullptr) delete renderer;
+	if (input != nullptr) delete input;
+	if (physics != nullptr) delete physics;
+	if (test_system != nullptr) delete test_system;
+	if (timer != nullptr) delete timer;
 	
-	if (current_scene != nullptr)
-	{
-		delete(current_scene);
-		current_scene = nullptr;
-	}
+	if (current_scene != nullptr) delete(current_scene);
+	
 	this->close_managers();
+
+	SDL_DestroyWindow(sdl_window);
+	sdl_window = NULL;
+	SDL_Quit();
 }
 
 inline bool Application::Load_App()
 {
 	//FileLoader::Instance().Init();
+
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+	{
+		printf("Issue Initing Everything %s\n", SDL_GetError());
+		return false;
+	}
+	else
+	{
+		SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+
+		sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
+		if (sdl_window == NULL)
+		{
+			printf("Error creating window");
+			return false;
+		}
+		else
+		{
+			sdl_context = SDL_GL_CreateContext(sdl_window);
+			sdl_init_context = SDL_GL_CreateContext(sdl_window);
+			if (sdl_init_context == NULL)
+			{
+				printf("OpenGL context could not be created! SDL_Error: %s\n", SDL_GetError());
+				return false;
+			}
+			else
+			{
+				glewExperimental = GL_TRUE;
+				GLenum glewError = glewInit();
+				if (glewError != GLEW_OK)
+				{
+					printf("Error initializing GLEW! %s", glewGetErrorString(glewError));
+					return false;
+				}
+				/*if (SDL_GL_SetSwapInterval(1) < 0)
+				{
+					printf("Warning: Unable to set VSync! SDL_Error: %s\n", SDL_GetError());
+				}*/
+				int display_index = 0, mode_index = 0;
+				SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0 };
+
+				if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
+					SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+				}
+				timer->set_time_lock(1000.f / (float)mode.refresh_rate);
+				/*timer->set_time_lock(1000.0f / (float)mode.refresh_rate);*/
+			}
+		}
+	}
 	
 	ThreadManager::Instance().register_job(bind_function(&TestSystem::Load, test_system));
 	ThreadManager::Instance().register_job(bind_function(&Physics::Load, physics));
-	ThreadManager::Instance().register_job(bind_function(&Render::Load, renderer), nullptr, RENDER_TYPE);
-
-	int display_index = 0, mode_index = 0;
-	SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0 };
-
-	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
-		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
-	}
-	timer->set_time_lock(1000.0f / (float)mode.refresh_rate);
+	ThreadManager::Instance().register_job(bind_function(&Render::Load, renderer), sdl_context, RENDER_TYPE);
 
 	return true;
 }

@@ -20,8 +20,8 @@ public:
 	System();
 	virtual ~System() = 0;
 
-	virtual bool Load(const Content * content) = 0;
-	virtual void Close(const Content * content) = 0;
+	virtual bool Load(void* content) = 0;
+	virtual void Close(void* content) = 0;
 
 private:
 

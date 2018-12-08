@@ -18,11 +18,11 @@ public:
 	TestSystem();
 	~TestSystem();
 
-	bool Load(const Content * content);
-	void Close(const Content * content);
+	bool Load(void* content);
+	void Close(void* content);
 
-	bool process(const Content * content);
-	bool return_process(const Content * content);
+	bool process(void* content);
+	bool return_process(void* content);
 private:
 	std::vector<int> testing_field;
 	int results[4];

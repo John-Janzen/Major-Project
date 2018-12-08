@@ -43,26 +43,26 @@ Physics::~Physics()
 
 void Physics::Update()
 {
-	dynamicWorld->stepSimulation(1.f / 60.f, 10);
+	//dynamicWorld->stepSimulation(1.f / 60.f, 10);
 
-	for (int j = dynamicWorld->getNumCollisionObjects() - 1; j >= 0; j--)
-	{
-		btCollisionObject * obj = dynamicWorld->getCollisionObjectArray()[j];
-		btRigidBody * body = btRigidBody::upcast(obj);
-		btTransform trans;
-		if (body && body->getMotionState())
-		{
-			body->getMotionState()->getWorldTransform(trans);
-		}
-		else
-		{
-			trans = obj->getWorldTransform();
-		}
-		//printf("World pos object %d = %f, %f, %f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
-	}
+	//for (int j = dynamicWorld->getNumCollisionObjects() - 1; j >= 0; j--)
+	//{
+	//	btCollisionObject * obj = dynamicWorld->getCollisionObjectArray()[j];
+	//	btRigidBody * body = btRigidBody::upcast(obj);
+	//	btTransform trans;
+	//	if (body && body->getMotionState())
+	//	{
+	//		body->getMotionState()->getWorldTransform(trans);
+	//	}
+	//	else
+	//	{
+	//		trans = obj->getWorldTransform();
+	//	}
+	//	//printf("World pos object %d = %f, %f, %f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
+	//}
 }
 
-bool Physics::Load(const Content * content)
+bool Physics::Load(void* content)
 {
 	dynamicWorld->setGravity(btVector3(0, -10, 0));
 	{
@@ -112,7 +112,7 @@ bool Physics::Load(const Content * content)
 	return true;
 }
 
-void Physics::Close(const Content * content)
+void Physics::Close(void* content)
 {
 
 }

@@ -14,9 +14,9 @@ void FileLoader::Close()
 	_shaders.clear();
 }
 
-void FileLoader::load_shader(const std::string & path, const GLenum & type, std::shared_ptr<Shader> & shader_loc)
+void FileLoader::load_shader(const std::string & path, const GLenum & type, Shader * & shader_loc)
 {
-	std::unordered_map<std::string, std::shared_ptr<Shader>>::iterator it;
+	std::unordered_map<std::string, Shader*>::iterator it;
 	if ((it = _shaders.find(path)) != _shaders.end())
 	{
 		shader_loc = (*it).second;
@@ -29,6 +29,7 @@ void FileLoader::load_shader(const std::string & path, const GLenum & type, std:
 	if (sourceFile.is_open())
 	{
 		shaderString.assign((std::istreambuf_iterator<char>(sourceFile)), std::istreambuf_iterator<char>());
+		sourceFile.close();
 		shaderID = glCreateShader(type);
 
 		const GLchar* shaderSource = shaderString.c_str();
@@ -45,22 +46,21 @@ void FileLoader::load_shader(const std::string & path, const GLenum & type, std:
 			shaderID = 0;
 			return;
 		}
-		sourceFile.close();
 	}
 	else
 	{
 		printf("Unable to open file %s\n", path.c_str());
 		return;
 	}
-	add_shader(path, shader_loc = std::make_shared<Shader>(shaderID, type));
+	add_shader(path, shader_loc = new Shader(shaderID, type));
 	printf("Shader Loaded: %s\n", path.c_str());
 }
 
 void FileLoader::load_obj_file(
 	const std::string & path,
-	std::shared_ptr<Model> & model_loc)
+	Model * & model_loc)
 {
-	std::unordered_map<std::string, std::shared_ptr<Model>>::iterator it;
+	std::unordered_map<std::string, Model*>::iterator it;
 	if ((it = _models.find(path)) != _models.end())
 	{
 		model_loc = (*it).second;
@@ -158,7 +158,7 @@ void FileLoader::load_obj_file(
 			}
 		}
 		fclose(file_stream);
-		std::shared_ptr<Model> new_model = std::make_shared<Model>();
+		Model * new_model = new Model();
 		new_model->setVertices(mallocSpace(finalData));
 		new_model->setIndices(mallocSpace(indices));
 		new_model->ISize = (GLsizei)indices.size();
@@ -172,7 +172,7 @@ void FileLoader::load_obj_file(
 	}
 }
 
-void FileLoader::load_texture(const std::string & path, std::shared_ptr<Texture> & text_loc)
+void FileLoader::load_texture(const std::string & path, Texture * & text_loc)
 {
 	ILuint imgID = 0;
 	ilGenImages(1, &imgID);
@@ -199,7 +199,7 @@ void FileLoader::load_texture(const std::string & path, std::shared_ptr<Texture>
 			ILubyte* data = ilGetData();
 			memcpy(_data, data, size);
 
-			std::shared_ptr<Texture> new_texture = std::make_shared<Texture>((GLuint*)_data, imgWidth, imgHeight, texWidth, texHeight);
+			Texture * new_texture = new Texture((GLuint*)_data, imgWidth, imgHeight, texWidth, texHeight);
 			text_loc = new_texture;
 			_textures.emplace(path, new_texture);
 

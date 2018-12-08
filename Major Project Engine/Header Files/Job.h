@@ -23,11 +23,11 @@ enum JOB_TYPE
 	IO_TYPE,
 };
 
-//typedef bool(*JobFunction)(const Content * &);
-using JobFunction = std::function<bool(const Content *)>;
+//typedef bool(*JobFunction)(void* &);
+using JobFunction = std::function<bool(void*)>;
 
 template<class T>
-JobFunction bind_function(bool(T::* pFunc)(const Content *), T * const sys = nullptr)
+JobFunction bind_function(bool(T::* pFunc)(void*), T * const sys = nullptr)
 {
 	return std::bind(pFunc, sys, std::placeholders::_1);
 }
@@ -48,7 +48,7 @@ class Job
 {
 public:
 
-	Job(JobFunction function, Content * data = nullptr, const JOB_TYPE type = ANY_TYPE)
+	Job(JobFunction function, void* data = nullptr, const JOB_TYPE type = ANY_TYPE)
 		: _func(function), _content(data), j_type(type)
 	{
 	}
@@ -56,7 +56,7 @@ public:
 	~Job()
 	{
 		_func = NULL;
-		if (_content != nullptr) delete(_content);
+		if (_content != nullptr) _content = nullptr;
 		if (_parent_job != nullptr)
 		{
 			_parent_job->OnNotify();
@@ -67,7 +67,7 @@ public:
 	/* Gets the function of the job */
 	JobFunction get_function() { return _func; }
 
-	const Content * get_content() { return _content; }
+	void* get_content() { return _content; }
 
 	const JOB_TYPE get_type() { return j_type; }
 
@@ -98,7 +98,7 @@ private:
 	Job * _parent_job;
 	
 	JobFunction _func;
-	Content * _content;
+	void* _content;
 
 };
 

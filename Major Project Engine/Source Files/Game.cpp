@@ -7,8 +7,9 @@ Game::~Game() {}
 bool Game::Load()
 {
 	//Application::Load(std::make_unique<MainScene>());
+	this->Load_App();
 	this->Load_Scene(MAIN_SCENE);
-	
+	_state = PLAYING;
 	return true;
 }
 
@@ -18,7 +19,6 @@ bool Game::Game_Loop()
 	switch (_state)
 	{
 	case LOADING:
-		this->Load_App();
 		this->Load();
 		break;
 	case PLAYING:
@@ -81,7 +81,7 @@ bool Game::Load_Scene(const SCENE_SELECTION & type)
 		return false;
 	}
 
-	renderer->init_render_component(current_scene->get_comp_manager());
+	ThreadManager::Instance().register_job(new Job(bind_function(&Render::init_render_component, renderer), current_scene->get_comp_manager(), RENDER_TYPE));
 
 	return true;
 }

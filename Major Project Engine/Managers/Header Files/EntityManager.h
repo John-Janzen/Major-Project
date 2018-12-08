@@ -10,7 +10,7 @@
 #include <memory>
 
 typedef int EntityID;
-typedef std::map<EntityID, std::shared_ptr<Entity>> EntityStorage;
+typedef std::map<EntityID, Entity*> EntityStorage;
 
 class EntityManager
 {
@@ -25,67 +25,66 @@ public:
 	void Close()
 	{
 		std::for_each(entities.begin(), entities.end(), [] (EntityStorage::value_type& entity) {
-			entity.second.reset();
-			entity.second = nullptr;
+			delete entity.second;
 		});
 		entities.clear();
 	}
 
-	std::shared_ptr<Entity> create_entity()
+	Entity * create_entity()
 	{
-		auto inserted = entities.emplace(++id_counter, std::make_shared<Entity>(std::string("Default" + ' ' + id_counter), id_counter));
-		return std::static_pointer_cast<Entity>(inserted.first->second);
+		auto inserted = entities.emplace(++id_counter, new Entity(std::string("Default" + ' ' + id_counter), id_counter));
+		return static_cast<Entity*>(inserted.first->second);
 	}
 
 	template <class T>
-	std::shared_ptr<T> create_entity()
+	T * create_entity()
 	{
-		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(std::string("Default" + ' ' + id_counter), id_counter));
-		return std::static_pointer_cast<T>(inserted.first->second);
+		auto inserted = entities.emplace(++id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
+		return static_cast<T*>(inserted.first->second);
 	}
 
 	template <class T>
-	std::shared_ptr<T> create_entity(EntityID & id)
+	T * create_entity(EntityID & id)
 	{
-		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(std::string("Default" + ' ' + id_counter), id_counter));
+		auto inserted = entities.emplace(++id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
 		id = inserted.first->first;
-		return std::static_pointer_cast<T>(inserted.first->second);
+		return static_cast<T*>(inserted.first->second);
 	}
 
 	template <class T>
-	std::shared_ptr<T> create_entity(const std::string & name)
+	T * create_entity(const std::string & name)
 	{
-		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
-		return std::static_pointer_cast<T>(inserted.first->second);
+		auto inserted = entities.emplace(++id_counter, new T(name, id_counter));
+		return static_cast<T*>(inserted.first->second);
 	}
 
 	template <class T>
-	const int & create_entity(const std::string & name, std::shared_ptr<T> & entity)
+	const EntityID & create_entity(const std::string & name, T * & entity)
 	{
-		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
-		entity = std::static_pointer_cast<T>(inserted.first->second);
+		auto inserted = entities.emplace(++id_counter, new T(name, id_counter));
+		entity = static_cast<T*>(inserted.first->second);
 		return inserted.first->first;
 	}
 
 	template <class T>
-	std::shared_ptr<T> create_entity(const std::string & name, EntityID & entity_id)
+	T * create_entity(const std::string & name, EntityID & entity_id)
 	{
-		auto inserted = entities.emplace(++id_counter, std::make_shared<T>(name, id_counter));
+		auto inserted = entities.emplace(++id_counter, new T(name, id_counter));
 		entity_id = inserted.first->first;
-		return std::static_pointer_cast<T>(inserted.first->second);
+		return static_cast<T*>(inserted.first->second);
 	}
 
-	std::shared_ptr<Entity> & find_entity(const EntityID & _id)
+	Entity * & find_entity(const EntityID _id)
 	{
 		return entities.find(_id)->second;
 	}
 
-	void flag_dead_entity(const EntityID & entity_id)
+	void flag_dead_entity(const EntityID entity_id)
 	{
 		entities.find(entity_id)->second->set_death();
 	}
 
-	void flag_dead_entity(std::shared_ptr<Entity> & entity)
+	void flag_dead_entity(Entity * & entity)
 	{
 		entity->set_death();
 	}
@@ -94,7 +93,7 @@ public:
 	{
 		for (auto it = entities.begin(); it != entities.end(); ++it)
 		{
-			if ((*it).second->get_death() && (*it).second.unique())
+			if ((*it).second->get_death())
 			{
 				it = entities.erase(it);
 			}

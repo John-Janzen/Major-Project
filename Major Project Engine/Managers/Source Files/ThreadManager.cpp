@@ -50,8 +50,9 @@ void ThreadManager::allocate_jobs()
 	{
 		for (std::size_t i = 0; i < num_of_threads && !jobs_empty(); i++)
 		{
-			if (job_list->front()->get_type() == RENDER_TYPE)
+			switch (job_list->front()->get_type())
 			{
+			case RENDER_TYPE:
 				if (threads[0]->check_availability())
 				{
 					job_list->pop(threads[0]->get_location());
@@ -61,25 +62,49 @@ void ThreadManager::allocate_jobs()
 					job_list->front_to_back();
 					continue;
 				}
-			}
-			else
-			{
+				break;
+			case IO_TYPE:
+				if (io_thread == nullptr)
+				{
+					if (threads[i]->check_availability())
+					{
+						io_thread = threads[i];
+						job_list->pop(io_thread->get_location());
+					}
+					else 
+					{
+
+					}
+				}
+				else
+				{
+					if (io_thread->check_availability())
+					{
+						job_list->pop(io_thread->get_location());
+					}
+				}
+				break;
+			default:
+				if (io_thread == threads[i] && io_thread->check_availability())
+					io_thread = nullptr;
+
 				if (threads[i]->check_availability())
 				{
 					job_list->pop(threads[i]->get_location());
 				}
+				break;
 			}
 		}
 	}
 }
 
-void ThreadManager::register_job(JobFunction function, Content * content, const JOB_TYPE type)
+void ThreadManager::register_job(JobFunction function, void* content, const JOB_TYPE type)
 {
 	job_list->emplace(new Job(function, content, type));
 }
 
 
-void ThreadManager::register_job(Job * & job)
+void ThreadManager::register_job(Job * job)
 {
 	job_list->emplace(job);
 	job = nullptr;

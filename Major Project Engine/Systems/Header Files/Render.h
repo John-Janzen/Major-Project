@@ -17,34 +17,30 @@
 class Render : public System
 {
 public:
-	Render();
+	Render(SDL_Window * & sdl_window, const int width, const int height);
 	~Render();
 
-	bool Load(const Content * content);
-	void Close(const Content * content);
+	bool Load(void* content);
+	void Close(void* content);
 
-	void InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std::shared_ptr<Transform> & tran);
-	void UpdateLoop(const Scene * current_scene);
+	void InitUpdate(CameraComponent * & c_cp, const Transform * tran);
+	void UpdateLoop(void * ptr);
 	void ComponentUpdate(GLfloat * project_value,
-		const std::shared_ptr<RenderComponent> & rc,
-		const std::shared_ptr<Transform> & transform);
+		RenderComponent * & rc,
+		const Transform * transform);
 	void FinalUpdate();
 
+	bool init_render_component(void * ptr);
 
-	void init_render_component(const std::unique_ptr<ComponentManager> & c_manager);
-
-	bool init_SDL();
+	bool init_SDL(SDL_GLContext context);
 	bool init_GL();
 
 private:
 	SDL_Window * sdl_window;
-	SDL_GLContext sdl_context;
-	SDL_Renderer * sdl_render;
 
 	GLfloat * project_value_ptr;
 
-	const int SCREEN_WIDTH = 1280;
-	const int SCREEN_HEIGHT = 720;
+	int screen_width, screen_height;
 };
 
 #endif // !_RENDER_H
