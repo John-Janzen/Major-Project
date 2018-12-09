@@ -18,8 +18,17 @@ struct Model
 
 	~Model() 
 	{
-		if (_vertices != nullptr) delete(_vertices); 
-		if (_indices != nullptr) delete(_indices); 
+		if (_vertices != nullptr)
+		{
+			delete(_vertices);
+			_vertices = nullptr;
+		}
+			
+		if (_indices != nullptr)
+		{
+			delete(_indices);
+			_indices = nullptr;
+		}
 	}
 
 	void setVertices(const GLfloat * arr) { _vertices = arr; }

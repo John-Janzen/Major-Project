@@ -1,6 +1,6 @@
 #include "FileLoader.h"
 
-std::mutex io_lock;
+std::mutex io_lock, devIL_lock;
 
 Shader * load_shader(const std::string & vert_path, const std::string & frag_path)
 {
@@ -160,6 +160,7 @@ Model * load_obj_file(const std::string & path)
 
 Texture * load_texture(const std::string & path)
 {
+	std::unique_lock<std::mutex> lk(devIL_lock);
 	ilInit();
 	iluInit();
 

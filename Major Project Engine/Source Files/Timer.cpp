@@ -7,6 +7,17 @@ Timer::Timer()
 
 Timer::~Timer() {}
 
+void Timer::Start()
+{
+	timer_start = hr_clock::now();
+}
+
+void Timer::Stop()
+{
+	printf("Timer Stopped at ");
+	Print(ms_duration(hr_clock::now() - timer_start));
+}
+
 void Timer::Restart()
 {
 	current_time_frame = hr_clock::now();
@@ -49,7 +60,7 @@ bool Timer::checkTimeLimit()
 
 void Timer::Print(const ms_duration & time)
 {
-	printf("Time ended: %f\n", time.count());
+	printf("%f\n", time.count());
 }
 
 void Timer::set_delta_time()

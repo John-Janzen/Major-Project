@@ -38,12 +38,18 @@ public:
 
 private:
 
+	//static const std::size_t MAX_JOBS = 30;
+
 	TaskManager() {}
 	ThreadManager * _threadpool_p;
+
 	// List of jobs available
-	// std::queue<std::unique_ptr<Job>> job_list;
 	std::list<Job*> job_list;
+
+	// List of jobs waiting
 	std::list<Job*> waiting_jobs;
+	std::size_t num_of_wait = 0;
+
 	std::atomic<int> num_of_jobs = 0;
 	std::atomic<int> jobs_to_finish;
 };

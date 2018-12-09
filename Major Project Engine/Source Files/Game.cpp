@@ -7,6 +7,7 @@ Game::~Game() {}
 bool Game::Load()
 {
 	//Application::Load(std::make_unique<MainScene>());
+	timer->Start();
 	this->Load_Scene(MAIN_SCENE);
 	this->Load_App();
 	_state = LOADING;
@@ -19,7 +20,10 @@ bool Game::Game_Loop()
 	if (TaskManager::Instance().frame_start())
 	{
 		if (_state == LOADING)
+		{
 			_state = PLAYING;
+			timer->Stop();
+		}	
 	}
 
 	switch (_state)

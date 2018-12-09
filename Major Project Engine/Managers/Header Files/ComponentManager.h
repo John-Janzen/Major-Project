@@ -19,23 +19,24 @@ public:
 
 	ComponentManager() 
 	{
-		components = ComponentStorage();
+		_components = ComponentStorage();
 	}
-	~ComponentManager() {}
-
-	void Close() 
+	~ComponentManager() 
 	{
-		std::for_each(components.begin(), components.end(), [](ComponentStorage::value_type & comp) {
-			delete comp.second;
-		});
-		components.clear();
+		std::unordered_multimap<EntityID, BaseComponent*>::iterator _components_it = _components.begin();
+		while (_components_it != _components.end())
+		{
+			if ((*_components_it).second != nullptr)
+				delete (*_components_it).second;
+			_components_it = _components.erase(_components_it);
+		}
 	}
 
 	template<class T>
 	std::list<T> find_all_of_type() const
 	{
 		std::list<T> full_list;
-		for (auto element : components)
+		for (auto element : _components)
 		{
 			if (dynamic_cast<T>(element.second) != nullptr)
 			{
@@ -50,7 +51,7 @@ public:
 	{
 		if (!has_component<T>(entity_id))
 		{
-			components.emplace(entity_id, std::move(comp));
+			_components.emplace(entity_id, std::move(comp));
 		}
 		else
 		{
@@ -63,7 +64,7 @@ public:
 	{
 		if (!has_component<T>(0))
 		{
-			components.emplace(0, std::move(comp));
+			_components.emplace(0, std::move(comp));
 		}
 		else
 		{
@@ -75,7 +76,7 @@ public:
 	bool get_component(const EntityID entity_id, T & base_comp)
 	{
 		bool found = false;
-		auto range = components.equal_range(entity_id);
+		auto range = _components.equal_range(entity_id);
 		std::for_each(range.first, range.second, [&base_comp, &found](ComponentStorage::value_type & x)
 		{
 			if (dynamic_cast<T>(x.second) != nullptr)
@@ -90,7 +91,7 @@ public:
 	template <class T>
 	T * & get_component()
 	{
-		for (ComponentStorage::iterator it = components.begin(); it != components.end(); ++it)
+		for (ComponentStorage::iterator it = _components.begin(); it != _components.end(); ++it)
 		{
 			if (dynamic_cast<T>(it->second) != nullptr)
 			{
@@ -104,7 +105,7 @@ public:
 	T & get_component(const EntityID entity_id)
 	{
 		T temp = nullptr;
-		auto range = components.equal_range(entity_id);
+		auto range = _components.equal_range(entity_id);
 		std::for_each(range.first, range.second, [&temp](ComponentStorage::value_type & x)
 		{
 			if (dynamic_cast<T>(x.second) != nullptr)
@@ -119,7 +120,7 @@ public:
 	bool has_component(const EntityID entity_id)
 	{
 		bool found = false;
-		auto range = components.equal_range(entity_id);
+		auto range = _components.equal_range(entity_id);
 		std::for_each(range.first, range.second, [&found](ComponentStorage::value_type & x)
 		{
 			if (dynamic_cast<T>(x.second) != nullptr)
@@ -132,7 +133,7 @@ public:
 
 private:
 
-	ComponentStorage components;
+	ComponentStorage _components;
 };
 
 #endif // COMPONENTHEADER_H

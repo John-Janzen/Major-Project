@@ -10,6 +10,30 @@ Render::~Render()
 {
 	std::cout << "Render Destructor called" << std::endl;
 	sdl_window = nullptr;
+
+	std::unordered_map<std::string, Model*>::iterator model_it = _models.begin();
+	while (model_it != _models.end())
+	{
+		if ((*model_it).second != nullptr)
+			delete (*model_it).second;
+		model_it = _models.erase(model_it);
+	}
+
+	std::unordered_map<std::string, Shader*>::iterator shader_it = _shaders.begin();
+	while (shader_it != _shaders.end())
+	{
+		if ((*shader_it).second != nullptr)
+			delete (*shader_it).second;
+		shader_it = _shaders.erase(shader_it);
+	}
+	
+	std::unordered_map<std::string, Texture*>::iterator texture_it = _textures.begin();
+	while (texture_it != _textures.end())
+	{
+		if ((*texture_it).second != nullptr)
+			delete (*texture_it).second;
+		texture_it = _textures.erase(texture_it);
+	}
 }
 
 bool Render::Load(void* content)
@@ -33,7 +57,7 @@ void Render::InitUpdate(CameraComponent * c_cp, const Transform * tran)
 	glm::mat4 model_matrix, rotation;
 	rotation = glm::rotate(rotation, tran->get_rot().z, glm::vec3(0, 0, 1));
 	rotation = glm::rotate(rotation, tran->get_rot().x, glm::vec3(1, 0, 0));
-	rotation = glm::rotate(rotation, tran->get_rot().y, glm::vec3(0, 1, 0));
+	rotation = glm::rotate(rotation, (Y_rotation += 0.001f), glm::vec3(0, 1, 0));
 	model_matrix = glm::translate(rotation, tran->get_pos());
 
 	project_value_ptr = c_cp->set_project_look(model_matrix);

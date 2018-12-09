@@ -16,15 +16,13 @@ public:
 	Timer();
 	~Timer();
 
-	void Restart();
+	void Start();
+	void Stop();
 
 	void wait_time();
 
 	bool checkTimeLimit();
 
-	void Print(const ms_duration & time);
-
-	void set_delta_time();
 	const float & get_delta_time() { return delta_time; }
 
 	void set_time_lock(const float time) 
@@ -33,11 +31,21 @@ public:
 	}
 
 private:
+
+	void Restart();
+	
+	void set_delta_time();
+
+	void Print(const ms_duration & time);
+
 	hr_clock::time_point current_time_frame;
 	hr_clock::time_point frame_rate_control;
 
 	float delta_time;
 	ms_duration current_time_lock;
+
+	hr_clock::time_point timer_start;
+	hr_clock::time_point timer_end;
 
 	int frame_count = 0;
 };

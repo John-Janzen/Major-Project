@@ -46,8 +46,6 @@ inline Scene::Scene()
 
 inline Scene::~Scene() 
 {
-	entity_manager->Close();
-	component_manager->Close();
 	if (entity_manager != nullptr)
 		delete entity_manager;
 	if (component_manager != nullptr)

@@ -5,11 +5,31 @@ TaskManager::~TaskManager() {}
 void TaskManager::Init(ThreadManager * t_manager)
 {
 	_threadpool_p = t_manager;
+	job_list = std::list<Job*>();
+	waiting_jobs = std::list<Job*>();
 }
 
 void TaskManager::Close()
 {
+	auto job_it = job_list.begin();
+	while (job_it != job_list.end())
+	{
+		if ((*job_it) != nullptr)
+		{
+			delete((*job_it));
+			job_it = job_list.erase(job_it);
+		}
+	}
 
+	job_it = waiting_jobs.begin();
+	while (job_it != waiting_jobs.end())
+	{
+		if ((*job_it) != nullptr)
+		{
+			delete((*job_it));
+			job_it = waiting_jobs.erase(job_it);
+		}
+	}
 }
 
 bool TaskManager::frame_start()
@@ -64,6 +84,7 @@ void TaskManager::transfer_jobs()
 		{
 			job_list.emplace_back((*job_it));
 			job_it = waiting_jobs.erase(job_it);
+			num_of_jobs++;
 			continue;
 		}
 		job_it++;

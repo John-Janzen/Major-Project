@@ -18,21 +18,22 @@ public:
 
 	EntityManager() : id_counter(0x100)
 	{
-		entities = EntityStorage();
+		_entities = EntityStorage();
 	}
-	~EntityManager() {}
-
-	void Close()
+	~EntityManager() 
 	{
-		std::for_each(entities.begin(), entities.end(), [] (EntityStorage::value_type& entity) {
-			delete entity.second;
-		});
-		entities.clear();
+		std::map<EntityID, Entity*>::iterator entity_it = _entities.begin();
+		while (entity_it != _entities.end())
+		{
+			if ((*entity_it).second != nullptr)
+				delete (*entity_it).second;
+			entity_it = _entities.erase(entity_it);
+		}
 	}
 
 	Entity * create_entity()
 	{
-		auto inserted = entities.emplace(id_counter, new Entity(std::string("Default" + ' ' + id_counter), id_counter));
+		auto inserted = _entities.emplace(id_counter, new Entity(std::string("Default" + ' ' + id_counter), id_counter));
 		id_counter++;
 		return static_cast<Entity*>(inserted.first->second);
 	}
@@ -40,7 +41,7 @@ public:
 	template <class T>
 	T * create_entity()
 	{
-		auto inserted = entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
+		auto inserted = _entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
 		id_counter++;
 		return static_cast<T*>(inserted.first->second);
 	}
@@ -48,7 +49,7 @@ public:
 	template <class T>
 	T * create_entity(EntityID & id)
 	{
-		auto inserted = entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
+		auto inserted = _entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
 		id = inserted.first->first;
 		id_counter++;
 		return static_cast<T*>(inserted.first->second);
@@ -57,7 +58,7 @@ public:
 	template <class T>
 	T * create_entity(const std::string & name)
 	{
-		auto inserted = entities.emplace(id_counter, new T(name, id_counter));
+		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
 		id_counter++;
 		return static_cast<T*>(inserted.first->second);
 	}
@@ -65,7 +66,7 @@ public:
 	template <class T>
 	const EntityID & create_entity(const std::string & name, T * & entity)
 	{
-		auto inserted = entities.emplace(id_counter, new T(name, id_counter));
+		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
 		entity = static_cast<T*>(inserted.first->second);
 		id_counter++;
 		return inserted.first->first;
@@ -74,7 +75,7 @@ public:
 	template <class T>
 	T * create_entity(const std::string & name, EntityID & entity_id)
 	{
-		auto inserted = entities.emplace(id_counter, new T(name, id_counter));
+		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
 		entity_id = inserted.first->first;
 		id_counter++;
 		return static_cast<T*>(inserted.first->second);
@@ -82,12 +83,12 @@ public:
 
 	Entity * & find_entity(const EntityID _id)
 	{
-		return entities.find(_id)->second;
+		return _entities.find(_id)->second;
 	}
 
 	void flag_dead_entity(const EntityID entity_id)
 	{
-		entities.find(entity_id)->second->set_death();
+		_entities.find(entity_id)->second->set_death();
 	}
 
 	void flag_dead_entity(Entity * & entity)
@@ -95,25 +96,25 @@ public:
 		entity->set_death();
 	}
 
-	void destroy_dead_entities()
+	void destroy_dead__entities()
 	{
-		for (auto it = entities.begin(); it != entities.end(); ++it)
+		for (auto it = _entities.begin(); it != _entities.end(); ++it)
 		{
 			if ((*it).second->get_death())
 			{
-				it = entities.erase(it);
+				it = _entities.erase(it);
 			}
 		}
 	}
 
 	const EntityStorage & retreive_list()
 	{
-		return entities;
+		return _entities;
 	}
 
 private:
 
-	EntityStorage entities;
+	EntityStorage _entities;
 	EntityID id_counter;
 };
 

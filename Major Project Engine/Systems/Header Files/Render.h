@@ -58,6 +58,8 @@ private:
 
 	int screen_width, screen_height;
 
+	GLfloat Y_rotation = 0.0f;
+
 	ModelsStorage _models;
 	ShaderStorage _shaders;
 	TextureStorage _textures;
