@@ -1,11 +1,11 @@
 #include "Thread.h"
-#include "ThreadManager.h"
+#include "TaskManager.h"
 /*
 * Constructor that registers a name for the
 * thread class.
 */
-Thread::Thread(const std::string & name)
-	:_name(name)
+Thread::Thread(const std::string & name, const THREAD_TYPE type)
+	:_name(name), t_type(type)
 {
 	_thread = std::make_unique<std::thread>(&Thread::Execution, this);
 }
@@ -34,15 +34,17 @@ void Thread::Execution()
 	{
 		if (current_job)
 		{
+			//printf("%s Starting Job: %s\n", this->_name.c_str(), current_job->get_name().c_str());
 			if (current_job->get_function()(current_job->get_content()))
 			{
 				count++;
+				TaskManager::Instance().notify_done();
 				delete(current_job);
 				current_job = nullptr;
 			}
 			else 
 			{
-				ThreadManager::Instance().register_job(current_job);
+				TaskManager::Instance().register_job(current_job);
 				current_job = nullptr;
 			}
 		}

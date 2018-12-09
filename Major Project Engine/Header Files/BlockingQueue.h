@@ -19,6 +19,20 @@ public:
 		std::queue<T>().swap(_queue);
 	}
 
+	T & front()
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		return _queue.front();
+	}
+
+	void front_to_back()
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		T temp = _queue.front();
+		_queue.pop();
+		_queue.push(temp);
+	}
+
 	bool pop(T & location)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);

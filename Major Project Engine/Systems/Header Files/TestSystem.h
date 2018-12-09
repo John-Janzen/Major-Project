@@ -18,14 +18,14 @@ public:
 	TestSystem();
 	~TestSystem();
 
-	bool Load();
-	void Close();
+	bool Load(void* content);
+	void Close(void* content);
 
-	bool process(Content * & content);
-	bool return_process(Content * & content);
+	bool process(void* content);
+	bool return_process(void* content);
 private:
 	std::vector<int> testing_field;
-	int * results[4];
+	int results[4];
 };
 
 #endif // !_TESTSYSTEM_H

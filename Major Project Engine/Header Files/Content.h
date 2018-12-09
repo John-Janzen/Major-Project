@@ -15,7 +15,7 @@ struct InitialContent : public Content
 	std::vector<int> copy_section;
 	int * result;
 
-	InitialContent(const std::vector<int> & vec, int * & end_loc) : copy_section(vec)
+	InitialContent(const std::vector<int> & vec, int * end_loc) : copy_section(vec)
 	{
 		result = end_loc;
 	};

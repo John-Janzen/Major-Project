@@ -3,7 +3,7 @@
 #ifndef _SYSTEM_H
 #define _SYSTEM_H
 
-#include "ThreadManager.h"
+#include "TaskManager.h"
 #include "Scene.h"
 
 enum SYSTEM_TYPE
@@ -20,10 +20,11 @@ public:
 	System();
 	virtual ~System() = 0;
 
-	virtual bool Load() = 0;
-	virtual void Close() = 0;
+	virtual bool Load(void* content) = 0;
+	virtual void Close(void* content) = 0;
 
 private:
+
 };
 
 inline System::System() {}

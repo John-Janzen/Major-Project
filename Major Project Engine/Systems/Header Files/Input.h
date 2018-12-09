@@ -15,12 +15,12 @@ public:
 	Input();
 	~Input();
 
-	bool Load();
-	void Close();
+	bool Load(void* content);
+	void Close(void* content);
 
-	void Update(const GLfloat & _dt, const std::unique_ptr<Scene> & current_scene);
+	void Update(const GLfloat & _dt, const Scene * current_scene);
 
-	void player_controls(const GLfloat & _dt, const CONTROL_TYPE & control, const std::shared_ptr<Transform> & transform);
+	void player_controls(const GLfloat & _dt, PlayerControllerComponent * & pc_cp, Transform * & transform);
 
 	void change_input();
 private:

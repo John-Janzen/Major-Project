@@ -16,7 +16,7 @@ public:
 	bool Game_Loop();
 	void Close();
 
-	bool Load_Scene(const SCENE_SELECTION & type);
+	bool Load_Scene(const SCENE_SELECTION type);
 
 private:
 	SDL_Event sdl_event;

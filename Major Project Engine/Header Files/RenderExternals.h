@@ -18,8 +18,17 @@ struct Model
 
 	~Model() 
 	{
-		if (_vertices != nullptr) delete(_vertices); 
-		if (_indices != nullptr) delete(_indices); 
+		if (_vertices != nullptr)
+		{
+			delete(_vertices);
+			_vertices = nullptr;
+		}
+			
+		if (_indices != nullptr)
+		{
+			delete(_indices);
+			_indices = nullptr;
+		}
 	}
 
 	void setVertices(const GLfloat * arr) { _vertices = arr; }
@@ -29,16 +38,31 @@ struct Model
 	const GLuint * getIndices() { return _indices; }
 };
 
+struct Texture
+{
+	const GLuint * _texture;
+	GLuint imgWidth, imgHeight, texWidth, texHeight;
+	GLuint TextureID;
+
+	Texture(const GLuint * data, const GLuint & imgW, const GLuint & imgH, const GLuint & texW, const GLuint & texH)
+		: _texture{ data }, imgWidth(imgW), imgHeight(imgH), texWidth(texW), texHeight(texH) {}
+
+	~Texture() { if (TextureID != 0) glDeleteTextures(1, _texture); }
+
+	void set_data(const GLuint * arr) { _texture = arr; }
+	const GLuint * get_data() { return _texture; }
+};
+
 struct Shader
 {
-	const GLuint _shaderID;
-	GLenum _type;
+	const GLuint _shaderID_Vert, _shaderID_Frag;
 
-	Shader(const GLuint & data, const GLenum & type) : _shaderID(data), _type(type) {};
+	Shader(const GLuint & vert, const GLuint & frag) : _shaderID_Vert(vert), _shaderID_Frag(frag) {};
 
 	~Shader() {}
 
-	const GLuint getShaderID() { return _shaderID; };
+	const GLuint getVertexShader() { return _shaderID_Vert; };
+	const GLuint getFragmentShader() { return _shaderID_Frag; };
 };
 
 #endif // !_RENDEREXTERNALS

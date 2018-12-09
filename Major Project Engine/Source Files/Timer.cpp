@@ -2,49 +2,68 @@
 
 Timer::Timer()
 {
-	start_time = std::chrono::system_clock::now();
-	end_time = std::chrono::system_clock::now();
+	current_time_frame = frame_rate_control = hr_clock::now();
 }
 
 Timer::~Timer() {}
 
 void Timer::Start()
 {
-	start_time = std::chrono::system_clock::now();
+	timer_start = hr_clock::now();
 }
 
-void Timer::End()
+void Timer::Stop()
 {
-	end_time = std::chrono::system_clock::now();
-	this->set_delta_time();
-	this->Print(end_time - start_time);
+	printf("Timer Stopped at ");
+	Print(ms_duration(hr_clock::now() - timer_start));
 }
 
-const std::chrono::system_clock::rep & Timer::elapsed_work()
+void Timer::Restart()
 {
-	return std::chrono::duration<double, std::milli>(start_time - end_time).count();
+	current_time_frame = hr_clock::now();
 }
 
 void Timer::wait_time()
 {
-	this->Start();
-	if (this->elapsed_work() < current_time_lock)
+	// COMES HAPPENS BEFORE (10ms HAVE PASSED)
+	if (ms_duration(hr_clock::now() - current_time_frame) < current_time_lock)		// AS LONG AS THE WORK_TIME IS LESS THAN THE FRAMETIME NEEDED (60FPS LOCK) -> (16.66ms)
 	{
-		std::chrono::duration<double, std::milli> delta_ms(current_time_lock - this->elapsed_work());
-		auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
-		std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
+		frame_count++;																// INCREMENT FRAME
+		if (ms_duration(current_time_frame - frame_rate_control) >= ms_duration(std::chrono::seconds(1)))		// CHECK IF DURATION OF FRAME IS GREATER THAN A SECOND
+		{
+			//printf("Frame Count: %d", frame_count);
+			frame_rate_control = hr_clock::now();									// RESET THE FRAME TIME TO NOW
+			frame_count = 0u;														// RESET FRAME COUNT
+		}
+		
+		while (true)		// SPINLOCK FROM THE CURRENT FRAMETIME BELOW TO THE BEGINNING OF THE NEXT FRAME
+		{
+			auto time = ms_duration(hr_clock::now() - current_time_frame);
+			if (time > current_time_lock)
+				break;
+			//std::this_thread::yield();
+		}
+		//printf("%d FrameSleep elapsed: %f\n", frame_count, std::chrono::duration<double, std::milli>(hr_clock::now() - current_time_frame).count());		// PRINT RESULTS
+		this->set_delta_time();
+		current_time_frame = hr_clock::now();
 	}
-	this->End();
+	else
+	{
+		this->Restart();																// OR WE RESTART THE FRAMETIME
+	}
 }
 
-void Timer::Print(const std::chrono::duration<double, std::milli> & time)
+bool Timer::checkTimeLimit()
 {
-	printf("Time ended: %f\n", std::chrono::duration<double, std::milli>(time.count()));
+	return (ms_duration(hr_clock::now() - current_time_frame) < (current_time_lock - std::chrono::milliseconds(1))) ? true : false;
+}
+
+void Timer::Print(const ms_duration & time)
+{
+	printf("%f\n", time.count());
 }
 
 void Timer::set_delta_time()
 {
-	using ms = std::chrono::duration<float, std::milli>;
-	delta_time = std::chrono::duration_cast<ms>(end_time - start_time).count() / 1000.0f;
-	//delta_time = std::chrono::duration_cast<std::chrono::microseconds>(start_time - end_time).count() / 1000.0f;
+	delta_time = std::chrono::duration<float, std::milli>(hr_clock::now() - current_time_frame).count() / 1000.0f;
 }

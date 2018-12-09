@@ -7,22 +7,31 @@ Game::~Game() {}
 bool Game::Load()
 {
 	//Application::Load(std::make_unique<MainScene>());
+	timer->Start();
 	this->Load_Scene(MAIN_SCENE);
-	
-	timer->End();
-	_state = PLAYING;
+	this->Load_App();
+	_state = LOADING;
 	return true;
 }
 
 bool Game::Game_Loop()
 {
 	timer->wait_time();
-	
+	if (TaskManager::Instance().frame_start())
+	{
+		if (_state == LOADING)
+		{
+			_state = PLAYING;
+			timer->Stop();
+		}	
+	}
+
 	switch (_state)
 	{
-	case LOADING:
-		this->Load_App();
+	case INITIALIZING:
 		this->Load();
+		break;
+	case LOADING:
 		break;
 	case PLAYING:
 	{
@@ -47,8 +56,9 @@ bool Game::Game_Loop()
 			}
 		}
 
-		renderer->UpdateLoop(current_scene);
-
+		physics->Update();
+		TaskManager::Instance().register_job(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, RENDER_TYPE);
+		//renderer->UpdateLoop(current_scene);
 		break;
 	}
 	case EXITING:
@@ -57,42 +67,31 @@ bool Game::Game_Loop()
 	default:
 		break;
 	}
-	ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
-
+	_threadpool->allocate_jobs();			// Allocate jobs to the threads
 	return game_running;
 }
 
 void Game::Close()
 {
-	ThreadManager::Instance().print_total_jobs();			// Print the stats
-
+	_threadpool->print_total_jobs();			// Print the stats
 	game_running = false;
 }
 
-bool Game::Load_Scene(const SCENE_SELECTION & type)
+bool Game::Load_Scene(const SCENE_SELECTION type)
 {
-	std::unique_ptr<Scene> newScene;
 	switch (type)
 	{
 	case MAIN_SCENE:
-		newScene = std::make_unique<MainScene>();
+		current_scene = new MainScene();
 		break;
 	default:
 		break;
 	}
-	if (newScene != nullptr && newScene->Load())
-	{
-		current_scene = std::move(newScene);
-		newScene.reset();
-		newScene = nullptr;
-	}
-	else
+	if (!(current_scene != nullptr && current_scene->Load()))
 	{
 		printf("Error Making current scene");
 		return false;
 	}
-
-	renderer->init_render_component(current_scene->get_comp_manager());
 
 	return true;
 }

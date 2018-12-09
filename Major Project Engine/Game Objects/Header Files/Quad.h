@@ -11,7 +11,8 @@ class Quad :
 public:
 	Quad(const std::string & name, int id);
 	~Quad();
-	void Load(std::unique_ptr<ComponentManager> & c_manager);
+	void Load(ComponentManager * & c_manager);
+	
 };
 
 

@@ -6,42 +6,63 @@
 #include "System.h"
 
 #include <SDL.h>
-#include <GL/glew.h>
+#include <gl\GL.h>
+#include <gl\GLU.h>
+#include <GL\glew.h>
 #include <iostream>
 #include <gtc\matrix_transform.hpp>
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
 
+typedef std::unordered_map<std::string, Model*> ModelsStorage;
+typedef std::unordered_map<std::string, Shader*> ShaderStorage;
+typedef std::unordered_map<std::string, Texture*> TextureStorage;
+
 class Render : public System
 {
 public:
-	Render();
+	Render(SDL_Window * sdl_window, const int width, const int height);
 	~Render();
 
-	bool Load();
-	void Close();
+	bool Load(void* content);
+	void Close(void* content);
 
-	void InitUpdate(const std::shared_ptr<CameraComponent> & c_cp, const std::shared_ptr<Transform> & tran);
-	void UpdateLoop(const std::unique_ptr<Scene> & current_scene);
+	void InitUpdate(CameraComponent * c_cp, const Transform * tran);
+	bool UpdateLoop(void * ptr);
 	void ComponentUpdate(GLfloat * project_value,
-		const std::shared_ptr<RenderComponent> & rc,
-		const std::shared_ptr<Transform> & transform);
+		RenderComponent * & rc,
+		const Transform * transform);
 	void FinalUpdate();
 
+	bool init_render_component(void * ptr);
 
-	void init_render_component(const std::unique_ptr<ComponentManager> & c_manager);
+	bool LoadModel(void * ptr);
 
-	bool init_SDL();
+	bool LoadShader(void * ptr);
+
+	bool LoadTexture(void * ptr);
+
+	bool BindModel(void * ptr);
+
+	bool BindTexture(void * ptr);
+
+	bool BindShader(void * ptr);
+
+	bool init_SDL(SDL_GLContext context);
 	bool init_GL();
 
 private:
 	SDL_Window * sdl_window;
-	SDL_GLContext sdl_context;
 
 	GLfloat * project_value_ptr;
 
-	const int SCREEN_WIDTH = 1280;
-	const int SCREEN_HEIGHT = 720;
+	int screen_width, screen_height;
+
+	GLfloat Y_rotation = 0.0f;
+
+	ModelsStorage _models;
+	ShaderStorage _shaders;
+	TextureStorage _textures;
 };
 
 #endif // !_RENDER_H

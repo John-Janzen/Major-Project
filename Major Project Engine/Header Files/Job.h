@@ -15,22 +15,19 @@
 * run. This will provide a verious number
 * of jobs and a priority later down the line.
 */
-enum Job_Type
+enum JOB_TYPE
 {
 	NULL_TYPE,
+	ANY_TYPE,
+	RENDER_TYPE,
+	IO_TYPE,
 };
 
-enum MESSAGE_TYPE
-{
-	NULL_MSG,
-	P_EQUIVOCATEJOB
-};
-
-//typedef bool(*JobFunction)(const Content * &);
-using JobFunction = std::function<bool(Content *&)>;
+//typedef bool(*JobFunction)(void* &);
+using JobFunction = std::function<bool(void*)>;
 
 template<class T>
-JobFunction bind_function(bool(T::* pFunc)(Content *&), T * const sys = nullptr)
+JobFunction bind_function(bool(T::* pFunc)(void*), T * const sys = nullptr)
 {
 	return std::bind(pFunc, sys, std::placeholders::_1);
 }
@@ -51,15 +48,15 @@ class Job
 {
 public:
 
-	Job(JobFunction function, Content * data = nullptr)
-		: _func(function), _content(data)
+	Job(JobFunction function, const std::string name, void* data = nullptr, const JOB_TYPE type = ANY_TYPE, Job * parent = nullptr)
+		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent)
 	{
 	}
 
 	~Job()
 	{
 		_func = NULL;
-		if (_content != nullptr) delete(_content);
+		if (_content != nullptr) _content = nullptr;
 		if (_parent_job != nullptr)
 		{
 			_parent_job->OnNotify();
@@ -68,17 +65,15 @@ public:
 	}
 
 	/* Gets the function of the job */
-	JobFunction get_function()
-	{
-		return _func;
-	}
+	JobFunction get_function() { return _func; }
 
-	Content * & get_content()
-	{
-		return _content;
-	}
+	void* get_content() { return _content; }
 
-	void set_parent(Job * & parent)
+	const JOB_TYPE get_type() { return j_type; }
+
+	std::string get_name() { return job_name; }
+
+	void set_parent(Job * parent)
 	{
 		_parent_job = parent;
 	}
@@ -99,12 +94,13 @@ public:
 	}
 
 private:
-
+	std::string job_name;
+	JOB_TYPE j_type;
 	std::atomic<int> _awaiting = 0;
 	Job * _parent_job;
 	
 	JobFunction _func;
-	Content * _content;
+	void* _content;
 
 };
 

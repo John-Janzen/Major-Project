@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Systems\Source Files\Physics.cpp" />
+    <ClCompile Include="Source Files\FileLoader.cpp" />
     <ClCompile Include="Systems\Source Files\Input.cpp" />
     <ClCompile Include="Game Objects\Source Files\Player.cpp" />
     <ClCompile Include="Scenes\Source Files\MainScene.cpp" />
@@ -31,6 +33,7 @@
     <ClCompile Include="Source Files\Thread.cpp" />
     <ClCompile Include="Source Files\Timer.cpp" />
     <ClCompile Include="Systems\Source Files\TestSystem.cpp" />
+    <ClCompile Include="Managers\Source Files\TaskManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game Objects\Header Files\Camera.h" />
@@ -42,6 +45,8 @@
     <ClInclude Include="Header Files\RenderExternals.h" />
     <ClInclude Include="Components\Base Components\Header Files\PlayerControllerComponent.h" />
     <ClInclude Include="Components\Game Components\Header Files\PlayerRenderComponent.h" />
+    <ClInclude Include="Header Files\Model.h" />
+    <ClInclude Include="Systems\Header Files\Physics.h" />
     <ClInclude Include="Systems\Header Files\Input.h" />
     <ClInclude Include="Game Objects\Header Files\Player.h" />
     <ClInclude Include="Scenes\Header Files\MainScene.h" />
@@ -66,6 +71,7 @@
     <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
     <ClInclude Include="Header Files\Timer.h" />
     <ClInclude Include="Systems\Header Files\TestSystem.h" />
+    <ClInclude Include="Managers\Header Files\TaskManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -122,7 +128,9 @@
     <IncludePath>$(ProjectDir)Header Files;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Libraries\glm\include;$(ProjectDir)Libraries\glew-2.1.0\include;$(ProjectDir)Libraries\bullet3-2.87\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)Libraries\DevIL Windows SDK\include;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Libraries\glm\include;$(ProjectDir)Libraries\glew-2.1.0\include;$(ProjectDir)Libraries\bullet3-2.87\src;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)Libraries\sdl\lib;$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\DevIL Windows SDK\lib\x64\Release;$(ProjectDir)Libraries\bullet3-2.87\lib;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -147,9 +155,9 @@
       <AdditionalIncludeDirectories>$(ProjectDir)Input\Header Files;$(ProjectDir)Scenes\Header Files;$(ProjectDir)Game Objects\Header Files;$(ProjectDir)Components\Game Components\Header Files;$(ProjectDir)Components\Base Components\Header Files;$(ProjectDir)Systems\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\sdl\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;DevIL.lib;ILU.lib;ILUT.lib;Bullet2FileLoader.lib;Bullet3Collision.lib;Bullet3Common.lib;Bullet3Dynamics.lib;Bullet3Geometry.lib;Bullet3OpenCL_clew.lib;BulletCollision.lib;BulletDynamics.lib;BulletInverseDynamics.lib;BulletSoftBody.lib;LinearMath.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

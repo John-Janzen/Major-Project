@@ -7,6 +7,9 @@
 #include <iostream>
 #include <thread>
 
+using hr_clock = std::chrono::high_resolution_clock;
+using ms_duration = std::chrono::duration<float, std::milli>;
+
 class Timer
 {
 public:
@@ -14,24 +17,37 @@ public:
 	~Timer();
 
 	void Start();
-	void End();
+	void Stop();
 
-	const std::chrono::system_clock::rep & elapsed_work();
 	void wait_time();
 
-	void Print(const std::chrono::duration<double, std::milli> & time);
+	bool checkTimeLimit();
 
-	void set_delta_time();
 	const float & get_delta_time() { return delta_time; }
 
-	void set_time_lock(const float & time) { current_time_lock = time; }
+	void set_time_lock(const float time) 
+	{
+		current_time_lock = ms_duration(time); 
+	}
 
 private:
-	std::chrono::system_clock::time_point start_time;
-	std::chrono::system_clock::time_point end_time;
+
+	void Restart();
+	
+	void set_delta_time();
+
+	void Print(const ms_duration & time);
+
+	hr_clock::time_point current_time_frame;
+	hr_clock::time_point frame_rate_control;
 
 	float delta_time;
-	float current_time_lock;
+	ms_duration current_time_lock;
+
+	hr_clock::time_point timer_start;
+	hr_clock::time_point timer_end;
+
+	int frame_count = 0;
 };
 
 #endif // !_TIMER_H
