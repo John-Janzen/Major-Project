@@ -34,12 +34,13 @@ void Thread::Execution()
 	{
 		if (current_job)
 		{
+			//printf("%s Starting Job: %s\n", this->_name.c_str(), current_job->get_name().c_str());
 			if (current_job->get_function()(current_job->get_content()))
 			{
 				count++;
+				TaskManager::Instance().notify_done();
 				delete(current_job);
 				current_job = nullptr;
-				TaskManager::Instance().notify_done();
 			}
 			else 
 			{

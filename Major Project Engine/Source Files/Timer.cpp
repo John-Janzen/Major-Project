@@ -20,6 +20,7 @@ void Timer::wait_time()
 		frame_count++;																// INCREMENT FRAME
 		if (ms_duration(current_time_frame - frame_rate_control) >= ms_duration(std::chrono::seconds(1)))		// CHECK IF DURATION OF FRAME IS GREATER THAN A SECOND
 		{
+			//printf("Frame Count: %d", frame_count);
 			frame_rate_control = hr_clock::now();									// RESET THE FRAME TIME TO NOW
 			frame_count = 0u;														// RESET FRAME COUNT
 		}
@@ -29,7 +30,7 @@ void Timer::wait_time()
 			auto time = ms_duration(hr_clock::now() - current_time_frame);
 			if (time > current_time_lock)
 				break;
-			std::this_thread::yield();
+			//std::this_thread::yield();
 		}
 		//printf("%d FrameSleep elapsed: %f\n", frame_count, std::chrono::duration<double, std::milli>(hr_clock::now() - current_time_frame).count());		// PRINT RESULTS
 		this->set_delta_time();

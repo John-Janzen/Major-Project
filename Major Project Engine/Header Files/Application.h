@@ -158,12 +158,12 @@ inline bool Application::Load_App()
 	input = new Input();
 	physics = new Physics();
 	test_system = new TestSystem();
-	
-	TaskManager::Instance().register_job(bind_function(&TestSystem::Load, test_system));
-	TaskManager::Instance().register_job(bind_function(&Physics::Load, physics));
-	TaskManager::Instance().register_job(bind_function(&Render::Load, renderer), sdl_context, RENDER_TYPE);
 
-	TaskManager::Instance().register_job(bind_function(&Render::init_render_component, renderer), current_scene->get_comp_manager(), RENDER_TYPE);
+	TaskManager::Instance().register_job(bind_function(&Render::Load, renderer), "Load_Render_System", sdl_context, RENDER_TYPE);
+	TaskManager::Instance().register_job(bind_function(&TestSystem::Load, test_system), "Load_Test_System");
+	TaskManager::Instance().register_job(bind_function(&Physics::Load, physics), "Load_Physics_Sytem");
+
+	TaskManager::Instance().register_job(bind_function(&Render::init_render_component, renderer), "Initialize_Render_Objects", current_scene->get_comp_manager(), RENDER_TYPE);
 
 	return true;
 }

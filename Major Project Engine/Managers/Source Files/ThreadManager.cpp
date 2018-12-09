@@ -48,6 +48,13 @@ void ThreadManager::allocate_jobs()
 {
 	while (!jobs_empty())
 	{
+		if (task_queue.front()->get_waiting() != 0)
+		{
+			Job * temp = task_queue.front();
+			task_queue.pop();
+			task_queue.push(temp);
+			continue;
+		}
 		for (std::size_t i = 0; i < num_of_threads && !jobs_empty(); i++)
 		{
 			switch (task_queue.front()->get_type())

@@ -109,7 +109,6 @@ void Render::ComponentUpdate
 
 void Render::FinalUpdate()
 {
-	//SDL_RenderPresent(sdl_render);
 	SDL_GL_SwapWindow(sdl_window);
 }
 
@@ -123,15 +122,20 @@ bool Render::init_render_component(void * ptr)
 
 	for (auto & rc_cp : c_manager->find_all_of_type<RenderComponent*>())
 	{
-		Job * bind_model_job = new Job(bind_function(&Render::BindModel, this), rc_cp, RENDER_TYPE);
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadModel, this), rc_cp), bind_model_job);
-		TaskManager::Instance().register_job(bind_model_job);
-		Job * bind_shader_job = new Job(bind_function(&Render::BindTexture, this), rc_cp, RENDER_TYPE);
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadShader, this), rc_cp, RENDER_TYPE), bind_shader_job);
-		TaskManager::Instance().register_job(bind_shader_job);
-		Job * bind_texture_job = new Job(bind_function(&Render::BindShader, this), rc_cp, RENDER_TYPE);
- 		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadTexture, this), rc_cp), bind_texture_job);
-		TaskManager::Instance().register_job(bind_texture_job);
+		// Loading and binding model jobs
+		Job * bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc_cp, RENDER_TYPE);
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadModel, this), "Load_Model", rc_cp), bind_model_job);
+		TaskManager::Instance().register_job(bind_model_job, true);
+
+		// Loading and binding shader jobs
+		Job * bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc_cp, RENDER_TYPE);
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", rc_cp, RENDER_TYPE), bind_shader_job);
+		TaskManager::Instance().register_job(bind_shader_job, true);
+
+		// Loading and binding texture jobs
+		Job * bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc_cp, RENDER_TYPE);
+ 		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", rc_cp), bind_texture_job);
+		TaskManager::Instance().register_job(bind_texture_job, true);
 	}
 	return true;
 }

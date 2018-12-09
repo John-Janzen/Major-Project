@@ -25,17 +25,25 @@ void TaskManager::notify_done()
 	jobs_to_finish--;
 }
 
-void TaskManager::register_job(JobFunction function, void* content, const JOB_TYPE type)
+void TaskManager::register_job(JobFunction function, const std::string name, void* content, const JOB_TYPE type)
 {
-	job_list.emplace_back(new Job(function, content, type));
+	job_list.emplace_back(new Job(function, name, content, type));
 	num_of_jobs++;
 }
 
-void TaskManager::register_job(Job * job)
+void TaskManager::register_job(Job * job, bool wait)
 {
-	job_list.emplace_back(job);
-	job = nullptr;
-	num_of_jobs++;
+	if (wait)
+	{
+		waiting_jobs.emplace_back(job);
+		job = nullptr;
+	}
+	else
+	{
+		job_list.emplace_back(job);
+		job = nullptr;
+		num_of_jobs++;
+	}
 }
 
 void TaskManager::register_job(Job * job, Job * parent_job)
@@ -49,6 +57,17 @@ void TaskManager::register_job(Job * job, Job * parent_job)
 
 void TaskManager::transfer_jobs()
 {
+	std::list<Job*>::iterator job_it = waiting_jobs.begin();
+	while (job_it != waiting_jobs.end())
+	{
+		if ((*job_it)->get_waiting() == 0)
+		{
+			job_list.emplace_back((*job_it));
+			job_it = waiting_jobs.erase(job_it);
+			continue;
+		}
+		job_it++;
+	}
 	_threadpool_p->get_jobs(&job_list);
 	job_list.clear();
 	jobs_to_finish += num_of_jobs;

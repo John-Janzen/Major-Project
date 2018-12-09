@@ -53,7 +53,7 @@ bool Game::Game_Loop()
 		}
 
 		physics->Update();
-		TaskManager::Instance().register_job(bind_function(&Render::UpdateLoop, renderer), current_scene, RENDER_TYPE);
+		TaskManager::Instance().register_job(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, RENDER_TYPE);
 		//renderer->UpdateLoop(current_scene);
 		break;
 	}

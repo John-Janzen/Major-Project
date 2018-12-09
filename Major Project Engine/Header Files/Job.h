@@ -48,8 +48,8 @@ class Job
 {
 public:
 
-	Job(JobFunction function, void* data = nullptr, const JOB_TYPE type = ANY_TYPE, Job * parent = nullptr)
-		: _func(function), _content(data), j_type(type), _parent_job(parent)
+	Job(JobFunction function, const std::string name, void* data = nullptr, const JOB_TYPE type = ANY_TYPE, Job * parent = nullptr)
+		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent)
 	{
 	}
 
@@ -70,6 +70,8 @@ public:
 	void* get_content() { return _content; }
 
 	const JOB_TYPE get_type() { return j_type; }
+
+	std::string get_name() { return job_name; }
 
 	void set_parent(Job * parent)
 	{
@@ -92,7 +94,7 @@ public:
 	}
 
 private:
-
+	std::string job_name;
 	JOB_TYPE j_type;
 	std::atomic<int> _awaiting = 0;
 	Job * _parent_job;

@@ -28,9 +28,9 @@ public:
 
 	void notify_done();
 
-	void register_job(JobFunction function, void * content = nullptr, const JOB_TYPE type = JOB_TYPE::ANY_TYPE);
+	void register_job(JobFunction function, const std::string name, void * content = nullptr, const JOB_TYPE type = JOB_TYPE::ANY_TYPE);
 
-	void register_job(Job * job);
+	void register_job(Job * job, bool wait = false);
 
 	void register_job(Job * job, Job * parent_job);
 
@@ -43,6 +43,7 @@ private:
 	// List of jobs available
 	// std::queue<std::unique_ptr<Job>> job_list;
 	std::list<Job*> job_list;
+	std::list<Job*> waiting_jobs;
 	std::atomic<int> num_of_jobs = 0;
 	std::atomic<int> jobs_to_finish;
 };
