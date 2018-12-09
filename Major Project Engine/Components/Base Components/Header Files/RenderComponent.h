@@ -16,8 +16,13 @@ public:
 	RenderComponent();
 	~RenderComponent();
 
+	void set_model(Model * model) { current_model = model; }
 	Model * get_model() const { return current_model; }
+
+	void set_shader(Shader * shader) { current_shader = shader; }
 	Shader * get_shader() const { return current_shader; }
+
+	void set_texture(Texture * texture) { current_texture = texture; }
 	Texture * get_texture() const { return current_texture; }
 
 	GLuint & get_v_buffer() { return vert_buff_obj; }

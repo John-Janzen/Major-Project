@@ -41,7 +41,7 @@ inline Scene::Scene()
 {
 	entity_manager = new EntityManager();
 	component_manager = new ComponentManager();
-	entity_manager->create_entity<Camera>(_camera);
+	entity_manager->create_entity<Camera>(_camera)->Load(component_manager);
 }
 
 inline Scene::~Scene() 

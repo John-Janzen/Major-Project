@@ -21,14 +21,14 @@ typedef std::unordered_map<std::string, Texture*> TextureStorage;
 class Render : public System
 {
 public:
-	Render(SDL_Window * & sdl_window, const int width, const int height);
+	Render(SDL_Window * sdl_window, const int width, const int height);
 	~Render();
 
 	bool Load(void* content);
 	void Close(void* content);
 
-	void InitUpdate(CameraComponent * & c_cp, const Transform * tran);
-	void UpdateLoop(void * ptr);
+	void InitUpdate(CameraComponent * c_cp, const Transform * tran);
+	bool UpdateLoop(void * ptr);
 	void ComponentUpdate(GLfloat * project_value,
 		RenderComponent * & rc,
 		const Transform * transform);
@@ -36,11 +36,17 @@ public:
 
 	bool init_render_component(void * ptr);
 
-	void BindModel(RenderComponent *& rc_cp);
+	bool LoadModel(void * ptr);
 
-	void BindTexture(RenderComponent *& rc_cp);
+	bool LoadShader(void * ptr);
 
-	void BindShader(RenderComponent *& rc_cp);
+	bool LoadTexture(void * ptr);
+
+	bool BindModel(void * ptr);
+
+	bool BindTexture(void * ptr);
+
+	bool BindShader(void * ptr);
 
 	bool init_SDL(SDL_GLContext context);
 	bool init_GL();

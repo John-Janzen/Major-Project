@@ -32,45 +32,51 @@ public:
 
 	Entity * create_entity()
 	{
-		auto inserted = entities.emplace(++id_counter, new Entity(std::string("Default" + ' ' + id_counter), id_counter));
+		auto inserted = entities.emplace(id_counter, new Entity(std::string("Default" + ' ' + id_counter), id_counter));
+		id_counter++;
 		return static_cast<Entity*>(inserted.first->second);
 	}
 
 	template <class T>
 	T * create_entity()
 	{
-		auto inserted = entities.emplace(++id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
+		auto inserted = entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
+		id_counter++;
 		return static_cast<T*>(inserted.first->second);
 	}
 
 	template <class T>
 	T * create_entity(EntityID & id)
 	{
-		auto inserted = entities.emplace(++id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
+		auto inserted = entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
 		id = inserted.first->first;
+		id_counter++;
 		return static_cast<T*>(inserted.first->second);
 	}
 
 	template <class T>
 	T * create_entity(const std::string & name)
 	{
-		auto inserted = entities.emplace(++id_counter, new T(name, id_counter));
+		auto inserted = entities.emplace(id_counter, new T(name, id_counter));
+		id_counter++;
 		return static_cast<T*>(inserted.first->second);
 	}
 
 	template <class T>
 	const EntityID & create_entity(const std::string & name, T * & entity)
 	{
-		auto inserted = entities.emplace(++id_counter, new T(name, id_counter));
+		auto inserted = entities.emplace(id_counter, new T(name, id_counter));
 		entity = static_cast<T*>(inserted.first->second);
+		id_counter++;
 		return inserted.first->first;
 	}
 
 	template <class T>
 	T * create_entity(const std::string & name, EntityID & entity_id)
 	{
-		auto inserted = entities.emplace(++id_counter, new T(name, id_counter));
+		auto inserted = entities.emplace(id_counter, new T(name, id_counter));
 		entity_id = inserted.first->first;
+		id_counter++;
 		return static_cast<T*>(inserted.first->second);
 	}
 

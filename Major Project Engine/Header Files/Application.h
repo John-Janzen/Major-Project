@@ -3,9 +3,10 @@
 #ifndef _APPLICATION_H
 #define _APPLICATION_H
 
-#include "ThreadManager.h"
 #include "ComponentManager.h"
 #include "EntityManager.h"
+#include "TaskManager.h"
+#include "ThreadManager.h"
 
 #include "Render.h"
 #include "Input.h"
@@ -23,6 +24,7 @@
 enum GAME_STATE
 {
 	NULL_STATE,
+	INITIALIZING,
 	LOADING,
 	PLAYING,
 	EXITING
@@ -40,12 +42,13 @@ public:
 	virtual void Close() = 0;
 
 	//bool load_scene();
-	void init_managers(const std::size_t & size);
+	void init_managers();
 	void close_managers();
 
 protected:
 
 	Timer * timer;
+	ThreadManager * _threadpool;
 
 	bool game_running = true;
 	GAME_STATE _state;
@@ -66,18 +69,17 @@ protected:
 };
 
 inline Application::Application(const std::size_t & num_of_threads)
-	: _state(LOADING)
+	: _state(INITIALIZING)
 {
-	this->init_managers(num_of_threads);
-	renderer = new Render(sdl_window, SCREEN_WIDTH, SCREEN_HEIGHT);
-	input = new Input();
-	physics = new Physics();
+	_threadpool = new ThreadManager(num_of_threads);
+	this->init_managers();
 	timer = new Timer();
-	test_system = new TestSystem();
 }
 
 inline Application::~Application()
 {
+	_threadpool->Close();
+	if (_threadpool != nullptr) delete _threadpool;
 	if (renderer != nullptr) delete renderer;
 	if (input != nullptr) delete input;
 	if (physics != nullptr) delete physics;
@@ -151,26 +153,29 @@ inline bool Application::Load_App()
 			}
 		}
 	}
-	
-	ThreadManager::Instance().register_job(bind_function(&TestSystem::Load, test_system));
-	ThreadManager::Instance().register_job(bind_function(&Physics::Load, physics));
-	ThreadManager::Instance().register_job(bind_function(&Render::Load, renderer), sdl_context, RENDER_TYPE);
 
-	ThreadManager::Instance().register_job(bind_function(&Render::init_render_component, renderer), current_scene->get_comp_manager(), RENDER_TYPE);
+	renderer = new Render(sdl_window, SCREEN_WIDTH, SCREEN_HEIGHT);
+	input = new Input();
+	physics = new Physics();
+	test_system = new TestSystem();
+	
+	TaskManager::Instance().register_job(bind_function(&TestSystem::Load, test_system));
+	TaskManager::Instance().register_job(bind_function(&Physics::Load, physics));
+	TaskManager::Instance().register_job(bind_function(&Render::Load, renderer), sdl_context, RENDER_TYPE);
+
+	TaskManager::Instance().register_job(bind_function(&Render::init_render_component, renderer), current_scene->get_comp_manager(), RENDER_TYPE);
 
 	return true;
 }
 
-inline void Application::init_managers(const std::size_t & size)
+inline void Application::init_managers()
 {
-	ThreadManager::Instance().Init(size);
-	FileLoader::Instance().Init();
+	TaskManager::Instance().Init(_threadpool);
 }
 
 inline void Application::close_managers()
 {
-	ThreadManager::Instance().Close();
-	FileLoader::Instance().Close();
+	TaskManager::Instance().Close();
 }
 
 #endif // !_APPLICATION_H

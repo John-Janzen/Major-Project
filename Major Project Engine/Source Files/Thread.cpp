@@ -1,5 +1,5 @@
 #include "Thread.h"
-#include "ThreadManager.h"
+#include "TaskManager.h"
 /*
 * Constructor that registers a name for the
 * thread class.
@@ -39,10 +39,11 @@ void Thread::Execution()
 				count++;
 				delete(current_job);
 				current_job = nullptr;
+				TaskManager::Instance().notify_done();
 			}
 			else 
 			{
-				ThreadManager::Instance().register_job(current_job);
+				TaskManager::Instance().register_job(current_job);
 				current_job = nullptr;
 			}
 		}

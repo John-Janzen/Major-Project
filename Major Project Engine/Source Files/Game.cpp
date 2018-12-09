@@ -9,17 +9,25 @@ bool Game::Load()
 	//Application::Load(std::make_unique<MainScene>());
 	this->Load_Scene(MAIN_SCENE);
 	this->Load_App();
-	_state = PLAYING;
+	_state = LOADING;
 	return true;
 }
 
 bool Game::Game_Loop()
 {
 	timer->wait_time();
+	if (TaskManager::Instance().frame_start())
+	{
+		if (_state == LOADING)
+			_state = PLAYING;
+	}
+
 	switch (_state)
 	{
-	case LOADING:
+	case INITIALIZING:
 		this->Load();
+		break;
+	case LOADING:
 		break;
 	case PLAYING:
 	{
@@ -45,8 +53,8 @@ bool Game::Game_Loop()
 		}
 
 		physics->Update();
-
-		renderer->UpdateLoop(current_scene);
+		TaskManager::Instance().register_job(bind_function(&Render::UpdateLoop, renderer), current_scene, RENDER_TYPE);
+		//renderer->UpdateLoop(current_scene);
 		break;
 	}
 	case EXITING:
@@ -55,13 +63,13 @@ bool Game::Game_Loop()
 	default:
 		break;
 	}
-	ThreadManager::Instance().allocate_jobs();			// Allocate jobs to the threads
+	_threadpool->allocate_jobs();			// Allocate jobs to the threads
 	return game_running;
 }
 
 void Game::Close()
 {
-	ThreadManager::Instance().print_total_jobs();			// Print the stats
+	_threadpool->print_total_jobs();			// Print the stats
 	game_running = false;
 }
 

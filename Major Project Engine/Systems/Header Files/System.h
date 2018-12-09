@@ -3,7 +3,7 @@
 #ifndef _SYSTEM_H
 #define _SYSTEM_H
 
-#include "ThreadManager.h"
+#include "TaskManager.h"
 #include "Scene.h"
 
 enum SYSTEM_TYPE

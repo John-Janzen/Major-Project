@@ -1,6 +1,6 @@
 #include "Render.h"
 
-Render::Render(SDL_Window * & window, const int width, const int height)
+Render::Render(SDL_Window * window, const int width, const int height)
 	: sdl_window(window), screen_width(width), screen_height(height)
 {
 
@@ -8,6 +8,7 @@ Render::Render(SDL_Window * & window, const int width, const int height)
 
 Render::~Render() 
 {
+	std::cout << "Render Destructor called" << std::endl;
 	sdl_window = nullptr;
 }
 
@@ -24,7 +25,7 @@ bool Render::Load(void* content)
 	return true;
 }
 
-void Render::InitUpdate(CameraComponent * & c_cp, const Transform * tran)
+void Render::InitUpdate(CameraComponent * c_cp, const Transform * tran)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
@@ -38,7 +39,7 @@ void Render::InitUpdate(CameraComponent * & c_cp, const Transform * tran)
 	project_value_ptr = c_cp->set_project_look(model_matrix);
 }
 
-void Render::UpdateLoop
+bool Render::UpdateLoop
 (
 	void * ptr
 )
@@ -57,6 +58,7 @@ void Render::UpdateLoop
 	}
 
 	this->FinalUpdate();
+	return true;
 }
 
 void Render::ComponentUpdate
@@ -118,15 +120,85 @@ void Render::Close(void* content)
 bool Render::init_render_component(void * ptr)
 {
 	ComponentManager * c_manager = static_cast<ComponentManager*>(ptr);
+
 	for (auto & rc_cp : c_manager->find_all_of_type<RenderComponent*>())
 	{
-		rc_cp->getModelPath();
+		Job * bind_model_job = new Job(bind_function(&Render::BindModel, this), rc_cp, RENDER_TYPE);
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadModel, this), rc_cp), bind_model_job);
+		TaskManager::Instance().register_job(bind_model_job);
+		Job * bind_shader_job = new Job(bind_function(&Render::BindTexture, this), rc_cp, RENDER_TYPE);
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadShader, this), rc_cp, RENDER_TYPE), bind_shader_job);
+		TaskManager::Instance().register_job(bind_shader_job);
+		Job * bind_texture_job = new Job(bind_function(&Render::BindShader, this), rc_cp, RENDER_TYPE);
+ 		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadTexture, this), rc_cp), bind_texture_job);
+		TaskManager::Instance().register_job(bind_texture_job);
 	}
 	return true;
 }
 
-void Render::BindModel(RenderComponent * & rc_cp)
+bool Render::LoadModel(void * ptr)
 {
+	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
+	std::unordered_map<std::string, Model*>::iterator model_it;
+	if ((model_it = _models.find(rc->getModelPath())) != _models.end())
+	{
+		rc->set_model(model_it->second);
+	}
+	else
+	{
+		Model * model = load_obj_file(rc->getModelPath());
+		if (model != nullptr)
+		{
+			auto loc = _models.emplace(rc->getModelPath(), model);
+			rc->set_model(model);
+		}
+	}
+	return true;
+}
+
+bool Render::LoadShader(void * ptr)
+{
+	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
+	std::unordered_map<std::string, Shader*>::iterator shader_it;
+	if ((shader_it = _shaders.find(std::string(rc->getVShaderPath() + rc->getFShaderPath()))) != _shaders.end())
+	{
+		rc->set_shader(shader_it->second);
+	}
+	else
+	{
+		Shader * shader = load_shader(rc->getVShaderPath(), rc->getFShaderPath());
+		if (shader != nullptr)
+		{
+			auto loc = _shaders.emplace(std::string(rc->getVShaderPath() + rc->getFShaderPath()), shader);
+			rc->set_shader(shader);
+		}
+	}
+	return true;
+}
+
+bool Render::LoadTexture(void * ptr)
+{
+	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
+	std::unordered_map<std::string, Texture*>::iterator texture_it;
+	if ((texture_it = _textures.find(rc->getTexturePath())) != _textures.end())
+	{
+		rc->set_texture(texture_it->second);
+	}
+	else
+	{
+		Texture * texture = load_texture(rc->getTexturePath());
+		if (texture != nullptr)
+		{
+			auto loc = _textures.emplace(rc->getTexturePath(), texture);
+			rc->set_texture(texture);
+		}
+	}
+	return true;
+}
+
+bool Render::BindModel(void * ptr)
+{
+	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->get_model() != nullptr)
 	{
 		glGenBuffers(1, &rc_cp->get_e_buffer());
@@ -159,10 +231,12 @@ void Render::BindModel(RenderComponent * & rc_cp)
 	{
 		printf("Object skipped no available model\n");
 	}
+	return true;
 }
 
-void Render::BindTexture(RenderComponent * & rc_cp)
+bool Render::BindTexture(void * ptr)
 {
+	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->get_texture() != nullptr)
 	{
 		glActiveTexture(GL_TEXTURE0);
@@ -186,53 +260,57 @@ void Render::BindTexture(RenderComponent * & rc_cp)
 	{
 		printf("Object skipped no available texture\n");
 	}
+	return true;
 }
 
-void Render::BindShader(RenderComponent * & rc_cp)
+bool Render::BindShader(void * ptr)
 {
+	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->get_shader() != nullptr)
 	{
-		const GLuint program = *rc_cp->set_shader_prog(glCreateProgram());
+		const GLuint *program = rc_cp->set_shader_prog(glCreateProgram());
 
-		glAttachShader(program, rc_cp->get_shader()->getShaderID());
-		glLinkProgram(program);
+		glAttachShader(*program, rc_cp->get_shader()->getVertexShader());
+		glAttachShader(*program, rc_cp->get_shader()->getFragmentShader());
+		glLinkProgram(*program);
 
 		GLint programSuccess = GL_FALSE;
-		glGetProgramiv(program, GL_LINK_STATUS, &programSuccess);
+		glGetProgramiv(*program, GL_LINK_STATUS, &programSuccess);
 		if (programSuccess != GL_TRUE)
 		{
-			printf("Error linking program %d!\n", rc_cp->get_shader_prog());
+			printf("Error linking program %d!\n", glGetError());
 		}
 		else
 		{
-			glUseProgram(program);
+			glUseProgram(*program);
 
-			rc_cp->set_model_loc(glGetUniformLocation(program, "model_matrix"));
-			rc_cp->set_proj_loc(glGetUniformLocation(program, "projection_matrix"));
-			rc_cp->set_color_loc(glGetUniformLocation(program, "color_vec"));
+			rc_cp->set_model_loc(glGetUniformLocation(*program, "model_matrix"));
+			rc_cp->set_proj_loc(glGetUniformLocation(*program, "projection_matrix"));
+			rc_cp->set_color_loc(glGetUniformLocation(*program, "color_vec"));
 
-			rc_cp->r_text_adj_w = glGetUniformLocation(program, "texture_width_adj");
-			rc_cp->r_text_adj_h = glGetUniformLocation(program, "texture_height_adj");
+			rc_cp->r_text_adj_w = glGetUniformLocation(*program, "texture_width_adj");
+			rc_cp->r_text_adj_h = glGetUniformLocation(*program, "texture_height_adj");
 
 			if (rc_cp->get_texture() != nullptr && rc_cp->get_texture()->TextureID != 0)
 			{
-				glUniform1i(glGetUniformLocation(program, "tex_available"), 1);
+				glUniform1i(glGetUniformLocation(*program, "tex_available"), 1);
 				glUniform1f(rc_cp->r_text_adj_w, rc_cp->get_texture()->imgWidth / (GLfloat)rc_cp->get_texture()->texWidth);
 				glUniform1f(rc_cp->r_text_adj_h, rc_cp->get_texture()->imgHeight / (GLfloat)rc_cp->get_texture()->texHeight);
 			}
 			else
 			{
-				glUniform1i(glGetUniformLocation(program, "tex_available"), 0);
+				glUniform1i(glGetUniformLocation(*program, "tex_available"), 0);
 			}
 
-			rc_cp->r_text_color = glGetUniformLocation(program, "tex_color");
-			rc_cp->r_text_unit = glGetUniformLocation(program, "tex_unit");
+			rc_cp->r_text_color = glGetUniformLocation(*program, "tex_color");
+			rc_cp->r_text_unit = glGetUniformLocation(*program, "tex_unit");
 		}
 	}
 	else
 	{
 		printf("Object skipped no available shaders\n");
 	}
+	return true;
 }
 
 bool Render::init_SDL(SDL_GLContext context)

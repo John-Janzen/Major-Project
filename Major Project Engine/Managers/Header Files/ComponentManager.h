@@ -35,7 +35,7 @@ public:
 	std::list<T> find_all_of_type() const
 	{
 		std::list<T> full_list;
-		for (auto const & element : components)
+		for (auto element : components)
 		{
 			if (dynamic_cast<T>(element.second) != nullptr)
 			{
@@ -88,7 +88,7 @@ public:
 	}
 
 	template <class T>
-	T & get_component()
+	T * & get_component()
 	{
 		for (ComponentStorage::iterator it = components.begin(); it != components.end(); ++it)
 		{

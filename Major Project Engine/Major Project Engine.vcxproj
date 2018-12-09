@@ -33,6 +33,7 @@
     <ClCompile Include="Source Files\Thread.cpp" />
     <ClCompile Include="Source Files\Timer.cpp" />
     <ClCompile Include="Systems\Source Files\TestSystem.cpp" />
+    <ClCompile Include="Managers\Source Files\TaskManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game Objects\Header Files\Camera.h" />
@@ -70,6 +71,7 @@
     <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
     <ClInclude Include="Header Files\Timer.h" />
     <ClInclude Include="Systems\Header Files\TestSystem.h" />
+    <ClInclude Include="Managers\Header Files\TaskManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

@@ -48,8 +48,8 @@ class Job
 {
 public:
 
-	Job(JobFunction function, void* data = nullptr, const JOB_TYPE type = ANY_TYPE)
-		: _func(function), _content(data), j_type(type)
+	Job(JobFunction function, void* data = nullptr, const JOB_TYPE type = ANY_TYPE, Job * parent = nullptr)
+		: _func(function), _content(data), j_type(type), _parent_job(parent)
 	{
 	}
 
@@ -71,7 +71,7 @@ public:
 
 	const JOB_TYPE get_type() { return j_type; }
 
-	void set_parent(Job * & parent)
+	void set_parent(Job * parent)
 	{
 		_parent_job = parent;
 	}

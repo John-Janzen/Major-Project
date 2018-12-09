@@ -46,14 +46,14 @@ struct Texture
 
 struct Shader
 {
-	const GLuint _shaderID;
-	GLenum _type;
+	const GLuint _shaderID_Vert, _shaderID_Frag;
 
-	Shader(const GLuint & data, const GLenum & type) : _shaderID(data), _type(type) {};
+	Shader(const GLuint & vert, const GLuint & frag) : _shaderID_Vert(vert), _shaderID_Frag(frag) {};
 
 	~Shader() {}
 
-	const GLuint getShaderID() { return _shaderID; };
+	const GLuint getVertexShader() { return _shaderID_Vert; };
+	const GLuint getFragmentShader() { return _shaderID_Frag; };
 };
 
 #endif // !_RENDEREXTERNALS
