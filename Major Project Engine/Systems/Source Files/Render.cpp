@@ -56,13 +56,13 @@ bool Render::Load(void* content)
 	return true;
 }
 
-void Render::InitUpdate(CameraComponent * c_cp, const btTransform * tran)
+void Render::InitUpdate(CameraComponent * c_cp, const btTransform tran)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 	btScalar matrix[16];
 
-	tran->getOpenGLMatrix(matrix);
+	tran.getOpenGLMatrix(matrix);
 
 	project_value_ptr = c_cp->set_project_look(getGLMMatrix4(matrix));
 }
@@ -93,7 +93,7 @@ void Render::ComponentUpdate
 (
 	GLfloat * project_value,
 	RenderComponent * & rc,
-	const btTransform * transform
+	const btTransform transform
 )
 {
 	if (rc->get_model() != nullptr)
@@ -119,7 +119,7 @@ void Render::ComponentUpdate
 		glUniform4f(rc->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
 
 		btScalar matrix[16];
-		transform->getOpenGLMatrix(matrix);
+		transform.getOpenGLMatrix(matrix);
 
 		glUniformMatrix4fv(rc->get_proj_loc(), 1, GL_FALSE, project_value);
 		glUniformMatrix4fv(rc->get_model_loc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));

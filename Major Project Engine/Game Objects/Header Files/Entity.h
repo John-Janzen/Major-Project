@@ -19,8 +19,8 @@ public:
 
 	virtual void Load(ComponentManager * & c_manager)
 	{
-		_transform = new btTransform();
-		_transform->setIdentity();
+		_transform = btTransform();
+		_transform.setIdentity();
 	};
 
 	int get_id() const { return _id; }
@@ -28,15 +28,15 @@ public:
 	void set_death() { death_flag = true; }
 	bool get_death() { return death_flag; }
 
-	const btTransform * get_transform() const { return _transform; }
-	btTransform * & get_transform_value() { return _transform; }
+	btTransform get_transform() const { return _transform; }
+	btTransform & get_transform_value() { return _transform; }
 
 private:
 	std::string _name;
 	int _id;
 	bool death_flag;
 protected:
-	btTransform * _transform;
+	btTransform _transform;
 };
 
 

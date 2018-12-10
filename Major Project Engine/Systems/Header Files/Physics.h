@@ -12,7 +12,7 @@ public:
 	Physics();
 	~Physics();
 
-	void Update();
+	void Update(void * ptr);
 
 	bool Load(void* content);
 	void Close(void* content);

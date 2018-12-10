@@ -27,11 +27,11 @@ public:
 	bool Load(void* content);
 	void Close(void* content);
 
-	void InitUpdate(CameraComponent * c_cp, const btTransform * tran);
+	void InitUpdate(CameraComponent * c_cp, const btTransform tran);
 	bool UpdateLoop(void * ptr);
 	void ComponentUpdate(GLfloat * project_value,
 		RenderComponent * & rc,
-		const btTransform * transform);
+		const btTransform transform);
 	void FinalUpdate();
 
 	bool init_render_component(void * ptr);

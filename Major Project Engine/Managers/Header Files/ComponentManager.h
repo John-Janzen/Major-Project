@@ -90,33 +90,15 @@ public:
 	}
 
 	template <class T>
-	T * & get_component()
-	{
-		for (ComponentStorage::iterator it = _components.begin(); it != _components.end(); ++it)
-		{
-			if (dynamic_cast<T>(it->second) != nullptr)
-			{
-				return static_cast<T>(it->second);
-			}
-		}
-		return nullptr;
-	}
-
-	template <class T>
 	T get_component(const EntityID entity_id)
 	{
 		auto range = _components.equal_range(entity_id);
-		auto loc = std::find_if(range.first, range.second, [] (ComponentStorage::value_type & x)
+		for (auto it = range.first; it != range.second; ++it)
 		{
-			if (dynamic_cast<T>(x.second) != nullptr)
-			{
-				return x.second;
-			}
-		});
-		if (loc != range.second)
-			return static_cast<T>(loc->second);
-		else
-			return nullptr;
+			if (dynamic_cast<T>(it->second) != nullptr)
+				return static_cast<T>(it->second);
+		}
+		return nullptr;
 	}
 
 	template <class T>

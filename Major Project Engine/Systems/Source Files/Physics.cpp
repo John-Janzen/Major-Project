@@ -42,77 +42,38 @@ Physics::~Physics()
 	collisionShapes.clear();
 }
 
-void Physics::Update()
+void Physics::Update(void * ptr)
 {
-	dynamicWorld->stepSimulation(1.f / 60.f, 10);
-
-	for (int j = dynamicWorld->getNumCollisionObjects() - 1; j >= 0; j--)
+	Scene * scene = static_cast<Scene*>(ptr);
+	dynamicWorld->stepSimulation(1.f / 60.f);
+	PhysicsComponent * p_cp;
+	for (auto & entity : scene->get_ent_manager()->retreive_list())
 	{
-		btCollisionObject * obj = dynamicWorld->getCollisionObjectArray()[j];
-		btRigidBody * body = btRigidBody::upcast(obj);
-		btTransform trans;
-		if (body && body->getMotionState())
+		if ((p_cp = scene->get_comp_manager()->get_component<PhysicsComponent*>(entity.second->get_id())) != nullptr)
 		{
-			body->getMotionState()->getWorldTransform(trans);
+			btRigidBody * body = p_cp->getRigidBody();
+			if (body && body->getMotionState())
+			{
+				body->getMotionState()->getWorldTransform(entity.second->get_transform_value());
+			}
 		}
-		else
-		{
-			trans = obj->getWorldTransform();
-		}
-		//printf("World pos object %d = %f, %f, %f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 	}
 }
 
 bool Physics::Load(void * content)
 {
-	ComponentManager * c_manager = static_cast<ComponentManager*>(content);
-	for (auto physics : c_manager->find_all_of_type<PhysicsComponent*>())
+	Scene * scene = static_cast<Scene*>(content);
+	PhysicsComponent * p_cp;
+	for (auto entity : scene->get_ent_manager()->retreive_list())
 	{
-
-	}
-	{
-		btCollisionShape * groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
-		collisionShapes.push_back(groundShape);
-		btTransform groundTransform;
-		groundTransform.setIdentity();
-		groundTransform.setOrigin(btVector3(0, -56, 0));
-		btScalar mass(0.);
-
-		bool isDynamic = (mass != 0.f);
-
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic)
-			groundShape->calculateLocalInertia(mass, localInertia);
-
-		btDefaultMotionState * myMotionState = new btDefaultMotionState(groundTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-		btRigidBody * body = new btRigidBody(rbInfo);
-
-		dynamicWorld->addRigidBody(body);
-	}
-
-	{
-		btCollisionShape * colShape = new btSphereShape(btScalar(1.f));
-		collisionShapes.push_back(colShape);
-
-		btTransform startTransform;
-		startTransform.setIdentity();
-
-		btScalar mass(1.f);
-
-		bool isDynamic = (mass != 0.f);
-
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic)
-			colShape->calculateLocalInertia(mass, localInertia);
-
-		startTransform.setOrigin(btVector3(2, 10, 0));
-
-		btDefaultMotionState * myMotionState = new btDefaultMotionState(startTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
-		btRigidBody * body = new btRigidBody(rbInfo);
-
-		dynamicWorld->addRigidBody(body);
+		if ((p_cp = scene->get_comp_manager()->get_component<PhysicsComponent*>(entity.second->get_id())) != nullptr)
+		{
+			collisionShapes.push_back(p_cp->getCollisionShape());
+			btDefaultMotionState * motion_state = new btDefaultMotionState(entity.second->get_transform());
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(p_cp->getMass(), motion_state, p_cp->getCollisionShape(), p_cp->getLocalInertia());
+			p_cp->setRigidBody(new btRigidBody(rbInfo));
+			dynamicWorld->addRigidBody(p_cp->getRigidBody());
+		}
 	}
 	return true;
 }

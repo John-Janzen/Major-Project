@@ -7,5 +7,5 @@ Quad::~Quad() {}
 void Quad::Load(ComponentManager * & c_manager)
 {
 	c_manager->add_component(this->get_id(), new QuadRenderComponent());
-	this->_transform = new btTransform(btQuaternion(), btVector3(btScalar(5.f), btScalar(0.f), btScalar(-5.f)));
+	this->_transform = btTransform(btQuaternion(), btVector3(btScalar(5.f), btScalar(0.f), btScalar(-5.f)));
 }

@@ -18,6 +18,7 @@ public:
 	btScalar getMass() { return mass; }
 	btVector3 getLocalInertia() { return local_inertia; }
 	btRigidBody * getRigidBody() { return rigid_body; }
+
 	void setRigidBody(btRigidBody * rb) { rigid_body = rb; }
 
 protected:

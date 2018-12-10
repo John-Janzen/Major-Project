@@ -5,5 +5,6 @@
 
 #include "QuadRenderComponent.h"
 #include "PlayerRenderComponent.h"
+#include "PlayerPhysicsComponent.h"
 
 #endif // !_GAMECOMPONENTS_H
