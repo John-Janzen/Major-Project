@@ -14,7 +14,7 @@
 class Entity
 {
 public:
-	Entity(const std::string & name, int id) : _name(name), _id(id), death_flag(false) {}
+	Entity(const std::string & name, EntityID id) : _name(name), _id(id), death_flag(false) {}
 	~Entity() {}
 
 	virtual void Load(ComponentManager * & c_manager)
@@ -33,7 +33,7 @@ public:
 
 private:
 	std::string _name;
-	int _id;
+	EntityID _id;
 	bool death_flag;
 protected:
 	btTransform _transform;

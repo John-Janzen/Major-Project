@@ -176,5 +176,11 @@
     <ClInclude Include="Components\Game Components\Header Files\PlayerPhysicsComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Game Objects\Header Files\MultiObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Game Components\Header Files\FloorPhysicsComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
