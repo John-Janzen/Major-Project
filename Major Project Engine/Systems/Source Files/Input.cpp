@@ -31,15 +31,15 @@ void Input::Update
 	}
 }
 
-void Input::player_controls(const GLfloat & _dt, PlayerControllerComponent * & pc_cp, Transform * & transform)
+void Input::player_controls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, btTransform * & transform)
 {
 	if (pc_cp->get_type() == CONTROL_TYPE::MOUSE_KEYBOARD)
 	{
 		const Uint8 * keystate = SDL_GetKeyboardState(NULL);
-		if (keystate[SDL_SCANCODE_W]) transform->add_z_pos(5.0f * _dt);
-		if (keystate[SDL_SCANCODE_A]) transform->add_x_pos(5.0f * _dt);
-		if (keystate[SDL_SCANCODE_S]) transform->add_z_pos(-5.0f * _dt);
-		if (keystate[SDL_SCANCODE_D]) transform->add_x_pos(-5.0f * _dt);
+		if (keystate[SDL_SCANCODE_W]) transform->getOrigin() += (btVector3(0.f, 0.f, 5.f) * btScalar(_dt));
+		if (keystate[SDL_SCANCODE_A]) transform->getOrigin() += (btVector3(5.f, 0.f, 0.f) * btScalar(_dt));
+		if (keystate[SDL_SCANCODE_S]) transform->getOrigin() += (btVector3(0.f, 0.f, -5.f) * btScalar(_dt));
+		if (keystate[SDL_SCANCODE_D]) transform->getOrigin() += (btVector3(-5.f, 0.f, 0.f) * btScalar(_dt));
 	}
 	else if (pc_cp->get_type() == CONTROL_TYPE::XBOX_CONTROLLER)
 	{

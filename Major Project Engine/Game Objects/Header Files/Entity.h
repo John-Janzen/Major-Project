@@ -4,8 +4,8 @@
 #define _ENTITY_H
 
 #include "ComponentManager.h"
-#include "Transform.h"
 
+#include <Bullet3Common\b3Transform.h>
 #include <map>
 #include <typeinfo>
 #include <typeindex>
@@ -19,7 +19,8 @@ public:
 
 	virtual void Load(ComponentManager * & c_manager)
 	{
-		_transform = new Transform();
+		_transform = new btTransform();
+		_transform->setIdentity();
 	};
 
 	int get_id() const { return _id; }
@@ -27,15 +28,15 @@ public:
 	void set_death() { death_flag = true; }
 	bool get_death() { return death_flag; }
 
-	const Transform * get_transform() const { return _transform; }
-	Transform * & get_transform_value() { return _transform; }
+	const btTransform * get_transform() const { return _transform; }
+	btTransform * & get_transform_value() { return _transform; }
 
 private:
 	std::string _name;
 	int _id;
 	bool death_flag;
 protected:
-	Transform * _transform;
+	btTransform * _transform;
 };
 
 

@@ -24,7 +24,7 @@ inline void Camera::Load(ComponentManager * & c_manager)
 {
 	c_manager->add_component(this->get_id(), new PlayerControllerComponent());
 	c_manager->add_component(this->get_id(), new CameraComponent());
-	this->_transform = new Transform(glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(), glm::vec3(1.0f));
+	this->_transform = new btTransform(btQuaternion(0.f, 0.f, 0.f), btVector3(btScalar(0.f), btScalar(0.f), btScalar(-10.f)));
 }
 
 #endif // !_CAMERA_H

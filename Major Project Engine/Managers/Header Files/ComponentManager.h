@@ -23,6 +23,7 @@ public:
 	}
 	~ComponentManager() 
 	{
+		std::cout << "Component Manager Destructor Called" << std::endl;
 		std::unordered_multimap<EntityID, BaseComponent*>::iterator _components_it = _components.begin();
 		while (_components_it != _components.end())
 		{
@@ -102,18 +103,20 @@ public:
 	}
 
 	template <class T>
-	T & get_component(const EntityID entity_id)
+	T get_component(const EntityID entity_id)
 	{
-		T temp = nullptr;
 		auto range = _components.equal_range(entity_id);
-		std::for_each(range.first, range.second, [&temp](ComponentStorage::value_type & x)
+		auto loc = std::find_if(range.first, range.second, [] (ComponentStorage::value_type & x)
 		{
 			if (dynamic_cast<T>(x.second) != nullptr)
 			{
-				temp = static_cast<T>(x.second);
+				return x.second;
 			}
 		});
-		return temp;
+		if (loc != range.second)
+			return static_cast<T>(loc->second);
+		else
+			return nullptr;
 	}
 
 	template <class T>

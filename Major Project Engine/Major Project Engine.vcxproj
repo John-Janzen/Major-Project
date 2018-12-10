@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Components\Base Components\Source Files\PhysicsComponent.cpp" />
     <ClCompile Include="Systems\Source Files\Physics.cpp" />
     <ClCompile Include="Source Files\FileLoader.cpp" />
     <ClCompile Include="Systems\Source Files\Input.cpp" />
@@ -46,6 +47,8 @@
     <ClInclude Include="Components\Base Components\Header Files\PlayerControllerComponent.h" />
     <ClInclude Include="Components\Game Components\Header Files\PlayerRenderComponent.h" />
     <ClInclude Include="Header Files\Model.h" />
+    <ClInclude Include="Components\Base Components\Header Files\PhysicsComponent.h" />
+    <ClInclude Include="Components\Game Components\Header Files\PlayerPhysicsComponent.h" />
     <ClInclude Include="Systems\Header Files\Physics.h" />
     <ClInclude Include="Systems\Header Files\Input.h" />
     <ClInclude Include="Game Objects\Header Files\Player.h" />
@@ -68,7 +71,6 @@
     <ClInclude Include="Game Objects\Header Files\Quad.h" />
     <ClInclude Include="Scenes\Header Files\Scene.h" />
     <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
-    <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
     <ClInclude Include="Header Files\Timer.h" />
     <ClInclude Include="Systems\Header Files\TestSystem.h" />
     <ClInclude Include="Managers\Header Files\TaskManager.h" />

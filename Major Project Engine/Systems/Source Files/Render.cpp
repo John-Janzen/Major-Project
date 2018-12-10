@@ -1,9 +1,16 @@
 #include "Render.h"
 
+glm::mat4 getGLMMatrix4(const btScalar * matrix)
+{
+	return glm::mat4(matrix[0], matrix[1], matrix[2], matrix[3],
+		matrix[4], matrix[5], matrix[6], matrix[7],
+		matrix[8], matrix[9], matrix[10], matrix[11],
+		matrix[12], matrix[13], matrix[14], matrix[15]);
+}
+
 Render::Render(SDL_Window * window, const int width, const int height)
 	: sdl_window(window), screen_width(width), screen_height(height)
 {
-
 }
 
 Render::~Render() 
@@ -49,18 +56,15 @@ bool Render::Load(void* content)
 	return true;
 }
 
-void Render::InitUpdate(CameraComponent * c_cp, const Transform * tran)
+void Render::InitUpdate(CameraComponent * c_cp, const btTransform * tran)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+	btScalar matrix[16];
 
-	glm::mat4 model_matrix, rotation;
-	rotation = glm::rotate(rotation, tran->get_rot().z, glm::vec3(0, 0, 1));
-	rotation = glm::rotate(rotation, tran->get_rot().x, glm::vec3(1, 0, 0));
-	rotation = glm::rotate(rotation, (Y_rotation += 0.001f), glm::vec3(0, 1, 0));
-	model_matrix = glm::translate(rotation, tran->get_pos());
+	tran->getOpenGLMatrix(matrix);
 
-	project_value_ptr = c_cp->set_project_look(model_matrix);
+	project_value_ptr = c_cp->set_project_look(getGLMMatrix4(matrix));
 }
 
 bool Render::UpdateLoop
@@ -89,7 +93,7 @@ void Render::ComponentUpdate
 (
 	GLfloat * project_value,
 	RenderComponent * & rc,
-	const Transform * transform
+	const btTransform * transform
 )
 {
 	if (rc->get_model() != nullptr)
@@ -114,14 +118,11 @@ void Render::ComponentUpdate
 		glUniform1i(rc->r_text_unit, 0);
 		glUniform4f(rc->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
 
-		glm::mat4 rotation = glm::mat4();
-		rotation = glm::translate(rotation, transform->get_pos());
-		rotation = glm::rotate(rotation, transform->get_rot().z, glm::vec3(0.0f, 0.0f, 1.0f));
-		rotation = glm::rotate(rotation, transform->get_rot().x, glm::vec3(1.0f, 0.0f, 0.0f));
-		glm::mat4 model_matrix = glm::rotate(rotation, transform->get_rot().y, glm::vec3(0.0f, 1.0f, 0.0f));
+		btScalar matrix[16];
+		transform->getOpenGLMatrix(matrix);
 
 		glUniformMatrix4fv(rc->get_proj_loc(), 1, GL_FALSE, project_value);
-		glUniformMatrix4fv(rc->get_model_loc(), 1, GL_FALSE, glm::value_ptr(model_matrix));
+		glUniformMatrix4fv(rc->get_model_loc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
 		glDrawElements(GL_TRIANGLES, rc->get_model()->ISize, GL_UNSIGNED_INT, NULL);
 
 		glBindTexture(GL_TEXTURE_2D, 0);

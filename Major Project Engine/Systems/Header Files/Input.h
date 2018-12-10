@@ -20,7 +20,7 @@ public:
 
 	void Update(const GLfloat & _dt, const Scene * current_scene);
 
-	void player_controls(const GLfloat & _dt, PlayerControllerComponent * & pc_cp, Transform * & transform);
+	void player_controls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, btTransform * & transform);
 
 	void change_input();
 private:

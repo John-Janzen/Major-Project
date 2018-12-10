@@ -6,5 +6,6 @@
 #include "RenderComponent.h"
 #include "PlayerControllerComponent.h"
 #include "CameraComponent.h"
+#include "PhysicsComponent.h"
 
 #endif // !_COMPONENTHEADERS_H

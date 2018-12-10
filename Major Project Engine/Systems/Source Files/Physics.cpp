@@ -9,6 +9,7 @@ Physics::Physics()
 	solver = new btSequentialImpulseConstraintSolver;
 
 	dynamicWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+	dynamicWorld->setGravity(btVector3(0, -10, 0));
 }
 
 Physics::~Physics() 
@@ -43,28 +44,32 @@ Physics::~Physics()
 
 void Physics::Update()
 {
-	//dynamicWorld->stepSimulation(1.f / 60.f, 10);
+	dynamicWorld->stepSimulation(1.f / 60.f, 10);
 
-	//for (int j = dynamicWorld->getNumCollisionObjects() - 1; j >= 0; j--)
-	//{
-	//	btCollisionObject * obj = dynamicWorld->getCollisionObjectArray()[j];
-	//	btRigidBody * body = btRigidBody::upcast(obj);
-	//	btTransform trans;
-	//	if (body && body->getMotionState())
-	//	{
-	//		body->getMotionState()->getWorldTransform(trans);
-	//	}
-	//	else
-	//	{
-	//		trans = obj->getWorldTransform();
-	//	}
-	//	//printf("World pos object %d = %f, %f, %f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
-	//}
+	for (int j = dynamicWorld->getNumCollisionObjects() - 1; j >= 0; j--)
+	{
+		btCollisionObject * obj = dynamicWorld->getCollisionObjectArray()[j];
+		btRigidBody * body = btRigidBody::upcast(obj);
+		btTransform trans;
+		if (body && body->getMotionState())
+		{
+			body->getMotionState()->getWorldTransform(trans);
+		}
+		else
+		{
+			trans = obj->getWorldTransform();
+		}
+		//printf("World pos object %d = %f, %f, %f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
+	}
 }
 
-bool Physics::Load(void* content)
+bool Physics::Load(void * content)
 {
-	dynamicWorld->setGravity(btVector3(0, -10, 0));
+	ComponentManager * c_manager = static_cast<ComponentManager*>(content);
+	for (auto physics : c_manager->find_all_of_type<PhysicsComponent*>())
+	{
+
+	}
 	{
 		btCollisionShape * groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
 		collisionShapes.push_back(groundShape);

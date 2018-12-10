@@ -12,5 +12,7 @@ void Player::Load(ComponentManager * & c_manager)
 {
 	//c_manager->add_component(this->get_id(), std::make_shared<PlayerControllerComponent>());
 	c_manager->add_component(this->get_id(), new PlayerRenderComponent());
-	this->_transform = new Transform(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(), glm::vec3(1.0f));
+	c_manager->add_component(this->get_id(), new PhysicsComponent());
+	this->_transform = new btTransform(btQuaternion(), btVector3(btScalar(0.f), btScalar(0.f), btScalar(-5.f)));
+	//this->_transform = new Transform(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(), glm::vec3(1.0f));
 }
