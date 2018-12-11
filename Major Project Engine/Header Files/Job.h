@@ -10,24 +10,18 @@
 #include <atomic>
 #include <vector>
 
-/*
-* List of Job Types that the threads will
-* run. This will provide a verious number
-* of jobs and a priority later down the line.
-*/
-enum JOB_TYPE
+enum JOB_RETURN
 {
-	NULL_TYPE,
-	ANY_TYPE,
-	RENDER_TYPE,
-	IO_TYPE,
+	JOB_COMPLETED,
+	JOB_RETRY,
+	JOB_ISSUE
 };
 
 //typedef bool(*JobFunction)(void* &);
-using JobFunction = std::function<bool(void*)>;
+using JobFunction = std::function<JOB_RETURN(void*)>;
 
 template<class T>
-JobFunction bind_function(bool(T::* pFunc)(void*), T * const sys = nullptr)
+JobFunction bind_function(JOB_RETURN(T::* pFunc)(void*), T * const sys = nullptr)
 {
 	return std::bind(pFunc, sys, std::placeholders::_1);
 }
@@ -48,6 +42,19 @@ class Job
 {
 public:
 
+	/*
+	* List of Job Types that the threads will
+	* run. This will provide a verious number
+	* of jobs and a priority later down the line.
+	*/
+	enum JOB_TYPE
+	{
+		NULL_TYPE,
+		ANY_TYPE,
+		RENDER_TYPE
+	};
+
+
 	Job(JobFunction function, const std::string name, void* data = nullptr, const JOB_TYPE type = ANY_TYPE, Job * parent = nullptr)
 		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent)
 	{
@@ -67,7 +74,7 @@ public:
 	/* Gets the function of the job */
 	JobFunction get_function() { return _func; }
 
-	void* get_content() { return _content; }
+	void * get_content() { return _content; }
 
 	const JOB_TYPE get_type() { return j_type; }
 
@@ -94,6 +101,7 @@ public:
 	}
 
 private:
+
 	std::string job_name;
 	JOB_TYPE j_type;
 	std::atomic<int> _awaiting = 0;

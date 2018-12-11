@@ -8,7 +8,7 @@ TestSystem::~TestSystem()
 	std::cout << "Test System destructor called" << std::endl;
 }
 
-bool TestSystem::Load(void* content)
+JOB_RETURN TestSystem::Load(void* content)
 {
 	//testing_field = std::vector<int>();
 	////srand(time(NULL));
@@ -29,7 +29,7 @@ bool TestSystem::Load(void* content)
 	//	ThreadManager::Instance().register_job(new Job(bind_function(&TestSystem::process, this), new InitialContent(testing, &results[i])), parent_job);
 	//}
 	//ThreadManager::Instance().register_job(parent_job);
-	return true;
+	return JOB_COMPLETED;
 }
 
 void TestSystem::Close(void* content)

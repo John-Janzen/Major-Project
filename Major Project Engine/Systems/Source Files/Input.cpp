@@ -4,11 +4,11 @@ Input::Input() {}
 
 Input::~Input() {}
 
-bool Input::Load(void* content)
+JOB_RETURN Input::Load(void* content)
 {
 	SDL_Init(SDL_INIT_GAMECONTROLLER);
 	SDL_Init(SDL_INIT_EVENTS);
-	return true;
+	return JOB_COMPLETED;
 }
 
 void Input::Close(void* content)

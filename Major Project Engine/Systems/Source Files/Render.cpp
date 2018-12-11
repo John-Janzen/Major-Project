@@ -1,4 +1,5 @@
 #include "Render.h"
+#include "FileLoader.h"
 
 glm::mat4 getGLMMatrix4(const btScalar * matrix)
 {
@@ -26,17 +27,19 @@ Render::~Render()
 	delete _shaders;
 }
 
-bool Render::Load(void* content)
+JOB_RETURN Render::Load(void* content)
 {
 	if (!init_SDL(static_cast<SDL_GLContext>(content)))
 	{
 		printf("SDL Initialization failed, see function Load()");
+		return JOB_ISSUE;
 	}
 	if (!init_GL())
 	{
 		printf("GL Initialization failed, see function Load()");
+		return JOB_ISSUE;
 	}
-	return true;
+	return JOB_COMPLETED;
 }
 
 void Render::InitUpdate(CameraComponent * c_cp, const btTransform tran)
@@ -50,7 +53,7 @@ void Render::InitUpdate(CameraComponent * c_cp, const btTransform tran)
 	project_value_ptr = c_cp->set_project_look(getGLMMatrix4(matrix));
 }
 
-bool Render::UpdateLoop
+JOB_RETURN Render::UpdateLoop
 (
 	void * ptr
 )
@@ -69,7 +72,7 @@ bool Render::UpdateLoop
 	}
 
 	this->FinalUpdate();
-	return true;
+	return JOB_COMPLETED;
 }
 
 void Render::ComponentUpdate
@@ -124,61 +127,115 @@ void Render::Close(void* content)
 {
 }
 
-bool Render::init_render_component(void * ptr)
+JOB_RETURN Render::init_render_component(void * ptr)
 {
 	ComponentManager * c_manager = static_cast<ComponentManager*>(ptr);
 
 	for (auto & rc_cp : c_manager->find_all_of_type<RenderComponent*>())
 	{
-		// Loading and binding model jobs
-		Job * bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc_cp, RENDER_TYPE);
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadModel, this), "Load_Model", rc_cp), bind_model_job);
+		// Loading model job
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadModel, this), "Load_Model", rc_cp));
+
+		// Loading shader job
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", rc_cp, Job::RENDER_TYPE));
+
+		// Loading texture job
+ 		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", rc_cp));
+		
+	}
+	return JOB_COMPLETED;
+}
+
+JOB_RETURN Render::LoadModel(void * ptr)
+{
+	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
+	Job * bind_model_job;
+
+	auto load_type = _models->HasItem(rc->getModelPath(), rc->GetModelAdd());
+	switch(load_type)
+	{
+	case LOAD::CURRENT_LOAD:
+		if (LoadOBJModelFile(rc->getModelPath(), rc->GetModelAdd()))
+		{
+			TaskManager::Instance().register_job(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE));
+			return JOB_COMPLETED;
+		}
+		break;
+	case LOAD::WAIT_LOAD:
+		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE);
+		TaskManager::Instance().register_job(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker"), bind_model_job);
 		TaskManager::Instance().register_job(bind_model_job, true);
+		return JOB_COMPLETED;
+		break;
+	case LOAD::DONE_LOAD:
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE));
+		return JOB_COMPLETED;
+		break;
+	default:
+		break;
+	}
+	return JOB_ISSUE;
+}
 
-		// Loading and binding shader jobs
-		Job * bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc_cp, RENDER_TYPE);
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", rc_cp, RENDER_TYPE), bind_shader_job);
+JOB_RETURN Render::LoadShader(void * ptr)
+{
+	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
+	Job * bind_shader_job;
+
+	auto load_type = _shaders->HasItem(rc->getShaderPath(), rc->GetShaderAdd());
+	switch (load_type)
+	{
+	case CURRENT_LOAD:
+		if (LoadShaderFile(rc->getVShaderPath(), rc->getFShaderPath(), rc->GetShaderAdd()))
+		{
+			TaskManager::Instance().register_job(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE));
+			return JOB_COMPLETED;
+		}
+		break;
+	case WAIT_LOAD:
+		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE);
+		TaskManager::Instance().register_job(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Model_Checker"), bind_shader_job);
 		TaskManager::Instance().register_job(bind_shader_job, true);
+		return JOB_COMPLETED;
+		break;
+	case DONE_LOAD:
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE));
+		return JOB_COMPLETED;
+		break;
+	}
+	return JOB_ISSUE;
+}
 
-		// Loading and binding texture jobs
-		Job * bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc_cp, RENDER_TYPE);
- 		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", rc_cp), bind_texture_job);
+JOB_RETURN Render::LoadTexture(void * ptr)
+{
+	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
+	Job * bind_texture_job;
+
+	auto load_type = _textures->HasItem(rc->getTexturePath(), rc->GetTextureAdd());
+	switch (load_type)
+	{
+	case CURRENT_LOAD:
+		if (LoadTextureFile(rc->getTexturePath(), rc->GetTextureAdd()))
+		{
+			TaskManager::Instance().register_job(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE));
+			return JOB_COMPLETED;
+		}
+		break;
+	case WAIT_LOAD:
+		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE);
+		TaskManager::Instance().register_job(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker"), bind_texture_job);
 		TaskManager::Instance().register_job(bind_texture_job, true);
+		return JOB_COMPLETED;
+		break;
+	case DONE_LOAD:
+		TaskManager::Instance().register_job(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE));
+		return JOB_COMPLETED;
+		break;
 	}
-	return true;
+	return JOB_ISSUE;
 }
 
-bool Render::LoadModel(void * ptr)
-{
-	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	if (!_models->HasItem(rc->getModelPath(), rc->GetModelAdd()))
-	{
-		LoadOBJModelFile(rc->getModelPath(), rc->GetModelAdd());
-	}
-	return true;
-}
-
-bool Render::LoadShader(void * ptr)
-{
-	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	if (!_shaders->HasItem(rc->getShaderPath(), rc->GetShaderAdd()))
-	{
-		LoadShaderFile(rc->getVShaderPath(), rc->getFShaderPath(), rc->GetShaderAdd());
-	}
-	return true;
-}
-
-bool Render::LoadTexture(void * ptr)
-{
-	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	if (!_textures->HasItem(rc->getTexturePath(), rc->GetTextureAdd()))
-	{
-		LoadTextureFile(rc->getTexturePath(), rc->GetTextureAdd());
-	}
-	return true;
-}
-
-bool Render::BindModel(void * ptr)
+JOB_RETURN Render::BindModel(void * ptr)
 {
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->GetModel() != nullptr)
@@ -212,11 +269,12 @@ bool Render::BindModel(void * ptr)
 	else
 	{
 		printf("Object skipped no available model\n");
+		return JOB_ISSUE;
 	}
-	return true;
+	return JOB_COMPLETED;
 }
 
-bool Render::BindTexture(void * ptr)
+JOB_RETURN Render::BindTexture(void * ptr)
 {
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->GetTexture() != nullptr)
@@ -241,11 +299,12 @@ bool Render::BindTexture(void * ptr)
 	else
 	{
 		printf("Object skipped no available texture\n");
+		return JOB_ISSUE;
 	}
-	return true;
+	return JOB_COMPLETED;
 }
 
-bool Render::BindShader(void * ptr)
+JOB_RETURN Render::BindShader(void * ptr)
 {
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->GetShader() != nullptr)
@@ -261,6 +320,7 @@ bool Render::BindShader(void * ptr)
 		if (programSuccess != GL_TRUE)
 		{
 			printf("Error linking program %d!\n", glGetError());
+			return JOB_ISSUE;
 		}
 		else
 		{
@@ -291,8 +351,9 @@ bool Render::BindShader(void * ptr)
 	else
 	{
 		printf("Object skipped no available shaders\n");
+		return JOB_ISSUE;
 	}
-	return true;
+	return JOB_COMPLETED;
 }
 
 bool Render::init_SDL(SDL_GLContext context)

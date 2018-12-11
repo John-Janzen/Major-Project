@@ -10,14 +10,6 @@
 #include <chrono>
 #include <string>
 
-enum THREAD_TYPE
-{
-	NULL_THREAD,
-	ANY_THREAD,
-	RENDER_THREAD,
-	IO_THREAD
-};
-
 /*
 * The thread wrapper class that encapsulate the standard
 * c++ library thread class. This will provide with additional
@@ -26,6 +18,15 @@ enum THREAD_TYPE
 class Thread
 {
 public:
+
+	enum THREAD_TYPE
+	{
+		NULL_THREAD,
+		ANY_THREAD,
+		RENDER_THREAD,
+		IO_THREAD
+	};
+
 	Thread(const std::string & name, const THREAD_TYPE type = ANY_THREAD);
 	~Thread();
 

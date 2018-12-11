@@ -17,7 +17,7 @@ public:
 	Input();
 	~Input();
 
-	bool Load(void* content);
+	JOB_RETURN Load(void* content);
 	void Close(void* content);
 
 	void Update(const GLfloat & _dt, const Scene * current_scene);

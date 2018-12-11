@@ -14,7 +14,7 @@ public:
 
 	void Update(void * ptr);
 
-	bool Load(void* content);
+	JOB_RETURN Load(void* content);
 	void Close(void* content);
 
 private:

@@ -57,7 +57,7 @@ bool Game::Game_Loop()
 		}
 
 		physics->Update(current_scene);
-		TaskManager::Instance().register_job(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, RENDER_TYPE);
+		TaskManager::Instance().register_job(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, Job::RENDER_TYPE);
 		//renderer->UpdateLoop(current_scene);
 		break;
 	}
@@ -67,7 +67,16 @@ bool Game::Game_Loop()
 	default:
 		break;
 	}
-	_threadpool->allocate_jobs();			// Allocate jobs to the threads
+	while (timer->checkTimeLimit())
+	{
+		if (TaskManager::Instance().HasJobs())
+			TaskManager::Instance().transfer_jobs();
+		else
+			if (!_threadpool->HasJobs())
+				break;
+		_threadpool->allocate_jobs();			// Allocate jobs to the threads
+	}
+
 	return game_running;
 }
 

@@ -15,12 +15,12 @@ ThreadManager::ThreadManager(const std::size_t & size)
 	std::string name;
 	for (std::size_t i = 0; i < size; i++)
 	{
-		THREAD_TYPE type = ANY_THREAD;
+		Thread::THREAD_TYPE type = Thread::ANY_THREAD;
 		switch (i)
 		{
 		case 0:
 			name = "Albert";
-			type = RENDER_THREAD;
+			type = Thread::RENDER_THREAD;
 			break;
 		case 1:
 			name = "Curie";
@@ -44,6 +44,8 @@ void ThreadManager::Close()
 	stop_threads();
 }
 
+bool ThreadManager::HasJobs() { return !task_queue.empty(); }
+
 void ThreadManager::allocate_jobs()
 {
 	while (!jobs_empty())
@@ -59,7 +61,7 @@ void ThreadManager::allocate_jobs()
 		{
 			switch (task_queue.front()->get_type())
 			{
-			case RENDER_TYPE:
+			case Job::RENDER_TYPE:
 				if (threads[0]->check_availability())
 				{
 					threads[0]->get_location() = task_queue.front();

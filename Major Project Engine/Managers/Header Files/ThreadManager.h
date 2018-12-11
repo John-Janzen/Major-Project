@@ -4,9 +4,8 @@
 #define _THREADMANAGER_H
 
 #include "Thread.h"
-#include "BlockingQueue.h"
 
-#include <vector>
+#include <queue>
 #include <list>
 
 /*
@@ -35,6 +34,8 @@ public:
 	Stops the threads.
 	*/
 	void Close();
+
+	bool HasJobs();
 
 	/*
 	This function allocates jobs from the threads that are readily available.

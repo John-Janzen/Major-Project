@@ -26,9 +26,11 @@ public:
 
 	bool frame_start();
 
+	bool HasJobs();
+
 	void notify_done();
 
-	void register_job(JobFunction function, const std::string name, void * content = nullptr, const JOB_TYPE type = JOB_TYPE::ANY_TYPE);
+	void register_job(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_TYPE type = Job::ANY_TYPE);
 
 	void register_job(Job * job, bool wait = false);
 
@@ -52,6 +54,7 @@ private:
 
 	std::atomic<int> num_of_jobs = 0;
 	std::atomic<int> jobs_to_finish;
+	std::mutex safety_lock;
 };
 
 #endif // !_TASKMANAGER_H

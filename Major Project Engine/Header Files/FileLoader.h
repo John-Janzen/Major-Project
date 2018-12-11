@@ -16,7 +16,6 @@
 #include <fstream>
 #include <sstream>
 #include <GL/glew.h>
-#include <chrono>
 #include <iostream>
 #include <algorithm>
 #include <mutex>

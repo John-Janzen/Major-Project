@@ -35,17 +35,23 @@ void Thread::Execution()
 		if (current_job)
 		{
 			//printf("%s Starting Job: %s\n", this->_name.c_str(), current_job->get_name().c_str());
-			if (current_job->get_function()(current_job->get_content()))
+			auto result = current_job->get_function()(current_job->get_content());
+			if (result == JOB_COMPLETED)
 			{
 				count++;
 				TaskManager::Instance().notify_done();
 				delete(current_job);
 				current_job = nullptr;
 			}
-			else 
+			else if (result == JOB_RETRY)
 			{
 				TaskManager::Instance().register_job(current_job);
 				current_job = nullptr;
+			}
+			else
+			{
+				printf("ISSUE FOUND WITH JOB: %s", current_job->get_name().c_str());
+				throw std::invalid_argument("FOUND ISSUE");
 			}
 		}
 		else

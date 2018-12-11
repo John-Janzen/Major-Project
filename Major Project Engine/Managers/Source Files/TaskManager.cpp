@@ -34,10 +34,14 @@ void TaskManager::Close()
 
 bool TaskManager::frame_start()
 {
-	this->transfer_jobs();
 	if (jobs_to_finish == 0 && num_of_jobs == 0)
 		return true;
 	return false;
+}
+
+bool TaskManager::HasJobs()
+{
+	return (!waiting_jobs.empty() || !job_list.empty());
 }
 
 void TaskManager::notify_done()
@@ -45,14 +49,16 @@ void TaskManager::notify_done()
 	jobs_to_finish--;
 }
 
-void TaskManager::register_job(JobFunction function, const std::string name, void* content, const JOB_TYPE type)
+void TaskManager::register_job(JobFunction function, const std::string name, void* content, const Job::JOB_TYPE type)
 {
+	std::lock_guard<std::mutex> lk(safety_lock);
 	job_list.emplace_back(new Job(function, name, content, type));
 	num_of_jobs++;
 }
 
 void TaskManager::register_job(Job * job, bool wait)
 {
+	std::lock_guard<std::mutex> lk(safety_lock);
 	if (wait)
 	{
 		waiting_jobs.emplace_back(job);
@@ -68,6 +74,7 @@ void TaskManager::register_job(Job * job, bool wait)
 
 void TaskManager::register_job(Job * job, Job * parent_job)
 {
+	std::lock_guard<std::mutex> lk(safety_lock);
 	parent_job->increment_wait();
 	job->set_parent(parent_job);
 	job_list.emplace_back(job);
@@ -77,6 +84,7 @@ void TaskManager::register_job(Job * job, Job * parent_job)
 
 void TaskManager::transfer_jobs()
 {
+	std::lock_guard<std::mutex> lk(safety_lock);
 	std::list<Job*>::iterator job_it = waiting_jobs.begin();
 	while (job_it != waiting_jobs.end())
 	{

@@ -60,7 +60,7 @@ void Physics::Update(void * ptr)
 	}
 }
 
-bool Physics::Load(void * content)
+JOB_RETURN Physics::Load(void * content)
 {
 	Scene * scene = static_cast<Scene*>(content);
 	PhysicsComponent * p_cp;
@@ -75,7 +75,7 @@ bool Physics::Load(void * content)
 			dynamicWorld->addRigidBody(p_cp->getRigidBody());
 		}
 	}
-	return true;
+	return JOB_COMPLETED;
 }
 
 void Physics::Close(void* content)

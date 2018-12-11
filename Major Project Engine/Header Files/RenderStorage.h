@@ -3,6 +3,8 @@
 #ifndef _MODEL_H
 #define _MODEL_H
 
+#include "Job.h"
+
 #include <GL\glew.h>
 #include <stdint.h>
 #include <mutex>
@@ -20,6 +22,8 @@ struct Model
 
 	~Model() { if (_vertices != nullptr) delete _vertices; if (_indices != nullptr) delete _indices; }
 
+	JOB_RETURN CheckDoneLoad(void * ptr) { return (_vertices != nullptr && _indices != nullptr) ? JOB_COMPLETED : JOB_RETRY; }
+
 	std::string _name;
 	const GLfloat * _vertices;
 	const GLuint * _indices;
@@ -33,6 +37,8 @@ struct Texture
 	Texture(const std::string name) 
 		: _name(name) {}
 	~Texture() { if (TextureID != 0) glDeleteTextures(1, _texture); }
+
+	JOB_RETURN CheckDoneLoad(void * ptr) { return (_texture != nullptr && TextureID != 0) ? JOB_COMPLETED : JOB_RETRY; }
 
 	std::string _name;
 	const GLuint * _texture;
@@ -48,8 +54,16 @@ struct Shader
 		: _name(name) {}
 	~Shader() {}
 
+	JOB_RETURN CheckDoneLoad(void * ptr) { return (_shaderID_Vert != 0 && _shaderID_Frag != 0) ? JOB_COMPLETED : JOB_RETRY; }
+
 	std::string _name;
 	GLuint _shaderID_Vert, _shaderID_Frag;
+};
+
+enum LOAD {
+	CURRENT_LOAD,
+	WAIT_LOAD,
+	DONE_LOAD
 };
 
 template <class T>
@@ -102,7 +116,7 @@ public:
 		return false;
 	}
 
-	bool HasItem(const std::string & name, T * & model)
+	LOAD HasItem(const std::string & name, T * & model)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
 		for (auto mod : _objects)
@@ -110,13 +124,16 @@ public:
 			if (mod != nullptr && name.compare(mod->_name) == 0)
 			{
 				model = mod;
-				return true;
+				if (mod->CheckDoneLoad(nullptr) == JOB_COMPLETED)
+					return DONE_LOAD;
+				else
+					return WAIT_LOAD;
 			}
 		}
 		_objects[num_items] = new T(name);
 		model = _objects[num_items];
 		num_items++;
-		return false;
+		return CURRENT_LOAD;
 	}
 
 private:

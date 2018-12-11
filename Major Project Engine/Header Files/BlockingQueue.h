@@ -3,7 +3,7 @@
 #ifndef _BLOCKINGQUEUE_H
 #define _BLOCKINGQUEUE_H
 
-#include <queue>
+#include <list>
 #include <mutex>
 
 template<typename T>
@@ -12,11 +12,12 @@ class BlockingQueue
 public:
 	BlockingQueue()
 	{
-		_queue = std::queue<T>();
+		_queue = std::list<T>();
 	}
+
 	~BlockingQueue()
 	{
-		std::queue<T>().swap(_queue);
+		std::list<T>().swap(_queue);
 	}
 
 	T & front()
@@ -29,8 +30,8 @@ public:
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		T temp = _queue.front();
-		_queue.pop();
-		_queue.push(temp);
+		_queue.pop_front();
+		_queue.push_back(temp);
 	}
 
 	bool pop(T & location)
@@ -40,15 +41,13 @@ public:
 		{
 			if (_queue.front()->get_waiting() <= 0)
 			{
-				location = std::move(_queue.front());
-				_queue.front() = nullptr;
-				_queue.pop();
+				location = _queue.front();
+				_queue.pop_front();
 			}
 			else
 			{
-				_queue.emplace(std::move(_queue.front()));
-				_queue.front() = nullptr;
-				_queue.pop();
+				_queue.emplace_back(_queue.front());
+				_queue.pop_front();
 			}
 			return true;
 		}
@@ -58,7 +57,7 @@ public:
 	void emplace(T item)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		_queue.emplace(item);
+		_queue.emplace_back(item);
 	}
 
 	bool empty()
@@ -73,9 +72,11 @@ public:
 		return _queue.size();
 	}
 
+	
+
 private:
 	std::mutex _mutex;
-	std::queue<T> _queue;
+	std::list<T> _queue;
 };
 
 #endif // !_BLOCKINGQUEUE_H
