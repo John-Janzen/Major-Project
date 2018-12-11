@@ -32,15 +32,18 @@ public:
 
 	void Execution();
 	void Stop();
-	bool check_availability();
-	Job * & get_location();
-	const THREAD_TYPE get_type() { return t_type; }
+
+	bool CheckAvailable();
+
+	Job * & GetLocation();
+
+	const THREAD_TYPE GetType() { return t_type; }
 
 	/*
 	* Prints available stats.
 	* Number of jobs completed.
 	*/
-	int print_stats()
+	int PrintStats()
 	{
 		printf("%s\tcompleted %u Jobs\n", _name.c_str(), count);
 		return count;

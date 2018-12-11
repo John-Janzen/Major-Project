@@ -72,20 +72,20 @@ public:
 	}
 
 	/* Gets the function of the job */
-	JobFunction get_function() { return _func; }
+	JobFunction GetFunction() { return _func; }
 
-	void * get_content() { return _content; }
+	void * GetContent() { return _content; }
 
-	const JOB_TYPE get_type() { return j_type; }
+	const JOB_TYPE GetType() { return j_type; }
 
-	std::string get_name() { return job_name; }
+	std::string GetName() { return job_name; }
 
-	void set_parent(Job * parent)
+	void SetParent(Job * parent)
 	{
 		_parent_job = parent;
 	}
 
-	void increment_wait()
+	void IncrementWait()
 	{
 		_awaiting++;
 	}
@@ -95,7 +95,7 @@ public:
 		_awaiting--;
 	}
 
-	std::atomic_int & get_waiting()
+	std::atomic_int & GetWaiting()
 	{
 		return _awaiting;
 	}

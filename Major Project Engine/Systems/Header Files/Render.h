@@ -25,13 +25,14 @@ public:
 	void Close(void* content);
 
 	void InitUpdate(CameraComponent * c_cp, const btTransform tran);
+	
 	JOB_RETURN UpdateLoop(void * ptr);
-	void ComponentUpdate(GLfloat * project_value,
-		RenderComponent * & rc,
-		const btTransform transform);
+	
+	void ComponentUpdate(GLfloat * project_value, RenderComponent * & rc, const btTransform transform);
+
 	void FinalUpdate();
 
-	JOB_RETURN init_render_component(void * ptr);
+	JOB_RETURN InitRenderComp(void * ptr);
 
 	JOB_RETURN LoadModel(void * ptr);
 
@@ -45,9 +46,9 @@ public:
 
 	JOB_RETURN BindShader(void * ptr);
 
-	bool init_SDL(SDL_GLContext context);
+	bool InitSDL(SDL_GLContext context);
 
-	bool init_GL();
+	bool InitGL();
 
 private:
 	SDL_Window * sdl_window;

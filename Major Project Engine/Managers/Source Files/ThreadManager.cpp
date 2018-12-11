@@ -41,30 +41,30 @@ ThreadManager::ThreadManager(const std::size_t & size)
 
 void ThreadManager::Close()
 {
-	stop_threads();
+	StopThreads();
 }
 
 bool ThreadManager::HasJobs() { return !task_queue.empty(); }
 
-void ThreadManager::allocate_jobs()
+void ThreadManager::AllocateJobs()
 {
-	while (!jobs_empty())
+	while (!JobsEmpty())
 	{
-		if (task_queue.front()->get_waiting() != 0)
+		if (task_queue.front()->GetWaiting() != 0)
 		{
 			Job * temp = task_queue.front();
 			task_queue.pop();
 			task_queue.push(temp);
 			continue;
 		}
-		for (std::size_t i = 0; i < num_of_threads && !jobs_empty(); i++)
+		for (std::size_t i = 0; i < num_of_threads && !JobsEmpty(); i++)
 		{
-			switch (task_queue.front()->get_type())
+			switch (task_queue.front()->GetType())
 			{
 			case Job::RENDER_TYPE:
-				if (threads[0]->check_availability())
+				if (threads[0]->CheckAvailable())
 				{
-					threads[0]->get_location() = task_queue.front();
+					threads[0]->GetLocation() = task_queue.front();
 					task_queue.front() = nullptr;
 					task_queue.pop();
 				}
@@ -78,12 +78,12 @@ void ThreadManager::allocate_jobs()
 				}
 				break;
 			default:
-				if (io_thread == threads[i] && io_thread->check_availability())
+				if (io_thread == threads[i] && io_thread->CheckAvailable())
 					io_thread = nullptr;
 
-				if (threads[i]->check_availability())
+				if (threads[i]->CheckAvailable())
 				{
-					threads[i]->get_location() = task_queue.front();
+					threads[i]->GetLocation() = task_queue.front();
 					task_queue.front() = nullptr;
 					task_queue.pop();
 				}
@@ -93,26 +93,26 @@ void ThreadManager::allocate_jobs()
 	}
 }
 
-bool ThreadManager::jobs_empty()
+bool ThreadManager::JobsEmpty()
 {
 	return task_queue.empty();
 }
 
-void ThreadManager::print_total_jobs()
+void ThreadManager::PrintJobs()
 {
 	int total = 0;
 	for (std::size_t i = 0; i < num_of_threads; i++)
-		total += threads[i]->print_stats();
+		total += threads[i]->PrintStats();
 	printf("Total count is: %u\n", total);
 }
 
-void ThreadManager::stop_threads()
+void ThreadManager::StopThreads()
 {
 	for (std::size_t i = 0; i < num_of_threads; i++)
 		threads[i]->Stop();
 }
 
-void ThreadManager::get_jobs(std::list<Job*> * job_list)
+void ThreadManager::GetJobs(std::list<Job*> * job_list)
 {
 	while (!job_list->empty())
 	{

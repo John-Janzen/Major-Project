@@ -34,23 +34,23 @@ void Thread::Execution()
 	{
 		if (current_job)
 		{
-			//printf("%s Starting Job: %s\n", this->_name.c_str(), current_job->get_name().c_str());
-			auto result = current_job->get_function()(current_job->get_content());
+			//printf("%s Starting Job: %s\n", this->_name.c_str(), current_job->GetName().c_str());
+			auto result = current_job->GetFunction()(current_job->GetContent());
 			if (result == JOB_COMPLETED)
 			{
 				count++;
-				TaskManager::Instance().notify_done();
+				TaskManager::Instance().NotifyDone();
 				delete(current_job);
 				current_job = nullptr;
 			}
 			else if (result == JOB_RETRY)
 			{
-				TaskManager::Instance().register_job(current_job);
+				TaskManager::Instance().RegisterJob(current_job);
 				current_job = nullptr;
 			}
 			else
 			{
-				printf("ISSUE FOUND WITH JOB: %s", current_job->get_name().c_str());
+				printf("ISSUE FOUND WITH JOB: %s", current_job->GetName().c_str());
 				throw std::invalid_argument("FOUND ISSUE");
 			}
 		}
@@ -71,12 +71,12 @@ void Thread::Stop()
 	_thread->join();
 }
 
-bool Thread::check_availability()
+bool Thread::CheckAvailable()
 {
 	return (current_job == nullptr);
 }
 
-Job * & Thread::get_location()
+Job * & Thread::GetLocation()
 {
 	return current_job;
 }

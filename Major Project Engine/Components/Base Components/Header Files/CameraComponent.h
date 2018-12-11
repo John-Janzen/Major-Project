@@ -18,8 +18,8 @@ public:
 	CameraComponent();
 	~CameraComponent();
 
-	GLfloat * set_project_look(const glm::mat4 & matrix) { return glm::value_ptr(projection_look_matrix = projection_matrix * (look_matrix * matrix)); }
-	GLfloat * get_project_value() { return glm::value_ptr(projection_look_matrix); }
+	GLfloat * SetProjectionLook(const glm::mat4 & matrix) { return glm::value_ptr(projection_look_matrix = projection_matrix * (look_matrix * matrix)); }
+	GLfloat * GetProjectionPtr() { return glm::value_ptr(projection_look_matrix); }
 
 private:
 	GLfloat _fov = 60.0f;

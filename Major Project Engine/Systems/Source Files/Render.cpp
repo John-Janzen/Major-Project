@@ -29,12 +29,12 @@ Render::~Render()
 
 JOB_RETURN Render::Load(void* content)
 {
-	if (!init_SDL(static_cast<SDL_GLContext>(content)))
+	if (!InitSDL(static_cast<SDL_GLContext>(content)))
 	{
 		printf("SDL Initialization failed, see function Load()");
 		return JOB_ISSUE;
 	}
-	if (!init_GL())
+	if (!InitGL())
 	{
 		printf("GL Initialization failed, see function Load()");
 		return JOB_ISSUE;
@@ -50,7 +50,7 @@ void Render::InitUpdate(CameraComponent * c_cp, const btTransform tran)
 
 	tran.getOpenGLMatrix(matrix);
 
-	project_value_ptr = c_cp->set_project_look(getGLMMatrix4(matrix));
+	project_value_ptr = c_cp->SetProjectionLook(getGLMMatrix4(matrix));
 }
 
 JOB_RETURN Render::UpdateLoop
@@ -59,15 +59,15 @@ JOB_RETURN Render::UpdateLoop
 )
 {
 	Scene * current_scene = static_cast<Scene*>(ptr);
-	this->InitUpdate(current_scene->get_comp_manager()->get_component<CameraComponent*>(current_scene->get_camera_id()),
-		current_scene->get_ent_manager()->find_entity(current_scene->get_camera_id())->get_transform());
+	this->InitUpdate(current_scene->GetCompManager()->GetComponent<CameraComponent*>(current_scene->GetCameraID()),
+		current_scene->GetEntityManager()->FindEntity(current_scene->GetCameraID())->GetTransform());
 
 	RenderComponent * rc;
-	for (auto & entity : current_scene->get_ent_manager()->retreive_list())
+	for (auto & entity : current_scene->GetEntityManager()->retreive_list())
 	{
-		if ((rc = current_scene->get_comp_manager()->get_component<RenderComponent*>(entity.first)) != nullptr)
+		if ((rc = current_scene->GetCompManager()->GetComponent<RenderComponent*>(entity.first)) != nullptr)
 		{
-			this->ComponentUpdate( project_value_ptr, rc, entity.second->get_transform());
+			this->ComponentUpdate( project_value_ptr, rc, entity.second->GetTransform());
 		}
 	}
 
@@ -84,21 +84,21 @@ void Render::ComponentUpdate
 {
 	if (rc->GetModel() != nullptr)
 	{
-		glBindVertexArray(rc->get_v_array());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->get_e_buffer());
+		glBindVertexArray(rc->GetVertexArray());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->GetElementBuffer());
 
-		glUseProgram(*rc->get_shader_prog());
+		glUseProgram(*rc->GetShaderProgram());
 
 		if (rc->GetTexture() != nullptr && rc->GetTexture()->TextureID != 0)
 		{
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, rc->GetTexture()->TextureID);
-			glUniform4f(rc->get_color_loc(), rc->get_color().x, rc->get_color().y, rc->get_color().z, rc->get_color().w);
+			glUniform4f(rc->GetColorShaderLoc(), rc->GetColor().x, rc->GetColor().y, rc->GetColor().z, rc->GetColor().w);
 		}
 		else
 		{
 			glm::vec4 _color = glm::vec4(1.0f, 0.411f, 0.705f, 1.0f);
-			glUniform4f(rc->get_color_loc(), _color.x, _color.y, _color.z, _color.w);
+			glUniform4f(rc->GetColorShaderLoc(), _color.x, _color.y, _color.z, _color.w);
 		}
 
 		glUniform1i(rc->r_text_unit, 0);
@@ -107,8 +107,8 @@ void Render::ComponentUpdate
 		btScalar matrix[16];
 		transform.getOpenGLMatrix(matrix);
 
-		glUniformMatrix4fv(rc->get_proj_loc(), 1, GL_FALSE, project_value);
-		glUniformMatrix4fv(rc->get_model_loc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
+		glUniformMatrix4fv(rc->GetProjectionMatrixLoc(), 1, GL_FALSE, project_value);
+		glUniformMatrix4fv(rc->GetModelMatrixLoc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
 		glDrawElements(GL_TRIANGLES, rc->GetModel()->ISize, GL_UNSIGNED_INT, NULL);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -127,20 +127,20 @@ void Render::Close(void* content)
 {
 }
 
-JOB_RETURN Render::init_render_component(void * ptr)
+JOB_RETURN Render::InitRenderComp(void * ptr)
 {
 	ComponentManager * c_manager = static_cast<ComponentManager*>(ptr);
 
-	for (auto & rc_cp : c_manager->find_all_of_type<RenderComponent*>())
+	for (auto & rc_cp : c_manager->FindAllTypes<RenderComponent*>())
 	{
 		// Loading model job
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadModel, this), "Load_Model", rc_cp));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", rc_cp));
 
 		// Loading shader job
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", rc_cp, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", rc_cp, Job::RENDER_TYPE));
 
 		// Loading texture job
- 		TaskManager::Instance().register_job(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", rc_cp));
+ 		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", rc_cp));
 		
 	}
 	return JOB_COMPLETED;
@@ -151,24 +151,24 @@ JOB_RETURN Render::LoadModel(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	Job * bind_model_job;
 
-	auto load_type = _models->HasItem(rc->getModelPath(), rc->GetModelAdd());
+	auto load_type = _models->HasItem(rc->GetModelPath(), rc->GetModelAdd());
 	switch(load_type)
 	{
 	case LOAD::CURRENT_LOAD:
-		if (LoadOBJModelFile(rc->getModelPath(), rc->GetModelAdd()))
+		if (LoadOBJModelFile(rc->GetModelPath(), rc->GetModelAdd()))
 		{
-			TaskManager::Instance().register_job(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE));
+			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE));
 			return JOB_COMPLETED;
 		}
 		break;
 	case LOAD::WAIT_LOAD:
 		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE);
-		TaskManager::Instance().register_job(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker"), bind_model_job);
-		TaskManager::Instance().register_job(bind_model_job, true);
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker"), bind_model_job);
+		TaskManager::Instance().RegisterJob(bind_model_job, true);
 		return JOB_COMPLETED;
 		break;
 	case LOAD::DONE_LOAD:
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE));
 		return JOB_COMPLETED;
 		break;
 	default:
@@ -182,24 +182,24 @@ JOB_RETURN Render::LoadShader(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	Job * bind_shader_job;
 
-	auto load_type = _shaders->HasItem(rc->getShaderPath(), rc->GetShaderAdd());
+	auto load_type = _shaders->HasItem(rc->GetShaderPath(), rc->GetShaderAdd());
 	switch (load_type)
 	{
 	case CURRENT_LOAD:
-		if (LoadShaderFile(rc->getVShaderPath(), rc->getFShaderPath(), rc->GetShaderAdd()))
+		if (LoadShaderFile(rc->GetVShaderPath(), rc->GetFShaderPath(), rc->GetShaderAdd()))
 		{
-			TaskManager::Instance().register_job(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE));
+			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE));
 			return JOB_COMPLETED;
 		}
 		break;
 	case WAIT_LOAD:
 		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE);
-		TaskManager::Instance().register_job(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Model_Checker"), bind_shader_job);
-		TaskManager::Instance().register_job(bind_shader_job, true);
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Model_Checker"), bind_shader_job);
+		TaskManager::Instance().RegisterJob(bind_shader_job, true);
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE));
 		return JOB_COMPLETED;
 		break;
 	}
@@ -211,24 +211,24 @@ JOB_RETURN Render::LoadTexture(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	Job * bind_texture_job;
 
-	auto load_type = _textures->HasItem(rc->getTexturePath(), rc->GetTextureAdd());
+	auto load_type = _textures->HasItem(rc->GetTexturePath(), rc->GetTextureAdd());
 	switch (load_type)
 	{
 	case CURRENT_LOAD:
-		if (LoadTextureFile(rc->getTexturePath(), rc->GetTextureAdd()))
+		if (LoadTextureFile(rc->GetTexturePath(), rc->GetTextureAdd()))
 		{
-			TaskManager::Instance().register_job(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE));
+			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE));
 			return JOB_COMPLETED;
 		}
 		break;
 	case WAIT_LOAD:
 		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE);
-		TaskManager::Instance().register_job(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker"), bind_texture_job);
-		TaskManager::Instance().register_job(bind_texture_job, true);
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker"), bind_texture_job);
+		TaskManager::Instance().RegisterJob(bind_texture_job, true);
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
-		TaskManager::Instance().register_job(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE));
 		return JOB_COMPLETED;
 		break;
 	}
@@ -240,18 +240,18 @@ JOB_RETURN Render::BindModel(void * ptr)
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->GetModel() != nullptr)
 	{
-		glGenBuffers(1, &rc_cp->get_e_buffer());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc_cp->get_e_buffer());
+		glGenBuffers(1, &rc_cp->GetElementBuffer());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc_cp->GetElementBuffer());
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 			(sizeof(GLuint) * rc_cp->GetModel()->ISize),
 			rc_cp->GetModel()->_indices,
 			GL_STATIC_DRAW);
 
-		glGenVertexArrays(1, &rc_cp->get_v_array());
-		glBindVertexArray(rc_cp->get_v_array());
+		glGenVertexArrays(1, &rc_cp->GetVertexArray());
+		glBindVertexArray(rc_cp->GetVertexArray());
 
-		glGenBuffers(1, &rc_cp->get_v_buffer());
-		glBindBuffer(GL_ARRAY_BUFFER, rc_cp->get_v_buffer());
+		glGenBuffers(1, &rc_cp->GetVertexBuffer());
+		glBindBuffer(GL_ARRAY_BUFFER, rc_cp->GetVertexBuffer());
 		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * rc_cp->GetModel()->VSize),
 			rc_cp->GetModel()->_vertices,
 			GL_STATIC_DRAW);
@@ -309,7 +309,7 @@ JOB_RETURN Render::BindShader(void * ptr)
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->GetShader() != nullptr)
 	{
-		const GLuint *program = rc_cp->set_shader_prog(glCreateProgram());
+		const GLuint *program = rc_cp->SetShaderProgram(glCreateProgram());
 
 		glAttachShader(*program, rc_cp->GetShader()->_shaderID_Vert);
 		glAttachShader(*program, rc_cp->GetShader()->_shaderID_Frag);
@@ -326,9 +326,9 @@ JOB_RETURN Render::BindShader(void * ptr)
 		{
 			glUseProgram(*program);
 
-			rc_cp->set_model_loc(glGetUniformLocation(*program, "model_matrix"));
-			rc_cp->set_proj_loc(glGetUniformLocation(*program, "projection_matrix"));
-			rc_cp->set_color_loc(glGetUniformLocation(*program, "color_vec"));
+			rc_cp->SetModelMatrixLoc(glGetUniformLocation(*program, "model_matrix"));
+			rc_cp->SetProjectionMatrixLoc(glGetUniformLocation(*program, "projection_matrix"));
+			rc_cp->SetColorShaderLoc(glGetUniformLocation(*program, "color_vec"));
 
 			rc_cp->r_text_adj_w = glGetUniformLocation(*program, "texture_width_adj");
 			rc_cp->r_text_adj_h = glGetUniformLocation(*program, "texture_height_adj");
@@ -356,7 +356,7 @@ JOB_RETURN Render::BindShader(void * ptr)
 	return JOB_COMPLETED;
 }
 
-bool Render::init_SDL(SDL_GLContext context)
+bool Render::InitSDL(SDL_GLContext context)
 {
 	Uint32 subsystem_init = SDL_WasInit(SDL_INIT_VIDEO);
 	if (!(subsystem_init & SDL_INIT_VIDEO))
@@ -371,7 +371,7 @@ bool Render::init_SDL(SDL_GLContext context)
 	return true;
 }
 
-bool Render::init_GL()
+bool Render::InitGL()
 {
 	glViewport(0, 0, screen_width, screen_height);
 

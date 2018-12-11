@@ -31,7 +31,7 @@ public:
 		}
 	}
 
-	Entity * create_entity()
+	Entity * CreateEntity()
 	{
 		auto inserted = _entities.emplace(id_counter, new Entity(std::string("Default" + ' ' + id_counter), id_counter));
 		id_counter++;
@@ -39,7 +39,7 @@ public:
 	}
 
 	template <class T>
-	T * create_entity()
+	T * CreateEntity()
 	{
 		auto inserted = _entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
 		id_counter++;
@@ -47,7 +47,7 @@ public:
 	}
 
 	template <class T>
-	T * create_entity(EntityID & id)
+	T * CreateEntity(EntityID & id)
 	{
 		auto inserted = _entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
 		id = inserted.first->first;
@@ -56,7 +56,7 @@ public:
 	}
 
 	template <class T>
-	T * create_entity(const std::string & name)
+	T * CreateEntity(const std::string & name)
 	{
 		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
 		id_counter++;
@@ -64,7 +64,7 @@ public:
 	}
 
 	template <class T>
-	const EntityID & create_entity(const std::string & name, T * & entity)
+	const EntityID & CreateEntity(const std::string & name, T * & entity)
 	{
 		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
 		entity = static_cast<T*>(inserted.first->second);
@@ -73,7 +73,7 @@ public:
 	}
 
 	template <class T>
-	T * create_entity(const std::string & name, EntityID & entity_id)
+	T * CreateEntity(const std::string & name, EntityID & entity_id)
 	{
 		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
 		entity_id = inserted.first->first;
@@ -81,26 +81,26 @@ public:
 		return static_cast<T*>(inserted.first->second);
 	}
 
-	Entity * & find_entity(const EntityID _id)
+	Entity * & FindEntity(const EntityID _id)
 	{
 		return _entities.find(_id)->second;
 	}
 
-	void flag_dead_entity(const EntityID entity_id)
+	void FlagDeath(const EntityID entity_id)
 	{
-		_entities.find(entity_id)->second->set_death();
+		_entities.find(entity_id)->second->SetDeathFlag();
 	}
 
-	void flag_dead_entity(Entity * & entity)
+	void FlagDeath(Entity * & entity)
 	{
-		entity->set_death();
+		entity->SetDeathFlag();
 	}
 
-	void destroy_dead__entities()
+	void DestroyDeadEntities()
 	{
 		for (auto it = _entities.begin(); it != _entities.end(); ++it)
 		{
-			if ((*it).second->get_death())
+			if ((*it).second->GetDeathFlag())
 			{
 				it = _entities.erase(it);
 			}

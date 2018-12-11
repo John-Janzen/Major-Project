@@ -13,7 +13,7 @@ public:
 	~Game();
 
 	bool Load();
-	bool Game_Loop();
+	bool GameLoop();
 	void Close();
 
 	bool Load_Scene(const SCENE_SELECTION type);

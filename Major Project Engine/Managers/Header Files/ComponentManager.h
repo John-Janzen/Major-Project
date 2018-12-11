@@ -22,6 +22,7 @@ public:
 	{
 		_components = ComponentStorage();
 	}
+
 	~ComponentManager() 
 	{
 		std::cout << "Component Manager Destructor Called" << std::endl;
@@ -35,7 +36,7 @@ public:
 	}
 
 	template<class T>
-	std::list<T> find_all_of_type() const
+	std::list<T> FindAllTypes() const
 	{
 		std::list<T> full_list;
 		for (auto element : _components)
@@ -49,9 +50,9 @@ public:
 	}
 
 	template <class T>
-	void add_component(const EntityID entity_id, T comp)
+	void AddComponent(const EntityID entity_id, T comp)
 	{
-		if (!has_component<T>(entity_id))
+		if (!HasComponent<T>(entity_id))
 		{
 			_components.emplace(entity_id, std::move(comp));
 		}
@@ -62,9 +63,9 @@ public:
 	}
 
 	template <class T>
-	void add_component(T comp)
+	void AddComponent(T comp)
 	{
-		if (!has_component<T>(0))
+		if (!HasComponent<T>(0))
 		{
 			_components.emplace(0, std::move(comp));
 		}
@@ -75,7 +76,7 @@ public:
 	}
 
 	template <class T>
-	bool get_component(const EntityID entity_id, T & base_comp)
+	bool GetComponent(const EntityID entity_id, T & base_comp)
 	{
 		bool found = false;
 		auto range = _components.equal_range(entity_id);
@@ -91,7 +92,7 @@ public:
 	}
 
 	template <class T>
-	T get_component(const EntityID entity_id)
+	T GetComponent(const EntityID entity_id)
 	{
 		auto range = _components.equal_range(entity_id);
 		for (auto it = range.first; it != range.second; ++it)
@@ -103,7 +104,7 @@ public:
 	}
 
 	template <class T>
-	bool has_component(const EntityID entity_id)
+	bool HasComponent(const EntityID entity_id)
 	{
 		bool found = false;
 		auto range = _components.equal_range(entity_id);
@@ -118,7 +119,6 @@ public:
 	}
 
 private:
-
 	ComponentStorage _components;
 };
 

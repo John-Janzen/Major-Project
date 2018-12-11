@@ -22,7 +22,7 @@ inline Floor::~Floor()
 
 inline void Floor::Load(ComponentManager *& c_manager)
 {
-	c_manager->add_component(this->get_id(), new PlayerRenderComponent());
-	c_manager->add_component(this->get_id(), new FloorPhysicsComponent());
+	c_manager->AddComponent(this->GetID(), new PlayerRenderComponent());
+	c_manager->AddComponent(this->GetID(), new FloorPhysicsComponent());
 	this->_transform = btTransform(btQuaternion(), btVector3(btScalar(0.f), btScalar(-56.f), btScalar(0.f)));
 }

@@ -32,7 +32,7 @@ void TaskManager::Close()
 	}
 }
 
-bool TaskManager::frame_start()
+bool TaskManager::FrameStart()
 {
 	if (jobs_to_finish == 0 && num_of_jobs == 0)
 		return true;
@@ -44,19 +44,19 @@ bool TaskManager::HasJobs()
 	return (!waiting_jobs.empty() || !job_list.empty());
 }
 
-void TaskManager::notify_done()
+void TaskManager::NotifyDone()
 {
 	jobs_to_finish--;
 }
 
-void TaskManager::register_job(JobFunction function, const std::string name, void* content, const Job::JOB_TYPE type)
+void TaskManager::RegisterJob(JobFunction function, const std::string name, void* content, const Job::JOB_TYPE type)
 {
 	std::lock_guard<std::mutex> lk(safety_lock);
 	job_list.emplace_back(new Job(function, name, content, type));
 	num_of_jobs++;
 }
 
-void TaskManager::register_job(Job * job, bool wait)
+void TaskManager::RegisterJob(Job * job, bool wait)
 {
 	std::lock_guard<std::mutex> lk(safety_lock);
 	if (wait)
@@ -72,23 +72,23 @@ void TaskManager::register_job(Job * job, bool wait)
 	}
 }
 
-void TaskManager::register_job(Job * job, Job * parent_job)
+void TaskManager::RegisterJob(Job * job, Job * parent_job)
 {
 	std::lock_guard<std::mutex> lk(safety_lock);
-	parent_job->increment_wait();
-	job->set_parent(parent_job);
+	parent_job->IncrementWait();
+	job->SetParent(parent_job);
 	job_list.emplace_back(job);
 	job = nullptr;
 	num_of_jobs++;
 }
 
-void TaskManager::transfer_jobs()
+void TaskManager::TransferJobs()
 {
 	std::lock_guard<std::mutex> lk(safety_lock);
 	std::list<Job*>::iterator job_it = waiting_jobs.begin();
 	while (job_it != waiting_jobs.end())
 	{
-		if ((*job_it)->get_waiting() == 0)
+		if ((*job_it)->GetWaiting() == 0)
 		{
 			job_list.emplace_back((*job_it));
 			job_it = waiting_jobs.erase(job_it);
@@ -97,7 +97,7 @@ void TaskManager::transfer_jobs()
 		}
 		job_it++;
 	}
-	_threadpool_p->get_jobs(&job_list);
+	_threadpool_p->GetJobs(&job_list);
 	job_list.clear();
 	jobs_to_finish += num_of_jobs;
 	num_of_jobs = 0;

@@ -20,13 +20,13 @@ public:
 		std::list<T>().swap(_queue);
 	}
 
-	T & front()
+	T & Front()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		return _queue.front();
 	}
 
-	void front_to_back()
+	void FrontToBack()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		T temp = _queue.front();
@@ -34,12 +34,12 @@ public:
 		_queue.push_back(temp);
 	}
 
-	bool pop(T & location)
+	bool Pop(T & location)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		if (!_queue.empty())
 		{
-			if (_queue.front()->get_waiting() <= 0)
+			if (_queue.front()->GetWaiting() <= 0)
 			{
 				location = _queue.front();
 				_queue.pop_front();
@@ -54,19 +54,19 @@ public:
 		return false;
 	}
 
-	void emplace(T item)
+	void Emplace(T item)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		_queue.emplace_back(item);
 	}
 
-	bool empty()
+	bool Empty()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		return _queue.empty();
 	}
 
-	std::size_t size()
+	std::size_t Size()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		return _queue.size();

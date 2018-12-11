@@ -18,7 +18,7 @@ public:
 	PlayerControllerComponent() {}
 	~PlayerControllerComponent(){}
 
-	const CONTROL_TYPE & get_type() const { return current_type; }
+	const CONTROL_TYPE & GetType() const { return current_type; }
 
 private:
 	CONTROL_TYPE current_type = MOUSE_KEYBOARD;

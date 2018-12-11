@@ -5,8 +5,8 @@ std::mutex io_lock, devIL_lock;
 bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Shader * & shader)
 {
 	GLuint vertexID = 0, fragID = 0;
-	std::string vertString = openFileRead(vert_path);
-	std::string fragString = openFileRead(frag_path);
+	std::string vertString = OpenFileRead(vert_path);
+	std::string fragString = OpenFileRead(frag_path);
 
 	if (vertString.empty())
 	{
@@ -19,8 +19,8 @@ bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Sh
 		return false;
 	}
 
-	vertexID = compileShader(vertString, GL_VERTEX_SHADER);
-	fragID = compileShader(fragString, GL_FRAGMENT_SHADER);
+	vertexID = CompileShader(vertString, GL_VERTEX_SHADER);
+	fragID = CompileShader(fragString, GL_FRAGMENT_SHADER);
 
 	if (vertexID == 0 || fragID == 0)
 		return false;
@@ -38,7 +38,7 @@ bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Sh
 	return true;
 }
 
-std::string openFileRead(const std::string & path)
+std::string OpenFileRead(const std::string & path)
 {
 	std::unique_lock<std::mutex> u_lock(io_lock);
 	std::ifstream File(path.c_str());
@@ -56,7 +56,7 @@ std::string openFileRead(const std::string & path)
 	return data;
 }
 
-const GLuint compileShader(const std::string shader, const GLenum type)
+const GLuint CompileShader(const std::string shader, const GLenum type)
 {
 	GLuint compile = glCreateShader(type);
 
@@ -93,7 +93,7 @@ bool LoadOBJModelFile(const std::string path, Model * & model)
 
 	std::size_t v_count = 0, n_count = 0, t_count = 0;
 
-	std::string opened_file = openFileRead(path);
+	std::string opened_file = OpenFileRead(path);
 	std::stringstream ss(opened_file);
 	if (!opened_file.empty())
 	{
@@ -158,11 +158,11 @@ bool LoadOBJModelFile(const std::string path, Model * & model)
 			}
 		}
 		if (model == nullptr)
-			model = new Model(path.c_str(), mallocSpace(finalData), mallocSpace(indices), (GLsizei)indices.size(), (GLsizei)finalData.size());
+			model = new Model(path.c_str(), MallocSpace(finalData), MallocSpace(indices), (GLsizei)indices.size(), (GLsizei)finalData.size());
 		else
 		{
-			model->_vertices = mallocSpace(finalData);
-			model->_indices = mallocSpace(indices);
+			model->_vertices = MallocSpace(finalData);
+			model->_indices = MallocSpace(indices);
 			model->ISize = (GLsizei)indices.size();
 			model->VSize = (GLsizei)finalData.size();
 		}
@@ -194,8 +194,8 @@ bool LoadTextureFile(const std::string path, Texture * & texture)
 			GLuint imgWidth = (GLuint)ilGetInteger(IL_IMAGE_WIDTH);
 			GLuint imgHeight = (GLuint)ilGetInteger(IL_IMAGE_HEIGHT);
 
-			GLuint texWidth = powerOfTwo(imgWidth);
-			GLuint texHeight = powerOfTwo(imgHeight);
+			GLuint texWidth = PowerOfTwo(imgWidth);
+			GLuint texHeight = PowerOfTwo(imgHeight);
 
 			if (imgWidth != texWidth || imgHeight != texHeight)
 			{
@@ -234,7 +234,7 @@ bool LoadTextureFile(const std::string path, Texture * & texture)
 	return true;
 }
 
-GLuint powerOfTwo(GLuint num)
+GLuint PowerOfTwo(GLuint num)
 {
 	if (num != 0)
 	{

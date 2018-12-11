@@ -19,8 +19,8 @@ inline MultiObject::~MultiObject() {}
 
 inline void MultiObject::Load(ComponentManager * & c_manager)
 {
-	c_manager->add_component(this->get_id(), new PlayerRenderComponent());
-	c_manager->add_component(this->get_id(), new PlayerPhysicsComponent());
+	c_manager->AddComponent(this->GetID(), new PlayerRenderComponent());
+	c_manager->AddComponent(this->GetID(), new PlayerPhysicsComponent());
 }
 
 inline void MultiObject::SetLocation(const float x, const float y, const float z)

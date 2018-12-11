@@ -11,10 +11,10 @@ MainScene::~MainScene()
 
 bool MainScene::Load()
 {	
-	//entity_manager->create_entity<Quad>("Quad")->Load(component_manager);
-	entity_manager->create_entity<Quad>()->Load(component_manager);
-	//entity_manager->create_entity<Player>("Player", _player1_ID)->Load(component_manager);
-	entity_manager->create_entity<Floor>()->Load(component_manager);
+	//entity_manager->CreateEntity<Quad>("Quad")->Load(component_manager);
+	entity_manager->CreateEntity<Quad>()->Load(component_manager);
+	//entity_manager->CreateEntity<Player>("Player", _player1_ID)->Load(component_manager);
+	entity_manager->CreateEntity<Floor>()->Load(component_manager);
 	MultiObject * m_object;
 	for (int i = 0; i < 2; i++)
 	{
@@ -22,7 +22,7 @@ bool MainScene::Load()
 		{
 			for (int k = 0; k < 2; k++)
 			{
-				entity_manager->create_entity(std::string("MultObject#" + (i + j)), m_object);
+				entity_manager->CreateEntity(std::string("MultObject#" + (i + j)), m_object);
 				m_object->Load(component_manager);
 				m_object->SetLocation(i - (5 / (float)2), j - (5 / (float)2), k - (5 / (float)2));
 			}

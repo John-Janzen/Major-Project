@@ -24,19 +24,19 @@ public:
 
 	void Close();
 
-	bool frame_start();
+	bool FrameStart();
 
 	bool HasJobs();
 
-	void notify_done();
+	void NotifyDone();
 
-	void register_job(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_TYPE type = Job::ANY_TYPE);
+	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_TYPE type = Job::ANY_TYPE);
 
-	void register_job(Job * job, bool wait = false);
+	void RegisterJob(Job * job, bool wait = false);
 
-	void register_job(Job * job, Job * parent_job);
+	void RegisterJob(Job * job, Job * parent_job);
 
-	void transfer_jobs();
+	void TransferJobs();
 
 private:
 

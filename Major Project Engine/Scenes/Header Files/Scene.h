@@ -23,11 +23,11 @@ public:
 
 	virtual bool Unload() = 0;
 
-	ComponentManager * get_comp_manager() const { return component_manager; }
-	EntityManager * get_ent_manager() const { return entity_manager; }
+	ComponentManager * GetCompManager() const { return component_manager; }
+	EntityManager * GetEntityManager() const { return entity_manager; }
 
-	const EntityID & get_player_id() const { return _player1_ID; }
-	const EntityID & get_camera_id() const { return _camera; }
+	const EntityID & GetPlayerID() const { return _player1_ID; }
+	const EntityID & GetCameraID() const { return _camera; }
 
 protected:
 	EntityManager * entity_manager;
@@ -41,7 +41,7 @@ inline Scene::Scene()
 {
 	entity_manager = new EntityManager();
 	component_manager = new ComponentManager();
-	entity_manager->create_entity<Camera>(_camera)->Load(component_manager);
+	entity_manager->CreateEntity<Camera>(_camera)->Load(component_manager);
 }
 
 inline Scene::~Scene() 

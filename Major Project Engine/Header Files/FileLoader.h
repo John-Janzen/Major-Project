@@ -26,12 +26,12 @@ extern bool LoadOBJModelFile(const std::string path, Model * & model);
 
 extern bool LoadTextureFile(const std::string path, Texture * & texture);
 
-extern std::string openFileRead(const std::string & path);
+extern std::string OpenFileRead(const std::string & path);
 
-extern const GLuint compileShader(const std::string shader, const GLenum type);
+extern const GLuint CompileShader(const std::string shader, const GLenum type);
 
 template<typename Out>
-Out * mallocSpace(const std::vector<Out> & tooManyVecs)
+Out * MallocSpace(const std::vector<Out> & tooManyVecs)
 {
 	Out* arr = (Out*)malloc(tooManyVecs.size() * sizeof(Out));
 	int j = 0;
@@ -40,6 +40,6 @@ Out * mallocSpace(const std::vector<Out> & tooManyVecs)
 	return arr;
 };
 
-extern GLuint powerOfTwo(GLuint num);
+extern GLuint PowerOfTwo(GLuint num);
 
 #endif // !_FILELOADER_H
