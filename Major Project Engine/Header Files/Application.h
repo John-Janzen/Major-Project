@@ -37,13 +37,9 @@ public:
 	~Application();
 
 	virtual bool Load() = 0;
-	bool Load_App();
-	virtual bool Game_Loop() = 0;
+	bool LoadApplication();
+	virtual bool GameLoop() = 0;
 	virtual void Close() = 0;
-
-	//bool load_scene();
-	void init_managers();
-	void close_managers();
 
 protected:
 
@@ -72,13 +68,14 @@ inline Application::Application(const std::size_t & num_of_threads)
 	: _state(INITIALIZING)
 {
 	_threadpool = new ThreadManager(num_of_threads);
-	this->init_managers();
+	TaskManager::Instance().Init(_threadpool);
 	timer = new Timer();
 }
 
 inline Application::~Application()
 {
 	_threadpool->Close();
+
 	if (_threadpool != nullptr) delete _threadpool;
 	if (renderer != nullptr) delete renderer;
 	if (input != nullptr) delete input;
@@ -88,14 +85,14 @@ inline Application::~Application()
 	
 	if (current_scene != nullptr) delete(current_scene);
 	
-	this->close_managers();
+	TaskManager::Instance().Close();
 
 	SDL_DestroyWindow(sdl_window);
 	sdl_window = NULL;
 	SDL_Quit();
 }
 
-inline bool Application::Load_App()
+inline bool Application::LoadApplication()
 {
 	//FileLoader::Instance().Init();
 
@@ -148,8 +145,8 @@ inline bool Application::Load_App()
 				if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
 					SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 				}
-				timer->set_time_lock(1000.f / (float)mode.refresh_rate);
-				/*timer->set_time_lock(1000.0f / (float)mode.refresh_rate);*/
+				timer->SetTimeLock(1000.f / (float)mode.refresh_rate);
+				/*timer->SetTimeLock(1000.0f / (float)mode.refresh_rate);*/
 			}
 		}
 	}
@@ -159,24 +156,14 @@ inline bool Application::Load_App()
 	physics = new Physics();
 	test_system = new TestSystem();
 
-	Job * parent_job = new Job(bind_function(&Render::init_render_component, renderer), "Initialize_Render_Objects", current_scene->get_comp_manager(), RENDER_TYPE);
-	TaskManager::Instance().register_job(new Job(bind_function(&Render::Load, renderer), "Load_Render_System", sdl_context, RENDER_TYPE), parent_job);
-	TaskManager::Instance().register_job(bind_function(&TestSystem::Load, test_system), "Load_Test_System");
-	TaskManager::Instance().register_job(bind_function(&Physics::Load, physics), "Load_Physics_Sytem", current_scene);
+	Job * parent_job = new Job(bind_function(&Render::InitRenderComp, renderer), "Initialize_Render_Objects", current_scene->GetCompManager(), Job::RENDER_TYPE);
+	TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::Load, renderer), "Load_Render_System", sdl_context, Job::RENDER_TYPE), parent_job);
+	TaskManager::Instance().RegisterJob(bind_function(&TestSystem::Load, test_system), "Load_Test_System");
+	TaskManager::Instance().RegisterJob(bind_function(&Physics::Load, physics), "Load_Physics_Sytem", current_scene);
 
-	TaskManager::Instance().register_job(parent_job, true);
+	TaskManager::Instance().RegisterJob(parent_job, true);
 
 	return true;
-}
-
-inline void Application::init_managers()
-{
-	TaskManager::Instance().Init(_threadpool);
-}
-
-inline void Application::close_managers()
-{
-	TaskManager::Instance().Close();
 }
 
 #endif // !_APPLICATION_H

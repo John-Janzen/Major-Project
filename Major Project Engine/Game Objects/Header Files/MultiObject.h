@@ -8,7 +8,7 @@ public:
 	~MultiObject();
 
 	void Load(ComponentManager * & c_manager);
-	void SetLocation(const int x, const int y);
+	void SetLocation(const float x, const float y, const float z);
 };
 
 inline MultiObject::MultiObject(const std::string & name, EntityID id) 
@@ -19,11 +19,13 @@ inline MultiObject::~MultiObject() {}
 
 inline void MultiObject::Load(ComponentManager * & c_manager)
 {
-	c_manager->add_component(this->get_id(), new PlayerRenderComponent());
-	c_manager->add_component(this->get_id(), new PlayerPhysicsComponent());
+	c_manager->AddComponent(this->GetID(), new PlayerRenderComponent());
+	c_manager->AddComponent(this->GetID(), new PlayerPhysicsComponent());
 }
 
-inline void MultiObject::SetLocation(const int x, const int y)
+inline void MultiObject::SetLocation(const float x, const float y, const float z)
 {
-	_transform = btTransform(btQuaternion(), btVector3(btScalar(x), btScalar(0.f), btScalar(y)));
+	_transform = btTransform();
+	_transform.setIdentity();
+	_transform.setOrigin(btVector3(btScalar(x * 3), btScalar(z * 3), btScalar(y * 3)));
 }

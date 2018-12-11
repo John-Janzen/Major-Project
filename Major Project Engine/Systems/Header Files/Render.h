@@ -4,6 +4,7 @@
 #define _RENDER_H
 
 #include "System.h"
+#include "RenderStorage.h"
 
 #include <SDL.h>
 #include <gl\GL.h>
@@ -14,42 +15,40 @@
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
 
-typedef std::unordered_map<std::string, Model*> ModelsStorage;
-typedef std::unordered_map<std::string, Shader*> ShaderStorage;
-typedef std::unordered_map<std::string, Texture*> TextureStorage;
-
 class Render : public System
 {
 public:
 	Render(SDL_Window * sdl_window, const int width, const int height);
 	~Render();
 
-	bool Load(void* content);
+	JOB_RETURN Load(void* content);
 	void Close(void* content);
 
 	void InitUpdate(CameraComponent * c_cp, const btTransform tran);
-	bool UpdateLoop(void * ptr);
-	void ComponentUpdate(GLfloat * project_value,
-		RenderComponent * & rc,
-		const btTransform transform);
+	
+	JOB_RETURN UpdateLoop(void * ptr);
+	
+	void ComponentUpdate(GLfloat * project_value, RenderComponent * & rc, const btTransform transform);
+
 	void FinalUpdate();
 
-	bool init_render_component(void * ptr);
+	JOB_RETURN InitRenderComp(void * ptr);
 
-	bool LoadModel(void * ptr);
+	JOB_RETURN LoadModel(void * ptr);
 
-	bool LoadShader(void * ptr);
+	JOB_RETURN LoadShader(void * ptr);
 
-	bool LoadTexture(void * ptr);
+	JOB_RETURN LoadTexture(void * ptr);
 
-	bool BindModel(void * ptr);
+	JOB_RETURN BindModel(void * ptr);
 
-	bool BindTexture(void * ptr);
+	JOB_RETURN BindTexture(void * ptr);
 
-	bool BindShader(void * ptr);
+	JOB_RETURN BindShader(void * ptr);
 
-	bool init_SDL(SDL_GLContext context);
-	bool init_GL();
+	bool InitSDL(SDL_GLContext context);
+
+	bool InitGL();
 
 private:
 	SDL_Window * sdl_window;
@@ -60,9 +59,9 @@ private:
 
 	GLfloat Y_rotation = 0.0f;
 
-	ModelsStorage _models;
-	ShaderStorage _shaders;
-	TextureStorage _textures;
+	Storage<Model> * _models;
+	Storage<Shader> * _shaders;
+	Storage<Texture> * _textures;
 };
 
 #endif // !_RENDER_H

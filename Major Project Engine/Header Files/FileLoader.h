@@ -3,7 +3,7 @@
 #ifndef _FILELOADER_H
 #define _FILELOADER_H
 
-#include "RenderExternals.h"
+#include "RenderStorage.h"
 
 #include <IL\il.h>
 #include <IL\ilu.h>
@@ -16,23 +16,22 @@
 #include <fstream>
 #include <sstream>
 #include <GL/glew.h>
-#include <chrono>
 #include <iostream>
 #include <algorithm>
 #include <mutex>
 
-extern Shader * load_shader(const std::string & vert_path, const std::string & frag_path);
+extern bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Shader * & shader);
 
-extern Model * load_obj_file(const std::string & path);
+extern bool LoadOBJModelFile(const std::string path, Model * & model);
 
-extern Texture * load_texture(const std::string & path);
+extern bool LoadTextureFile(const std::string path, Texture * & texture);
 
-extern std::string openFileRead(const std::string & path);
+extern std::string OpenFileRead(const std::string & path);
 
-extern const GLuint compileShader(const std::string shader, const GLenum type);
+extern const GLuint CompileShader(const std::string shader, const GLenum type);
 
 template<typename Out>
-Out * mallocSpace(const std::vector<Out> & tooManyVecs)
+Out * MallocSpace(const std::vector<Out> & tooManyVecs)
 {
 	Out* arr = (Out*)malloc(tooManyVecs.size() * sizeof(Out));
 	int j = 0;
@@ -41,6 +40,6 @@ Out * mallocSpace(const std::vector<Out> & tooManyVecs)
 	return arr;
 };
 
-extern GLuint powerOfTwo(GLuint num);
+extern GLuint PowerOfTwo(GLuint num);
 
 #endif // !_FILELOADER_H

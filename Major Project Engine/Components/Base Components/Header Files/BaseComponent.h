@@ -11,7 +11,7 @@ public:
 	BaseComponent() : death_flag(false) {}
 	virtual ~BaseComponent() {}
 
-	void set_death() { death_flag = true; }
+	void SetDeathFlag() { death_flag = true; }
 private:
 	bool death_flag;
 };

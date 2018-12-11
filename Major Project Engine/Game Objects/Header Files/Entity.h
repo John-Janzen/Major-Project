@@ -23,13 +23,13 @@ public:
 		_transform.setIdentity();
 	};
 
-	int get_id() const { return _id; }
-	std::string get_name() const { return _name; }
-	void set_death() { death_flag = true; }
-	bool get_death() { return death_flag; }
+	int GetID() const { return _id; }
+	std::string GetName() const { return _name; }
+	void SetDeathFlag() { death_flag = true; }
+	bool GetDeathFlag() { return death_flag; }
 
-	btTransform get_transform() const { return _transform; }
-	btTransform & get_transform_value() { return _transform; }
+	btTransform GetTransform() const { return _transform; }
+	btTransform & GetTransformAdd() { return _transform; }
 
 private:
 	std::string _name;

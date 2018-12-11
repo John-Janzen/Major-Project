@@ -19,13 +19,13 @@ public:
 	void Start();
 	void Stop();
 
-	void wait_time();
+	void WaitTime();
 
-	bool checkTimeLimit();
+	bool CheckTimeLimit();
 
-	const float & get_delta_time() { return delta_time; }
+	const float & GetDeltaTime() { return delta_time; }
 
-	void set_time_lock(const float time) 
+	void SetTimeLock(const float time) 
 	{
 		current_time_lock = ms_duration(time); 
 	}
@@ -34,7 +34,7 @@ private:
 
 	void Restart();
 	
-	void set_delta_time();
+	void SetDeltaTime();
 
 	void Print(const ms_duration & time);
 

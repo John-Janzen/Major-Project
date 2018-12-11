@@ -4,10 +4,11 @@
 #define _RENDERCOMPONENT_H
 
 #include "BaseComponent.h"
-#include "FileLoader.h"
+#include "RenderStorage.h"
 
 #include <memory>
 #include <string>
+#include <glm.hpp>
 
 class RenderComponent : public BaseComponent
 {
@@ -16,39 +17,44 @@ public:
 	RenderComponent();
 	~RenderComponent();
 
-	void set_model(Model * model) { current_model = model; }
-	Model * get_model() const { return current_model; }
+	void SetModel(Model * model) { current_model = model; }
+	Model * GetModel() const { return current_model; }
+	Model * & GetModelAdd() { return current_model; }
 
-	void set_shader(Shader * shader) { current_shader = shader; }
-	Shader * get_shader() const { return current_shader; }
+	void SetShader(Shader * shader) { current_shader = shader; }
+	Shader * GetShader() const { return current_shader; }
+	Shader * & GetShaderAdd() { return current_shader; }
 
-	void set_texture(Texture * texture) { current_texture = texture; }
-	Texture * get_texture() const { return current_texture; }
+	void SetTexture(Texture * texture) { current_texture = texture; }
+	Texture * GetTexture() const { return current_texture; }
+	Texture * & GetTextureAdd() { return current_texture; }
 
-	GLuint & get_v_buffer() { return vert_buff_obj; }
-	GLuint & get_v_array() { return vert_arr_obj; }
-	GLuint & get_e_buffer() { return elem_buff_obj; }
+	GLuint & GetVertexBuffer() { return vert_buff_obj; }
+	GLuint & GetVertexArray() { return vert_arr_obj; }
+	GLuint & GetElementBuffer() { return elem_buff_obj; }
 
-	const GLuint * get_shader_prog() { return &shade_prog; }
-	const GLuint * set_shader_prog(const GLuint & prog) { shade_prog = prog; return &shade_prog; }
+	const GLuint * GetShaderProgram() { return &shade_prog; }
+	const GLuint * SetShaderProgram(const GLuint & prog) { shade_prog = prog; return &shade_prog; }
 
-	const GLint & get_proj_loc() const { return r_project_mat4_loc; }
-	void set_proj_loc(const GLint & matrix_loc) { r_project_mat4_loc = matrix_loc; }
+	const GLint & GetProjectionMatrixLoc() const { return r_project_mat4_loc; }
+	void SetProjectionMatrixLoc(const GLint & matrix_loc) { r_project_mat4_loc = matrix_loc; }
 
-	const GLint & get_model_loc() const { return r_model_mat4_loc; }
-	void set_model_loc(const GLint & matrix_loc) { r_model_mat4_loc = matrix_loc; }
+	const GLint & GetModelMatrixLoc() const { return r_model_mat4_loc; }
+	void SetModelMatrixLoc(const GLint & matrix_loc) { r_model_mat4_loc = matrix_loc; }
 
-	const GLint & get_color_loc() const { return r_color_vec4_loc; }
-	void set_color_loc(const GLint & matrix_loc) { r_color_vec4_loc = matrix_loc; }
+	const GLint & GetColorShaderLoc() const { return r_color_vec4_loc; }
+	void SetColorShaderLoc(const GLint & matrix_loc) { r_color_vec4_loc = matrix_loc; }
 
-	const glm::vec4 & get_color() const { return _color; }
-	void set_color(const glm::vec4 & v4_color) { _color = v4_color; }
-	void set_color(const glm::vec3 & v3_color) { _color = glm::vec4(v3_color, 1.0f); }
+	const glm::vec4 & GetColor() const { return _color; }
+	void SetColor(const glm::vec4 & v4_color) { _color = v4_color; }
+	void SetColor(const glm::vec3 & v3_color) { _color = glm::vec4(v3_color, 1.0f); }
 
-	const std::string getModelPath() const { return model_path; }
-	const std::string getVShaderPath() const { return vertex_shader_path; }
-	const std::string getFShaderPath() const { return fragment_shader_path; }
-	const std::string getTexturePath() const { return texture_path; }
+	const std::string GetModelPath() const { return model_path; }
+	const std::string GetVShaderPath() const { return vertex_shader_path; }
+	const std::string GetFShaderPath() const { return fragment_shader_path; }
+	const std::string GetTexturePath() const { return texture_path; }
+
+	const std::string GetShaderPath() const { return std::string(vertex_shader_path + fragment_shader_path); }
 
 	GLint r_text_adj_w;
 	GLint r_text_adj_h;

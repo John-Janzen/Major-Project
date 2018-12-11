@@ -6,21 +6,13 @@
 #include "TaskManager.h"
 #include "Scene.h"
 
-enum SYSTEM_TYPE
-{
-	NULL_SYSTEM,
-	RENDER_SYSTEM,
-	INPUT_SYSTEM,
-	TEST_SYSTEM
-};
-
 class System
 {
 public:
 	System();
 	virtual ~System() = 0;
 
-	virtual bool Load(void* content) = 0;
+	virtual JOB_RETURN Load(void* content) = 0;
 	virtual void Close(void* content) = 0;
 
 private:

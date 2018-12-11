@@ -14,12 +14,12 @@ public:
 	PhysicsComponent();
 	~PhysicsComponent();
 
-	btCollisionShape * getCollisionShape() { return shape; }
-	btScalar getMass() { return mass; }
-	btVector3 getLocalInertia() { return local_inertia; }
-	btRigidBody * getRigidBody() { return rigid_body; }
+	btCollisionShape * GetCollisionShape() { return shape; }
+	btScalar GetMass() { return mass; }
+	btVector3 GetLocalInertia() { return local_inertia; }
 
-	void setRigidBody(btRigidBody * rb) { rigid_body = rb; }
+	btRigidBody * GetRigidBody() { return rigid_body; }
+	void SetRigidBody(btRigidBody * rb) { rigid_body = rb; }
 
 protected:
 	btCollisionShape * shape;
