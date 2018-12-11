@@ -12,6 +12,8 @@ class Input :
 	public System
 {
 public:
+
+	float player_speed = 10;
 	Input();
 	~Input();
 

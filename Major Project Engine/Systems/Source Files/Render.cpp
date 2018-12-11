@@ -11,6 +11,9 @@ glm::mat4 getGLMMatrix4(const btScalar * matrix)
 Render::Render(SDL_Window * window, const int width, const int height)
 	: sdl_window(window), screen_width(width), screen_height(height)
 {
+	_models = new Storage<Model>();
+	_shaders = new Storage<Shader>();
+	_textures = new Storage<Texture>();
 }
 
 Render::~Render() 
@@ -18,29 +21,9 @@ Render::~Render()
 	std::cout << "Render Destructor called" << std::endl;
 	sdl_window = nullptr;
 
-	std::unordered_map<std::string, Model*>::iterator model_it = _models.begin();
-	while (model_it != _models.end())
-	{
-		if ((*model_it).second != nullptr)
-			delete (*model_it).second;
-		model_it = _models.erase(model_it);
-	}
-
-	std::unordered_map<std::string, Shader*>::iterator shader_it = _shaders.begin();
-	while (shader_it != _shaders.end())
-	{
-		if ((*shader_it).second != nullptr)
-			delete (*shader_it).second;
-		shader_it = _shaders.erase(shader_it);
-	}
-	
-	std::unordered_map<std::string, Texture*>::iterator texture_it = _textures.begin();
-	while (texture_it != _textures.end())
-	{
-		if ((*texture_it).second != nullptr)
-			delete (*texture_it).second;
-		texture_it = _textures.erase(texture_it);
-	}
+	delete _models;
+	delete _textures;
+	delete _shaders;
 }
 
 bool Render::Load(void* content)
@@ -96,17 +79,17 @@ void Render::ComponentUpdate
 	const btTransform transform
 )
 {
-	if (rc->get_model() != nullptr)
+	if (rc->GetModel() != nullptr)
 	{
 		glBindVertexArray(rc->get_v_array());
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->get_e_buffer());
 
 		glUseProgram(*rc->get_shader_prog());
 
-		if (rc->get_texture() != nullptr && rc->get_texture()->TextureID != 0)
+		if (rc->GetTexture() != nullptr && rc->GetTexture()->TextureID != 0)
 		{
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, rc->get_texture()->TextureID);
+			glBindTexture(GL_TEXTURE_2D, rc->GetTexture()->TextureID);
 			glUniform4f(rc->get_color_loc(), rc->get_color().x, rc->get_color().y, rc->get_color().z, rc->get_color().w);
 		}
 		else
@@ -123,7 +106,7 @@ void Render::ComponentUpdate
 
 		glUniformMatrix4fv(rc->get_proj_loc(), 1, GL_FALSE, project_value);
 		glUniformMatrix4fv(rc->get_model_loc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
-		glDrawElements(GL_TRIANGLES, rc->get_model()->ISize, GL_UNSIGNED_INT, NULL);
+		glDrawElements(GL_TRIANGLES, rc->GetModel()->ISize, GL_UNSIGNED_INT, NULL);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -168,19 +151,9 @@ bool Render::init_render_component(void * ptr)
 bool Render::LoadModel(void * ptr)
 {
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	std::unordered_map<std::string, Model*>::iterator model_it;
-	if ((model_it = _models.find(rc->getModelPath())) != _models.end())
+	if (!_models->HasItem(rc->getModelPath(), rc->GetModelAdd()))
 	{
-		rc->set_model(model_it->second);
-	}
-	else
-	{
-		Model * model = load_obj_file(rc->getModelPath());
-		if (model != nullptr)
-		{
-			auto loc = _models.emplace(rc->getModelPath(), model);
-			rc->set_model(model);
-		}
+		LoadOBJModelFile(rc->getModelPath(), rc->GetModelAdd());
 	}
 	return true;
 }
@@ -188,19 +161,9 @@ bool Render::LoadModel(void * ptr)
 bool Render::LoadShader(void * ptr)
 {
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	std::unordered_map<std::string, Shader*>::iterator shader_it;
-	if ((shader_it = _shaders.find(std::string(rc->getVShaderPath() + rc->getFShaderPath()))) != _shaders.end())
+	if (!_shaders->HasItem(rc->getShaderPath(), rc->GetShaderAdd()))
 	{
-		rc->set_shader(shader_it->second);
-	}
-	else
-	{
-		Shader * shader = load_shader(rc->getVShaderPath(), rc->getFShaderPath());
-		if (shader != nullptr)
-		{
-			auto loc = _shaders.emplace(std::string(rc->getVShaderPath() + rc->getFShaderPath()), shader);
-			rc->set_shader(shader);
-		}
+		LoadShaderFile(rc->getVShaderPath(), rc->getFShaderPath(), rc->GetShaderAdd());
 	}
 	return true;
 }
@@ -208,19 +171,9 @@ bool Render::LoadShader(void * ptr)
 bool Render::LoadTexture(void * ptr)
 {
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	std::unordered_map<std::string, Texture*>::iterator texture_it;
-	if ((texture_it = _textures.find(rc->getTexturePath())) != _textures.end())
+	if (!_textures->HasItem(rc->getTexturePath(), rc->GetTextureAdd()))
 	{
-		rc->set_texture(texture_it->second);
-	}
-	else
-	{
-		Texture * texture = load_texture(rc->getTexturePath());
-		if (texture != nullptr)
-		{
-			auto loc = _textures.emplace(rc->getTexturePath(), texture);
-			rc->set_texture(texture);
-		}
+		LoadTextureFile(rc->getTexturePath(), rc->GetTextureAdd());
 	}
 	return true;
 }
@@ -228,13 +181,13 @@ bool Render::LoadTexture(void * ptr)
 bool Render::BindModel(void * ptr)
 {
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
-	if (rc_cp->get_model() != nullptr)
+	if (rc_cp->GetModel() != nullptr)
 	{
 		glGenBuffers(1, &rc_cp->get_e_buffer());
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc_cp->get_e_buffer());
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			(sizeof(GLuint) * rc_cp->get_model()->ISize),
-			rc_cp->get_model()->getIndices(),
+			(sizeof(GLuint) * rc_cp->GetModel()->ISize),
+			rc_cp->GetModel()->_indices,
 			GL_STATIC_DRAW);
 
 		glGenVertexArrays(1, &rc_cp->get_v_array());
@@ -242,8 +195,8 @@ bool Render::BindModel(void * ptr)
 
 		glGenBuffers(1, &rc_cp->get_v_buffer());
 		glBindBuffer(GL_ARRAY_BUFFER, rc_cp->get_v_buffer());
-		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * rc_cp->get_model()->VSize),
-			rc_cp->get_model()->getVertices(),
+		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * rc_cp->GetModel()->VSize),
+			rc_cp->GetModel()->_vertices,
 			GL_STATIC_DRAW);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
@@ -266,16 +219,16 @@ bool Render::BindModel(void * ptr)
 bool Render::BindTexture(void * ptr)
 {
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
-	if (rc_cp->get_texture() != nullptr)
+	if (rc_cp->GetTexture() != nullptr)
 	{
 		glActiveTexture(GL_TEXTURE0);
-		glGenTextures(1, &rc_cp->get_texture()->TextureID);
-		glBindTexture(GL_TEXTURE_2D, rc_cp->get_texture()->TextureID);
+		glGenTextures(1, &rc_cp->GetTexture()->TextureID);
+		glBindTexture(GL_TEXTURE_2D, rc_cp->GetTexture()->TextureID);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-			rc_cp->get_texture()->texWidth,
-			rc_cp->get_texture()->texWidth,
+			rc_cp->GetTexture()->texWidth,
+			rc_cp->GetTexture()->texWidth,
 			0, GL_RGBA, GL_UNSIGNED_BYTE,
-			rc_cp->get_texture()->get_data());
+			rc_cp->GetTexture()->_texture);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -295,12 +248,12 @@ bool Render::BindTexture(void * ptr)
 bool Render::BindShader(void * ptr)
 {
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
-	if (rc_cp->get_shader() != nullptr)
+	if (rc_cp->GetShader() != nullptr)
 	{
 		const GLuint *program = rc_cp->set_shader_prog(glCreateProgram());
 
-		glAttachShader(*program, rc_cp->get_shader()->getVertexShader());
-		glAttachShader(*program, rc_cp->get_shader()->getFragmentShader());
+		glAttachShader(*program, rc_cp->GetShader()->_shaderID_Vert);
+		glAttachShader(*program, rc_cp->GetShader()->_shaderID_Frag);
 		glLinkProgram(*program);
 
 		GLint programSuccess = GL_FALSE;
@@ -320,11 +273,11 @@ bool Render::BindShader(void * ptr)
 			rc_cp->r_text_adj_w = glGetUniformLocation(*program, "texture_width_adj");
 			rc_cp->r_text_adj_h = glGetUniformLocation(*program, "texture_height_adj");
 
-			if (rc_cp->get_texture() != nullptr && rc_cp->get_texture()->TextureID != 0)
+			if (rc_cp->GetTexture() != nullptr && rc_cp->GetTexture()->TextureID != 0)
 			{
 				glUniform1i(glGetUniformLocation(*program, "tex_available"), 1);
-				glUniform1f(rc_cp->r_text_adj_w, rc_cp->get_texture()->imgWidth / (GLfloat)rc_cp->get_texture()->texWidth);
-				glUniform1f(rc_cp->r_text_adj_h, rc_cp->get_texture()->imgHeight / (GLfloat)rc_cp->get_texture()->texHeight);
+				glUniform1f(rc_cp->r_text_adj_w, rc_cp->GetTexture()->imgWidth / (GLfloat)rc_cp->GetTexture()->texWidth);
+				glUniform1f(rc_cp->r_text_adj_h, rc_cp->GetTexture()->imgHeight / (GLfloat)rc_cp->GetTexture()->texHeight);
 			}
 			else
 			{
@@ -361,6 +314,7 @@ bool Render::init_GL()
 {
 	glViewport(0, 0, screen_width, screen_height);
 
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);

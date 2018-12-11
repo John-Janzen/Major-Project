@@ -4,6 +4,8 @@
 #define _RENDER_H
 
 #include "System.h"
+#include "FileLoader.h"
+#include "RenderStorage.h"
 
 #include <SDL.h>
 #include <gl\GL.h>
@@ -13,10 +15,6 @@
 #include <gtc\matrix_transform.hpp>
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
-
-typedef std::unordered_map<std::string, Model*> ModelsStorage;
-typedef std::unordered_map<std::string, Shader*> ShaderStorage;
-typedef std::unordered_map<std::string, Texture*> TextureStorage;
 
 class Render : public System
 {
@@ -49,6 +47,7 @@ public:
 	bool BindShader(void * ptr);
 
 	bool init_SDL(SDL_GLContext context);
+
 	bool init_GL();
 
 private:
@@ -60,9 +59,9 @@ private:
 
 	GLfloat Y_rotation = 0.0f;
 
-	ModelsStorage _models;
-	ShaderStorage _shaders;
-	TextureStorage _textures;
+	Storage<Model> * _models;
+	Storage<Shader> * _shaders;
+	Storage<Texture> * _textures;
 };
 
 #endif // !_RENDER_H

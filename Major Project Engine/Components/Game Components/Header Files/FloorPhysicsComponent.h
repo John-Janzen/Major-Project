@@ -13,7 +13,7 @@ private:
 
 inline FloorPhysicsComponent::FloorPhysicsComponent() 
 {
-	shape = new btBoxShape(btVector3(1.f, 1.f, 1.f));
+	shape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
 	mass = btScalar(0.f);
 	local_inertia = btVector3(0.f, 0.f, 0.f);
 

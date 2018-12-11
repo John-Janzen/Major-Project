@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <memory>
+#include <iostream>
 
 typedef int EntityID;
 typedef std::unordered_multimap <EntityID, BaseComponent*> ComponentStorage;

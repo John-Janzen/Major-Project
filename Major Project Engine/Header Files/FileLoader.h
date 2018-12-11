@@ -3,7 +3,7 @@
 #ifndef _FILELOADER_H
 #define _FILELOADER_H
 
-#include "RenderExternals.h"
+#include "RenderStorage.h"
 
 #include <IL\il.h>
 #include <IL\ilu.h>
@@ -21,11 +21,11 @@
 #include <algorithm>
 #include <mutex>
 
-extern Shader * load_shader(const std::string & vert_path, const std::string & frag_path);
+extern bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Shader * & shader);
 
-extern Model * load_obj_file(const std::string & path);
+extern bool LoadOBJModelFile(const std::string path, Model * & model);
 
-extern Texture * load_texture(const std::string & path);
+extern bool LoadTextureFile(const std::string path, Texture * & texture);
 
 extern std::string openFileRead(const std::string & path);
 

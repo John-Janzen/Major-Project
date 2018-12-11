@@ -4,10 +4,11 @@
 #define _RENDERCOMPONENT_H
 
 #include "BaseComponent.h"
-#include "FileLoader.h"
+#include "RenderStorage.h"
 
 #include <memory>
 #include <string>
+#include <glm.hpp>
 
 class RenderComponent : public BaseComponent
 {
@@ -16,14 +17,17 @@ public:
 	RenderComponent();
 	~RenderComponent();
 
-	void set_model(Model * model) { current_model = model; }
-	Model * get_model() const { return current_model; }
+	void SetModel(Model * model) { current_model = model; }
+	Model * GetModel() const { return current_model; }
+	Model * & GetModelAdd() { return current_model; }
 
-	void set_shader(Shader * shader) { current_shader = shader; }
-	Shader * get_shader() const { return current_shader; }
+	void SetShader(Shader * shader) { current_shader = shader; }
+	Shader * GetShader() const { return current_shader; }
+	Shader * & GetShaderAdd() { return current_shader; }
 
-	void set_texture(Texture * texture) { current_texture = texture; }
-	Texture * get_texture() const { return current_texture; }
+	void SetTexture(Texture * texture) { current_texture = texture; }
+	Texture * GetTexture() const { return current_texture; }
+	Texture * & GetTextureAdd() { return current_texture; }
 
 	GLuint & get_v_buffer() { return vert_buff_obj; }
 	GLuint & get_v_array() { return vert_arr_obj; }
@@ -49,6 +53,8 @@ public:
 	const std::string getVShaderPath() const { return vertex_shader_path; }
 	const std::string getFShaderPath() const { return fragment_shader_path; }
 	const std::string getTexturePath() const { return texture_path; }
+
+	const std::string getShaderPath() const { return std::string(vertex_shader_path + fragment_shader_path); }
 
 	GLint r_text_adj_w;
 	GLint r_text_adj_h;

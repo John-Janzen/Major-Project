@@ -92,6 +92,5 @@ bool Game::Load_Scene(const SCENE_SELECTION type)
 		printf("Error Making current scene");
 		return false;
 	}
-
 	return true;
 }

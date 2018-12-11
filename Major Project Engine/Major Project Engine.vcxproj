@@ -38,16 +38,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Components\Game Components\Header Files\FloorPhysicsComponent.h" />
+    <ClInclude Include="Game Objects\Header Files\Floor.h" />
     <ClInclude Include="Game Objects\Header Files\Camera.h" />
     <ClInclude Include="Components\Base Components\Header Files\CameraComponent.h" />
     <ClInclude Include="Components\Base Components\Header Files\ComponentHeaders.h" />
     <ClInclude Include="Components\Game Components\Header Files\GameComponents.h" />
     <ClInclude Include="Game Objects\Header Files\GameHeaders.h" />
     <ClInclude Include="Header Files\FileLoader.h" />
-    <ClInclude Include="Header Files\RenderExternals.h" />
     <ClInclude Include="Components\Base Components\Header Files\PlayerControllerComponent.h" />
     <ClInclude Include="Components\Game Components\Header Files\PlayerRenderComponent.h" />
-    <ClInclude Include="Header Files\Model.h" />
+    <ClInclude Include="Header Files\RenderStorage.h" />
     <ClInclude Include="Components\Base Components\Header Files\PhysicsComponent.h" />
     <ClInclude Include="Components\Game Components\Header Files\PlayerPhysicsComponent.h" />
     <ClInclude Include="Game Objects\Header Files\MultiObject.h" />

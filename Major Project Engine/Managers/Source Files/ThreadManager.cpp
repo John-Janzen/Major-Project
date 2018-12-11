@@ -68,37 +68,11 @@ void ThreadManager::allocate_jobs()
 				}
 				else
 				{
-					
 					Job * temp = task_queue.front();
 					task_queue.pop();
 					task_queue.push(temp);
 					temp = nullptr;
 					continue;
-				}
-				break;
-			case IO_TYPE:
-				if (io_thread == nullptr)
-				{
-					if (threads[i]->check_availability())
-					{
-						io_thread = threads[i];
-						io_thread->get_location() = task_queue.front();
-						task_queue.front() = nullptr;
-						task_queue.pop();
-					}
-					else 
-					{
-
-					}
-				}
-				else
-				{
-					if (io_thread->check_availability())
-					{
-						io_thread->get_location() = task_queue.front();
-						task_queue.front() = nullptr;
-						task_queue.pop();
-					}
 				}
 				break;
 			default:
