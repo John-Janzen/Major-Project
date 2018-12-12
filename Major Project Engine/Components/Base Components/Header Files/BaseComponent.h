@@ -3,16 +3,16 @@
 #ifndef _BASECOMPONENT_H
 #define _BASECOMPONENT_H
 
-#include <memory>
+typedef int EntityID;
 
 class BaseComponent
 {
 public:
 	BaseComponent() : death_flag(false) {}
 	virtual ~BaseComponent() {}
-	virtual void Receive(int message) = 0;
 
 	void SetDeathFlag() { death_flag = true; }
+
 private:
 	bool death_flag;
 };

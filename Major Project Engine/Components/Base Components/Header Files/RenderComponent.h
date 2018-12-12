@@ -17,8 +17,6 @@ public:
 	RenderComponent();
 	~RenderComponent();
 
-	void Receive(int massage) {}
-
 	void SetModel(Model * model) { current_model = model; }
 	Model * GetModel() const { return current_model; }
 	Model * & GetModelAdd() { return current_model; }

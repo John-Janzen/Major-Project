@@ -7,6 +7,7 @@
 #include "GameComponents.h"
 
 #include <unordered_map>
+#include <map>
 #include <algorithm>
 #include <memory>
 #include <iostream>
@@ -36,17 +37,17 @@ public:
 	}
 
 	template<class T>
-	std::list<T> FindAllTypes() const
+	std::map<EntityID, T> FindAllTypes() const
 	{
-		std::list<T> full_list;
-		for (auto element : _components)
+		std::map<EntityID, T> copy_list;
+		for (auto it = _components.begin(); it != _components.end(); ++it)
 		{
-			if (dynamic_cast<T>(element.second) != nullptr)
+			if (dynamic_cast<T>(it->second) != nullptr)
 			{
-				full_list.push_back(static_cast<T>(element.second));
+				copy_list.emplace(it);
 			}
 		}
-		return full_list;
+		return copy_list;
 	}
 
 	template <class T>
@@ -76,6 +77,19 @@ public:
 	}
 
 	template <class T>
+	T GetComponent(const EntityID _id)
+	{
+		for (auto it : _components)
+		{
+			if (dynamic_cast<T>(it.second) != nullptr)
+			{
+				return static_cast<T>(it.second);
+			}
+		}
+		return nullptr;
+	}
+
+	template <class T>
 	bool GetComponent(const EntityID entity_id, T & base_comp)
 	{
 		bool found = false;
@@ -92,18 +106,6 @@ public:
 	}
 
 	template <class T>
-	T GetComponent(const EntityID entity_id)
-	{
-		auto range = _components.equal_range(entity_id);
-		for (auto it = range.first; it != range.second; ++it)
-		{
-			if (dynamic_cast<T>(it->second) != nullptr)
-				return static_cast<T>(it->second);
-		}
-		return nullptr;
-	}
-
-	template <class T>
 	bool HasComponent(const EntityID entity_id)
 	{
 		bool found = false;
@@ -116,15 +118,6 @@ public:
 			}
 		});
 		return found;
-	}
-
-	void SendMessage(const EntityID entity_id, int message)
-	{
-		auto range = _components.equal_range(entity_id);
-		for (auto it = range.first; it != range.second; ++it)
-		{
-			(it->second)->Receive(message);
-		}
 	}
 
 private:

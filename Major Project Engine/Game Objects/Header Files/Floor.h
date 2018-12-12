@@ -24,5 +24,5 @@ inline void Floor::Load(ComponentManager *& c_manager)
 {
 	c_manager->AddComponent(this->GetID(), new PlayerRenderComponent());
 	c_manager->AddComponent(this->GetID(), new FloorPhysicsComponent());
-	this->_transform = btTransform(btQuaternion(), btVector3(btScalar(0.f), btScalar(-56.f), btScalar(0.f)));
+	c_manager->AddComponent(this->GetID(), new Transform(btVector3(btScalar(0.f), btScalar(2.f), btScalar(0.f))));
 }

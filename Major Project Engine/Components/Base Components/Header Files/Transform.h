@@ -8,16 +8,23 @@ class Transform :
 {
 public:
 	Transform();
+	Transform(btVector3 position);
 	~Transform();
-
-	void Receive(int message)
-	{
-
-	}
 
 	btTransform _transform;
 };
 
-Transform::Transform() {}
+inline Transform::Transform()
+{
+	_transform = btTransform();
+	_transform.setIdentity();
+}
 
-Transform::~Transform() {}
+inline Transform::Transform(btVector3 position) 
+{
+	_transform = btTransform();
+	_transform.getIdentity();
+	_transform.setOrigin(position);
+}
+
+inline Transform::~Transform() {}

@@ -5,12 +5,9 @@
 
 #include "GameHeaders.h"
 
-#include <unordered_map>
-#include <type_traits>
-#include <memory>
+#include <list>
 
-typedef int EntityID;
-typedef std::map<EntityID, Entity*> EntityStorage;
+typedef std::list<Entity*> EntityStorage;
 
 class EntityManager
 {
@@ -18,77 +15,65 @@ public:
 
 	EntityManager() : id_counter(0x100)
 	{
-		_entities = EntityStorage();
-	}
-	~EntityManager() 
-	{
-		std::map<EntityID, Entity*>::iterator entity_it = _entities.begin();
-		while (entity_it != _entities.end())
-		{
-			if ((*entity_it).second != nullptr)
-				delete (*entity_it).second;
-			entity_it = _entities.erase(entity_it);
-		}
 	}
 
-	/*Entity * CreateEntity()
+	~EntityManager() 
 	{
-		auto inserted = _entities.emplace(id_counter, new Entity(std::string("Default" + ' ' + id_counter), id_counter));
-		id_counter++;
-		return static_cast<Entity*>(inserted.first->second);
-	}*/
+		
+	}
 
 	template <class T>
 	T * CreateEntity()
 	{
-		auto inserted = _entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
+		_entities.emplace_back(new T(std::string("Default" + ' ' + id_counter), id_counter));
 		id_counter++;
-		return static_cast<T*>(inserted.first->second);
+		return static_cast<T*>(_entities.back());
 	}
 
 	template <class T>
 	T * CreateEntity(EntityID & id)
 	{
-		auto inserted = _entities.emplace(id_counter, new T(std::string("Default" + ' ' + id_counter), id_counter));
-		id = inserted.first->first;
-		id_counter++;
-		return static_cast<T*>(inserted.first->second);
+		_entities.emplace_back(new T(std::string("Default" + ' ' + id_counter), id_counter));
+		id = id_counter;
+		id_counter++; 
+		return static_cast<T*>(_entities.back());
 	}
 
 	template <class T>
 	T * CreateEntity(const std::string & name)
 	{
-		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
+		_entities.emplace_back(new T(name, id_counter));
 		id_counter++;
-		return static_cast<T*>(inserted.first->second);
+		return static_cast<T*>(_entities.back());
 	}
 
 	template <class T>
 	const EntityID & CreateEntity(const std::string & name, T * & entity)
 	{
-		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
-		entity = static_cast<T*>(inserted.first->second);
+		_entities.emplace_back(new T(name, id_counter));
+		entity = static_cast<T*>(_entities.back());
 		id_counter++;
-		return inserted.first->first;
+		return entity->GetID();
 	}
 
 	template <class T>
 	T * CreateEntity(const std::string & name, EntityID & entity_id)
 	{
-		auto inserted = _entities.emplace(id_counter, new T(name, id_counter));
-		entity_id = inserted.first->first;
+		_entities.emplace_back(new T(name, id_counter));
+		entity_id = id_counter;
 		id_counter++;
-		return static_cast<T*>(inserted.first->second);
-	}
-
-	Entity * & FindEntity(const EntityID _id)
-	{
-		return _entities.find(_id)->second;
+		return static_cast<T*>(_entities.back());
 	}
 
 	void FlagDeath(const EntityID entity_id)
 	{
-		_entities.find(entity_id)->second->SetDeathFlag();
+		for (auto entity : _entities)
+		{
+			if (entity->GetID() == entity_id)
+			{
+				entity->SetDeathFlag();
+			}
+		}
 	}
 
 	void FlagDeath(Entity * & entity)
@@ -96,25 +81,14 @@ public:
 		entity->SetDeathFlag();
 	}
 
-	void DestroyDeadEntities()
-	{
-		for (auto it = _entities.begin(); it != _entities.end(); ++it)
-		{
-			if ((*it).second->GetDeathFlag())
-			{
-				it = _entities.erase(it);
-			}
-		}
-	}
-
-	const EntityStorage & retreive_list()
+	std::list<Entity*> GetEntities()
 	{
 		return _entities;
 	}
 
 private:
-
 	EntityStorage _entities;
+
 	EntityID id_counter;
 };
 

@@ -10,6 +10,8 @@
 #include <typeindex>
 #include <string>
 
+typedef int EntityID;
+
 class Entity
 {
 public:
@@ -18,7 +20,7 @@ public:
 
 	virtual void Load(ComponentManager * & c_manager) = 0;
 
-	int GetID() const { return _id; }
+	EntityID GetID() const { return _id; }
 	std::string GetName() const { return _name; }
 	void SetDeathFlag() { death_flag = true; }
 	bool GetDeathFlag() { return death_flag; }

@@ -24,7 +24,11 @@ bool MainScene::Load()
 			{
 				entity_manager->CreateEntity(std::string("MultObject#" + (i + j)), m_object);
 				m_object->Load(component_manager);
-				m_object->SetLocation(i - (5 / (float)2), j - (5 / (float)2), k - (5 / (float)2));
+				m_object->SetLocation
+				(
+					component_manager->GetComponent<Transform*>(m_object->GetID()), 
+					btVector3(btScalar(i - (5 / (float)2)), btScalar(j - (5 / (float)2)), btScalar(k - (5 / (float)2)))
+				);
 			}
 		}
 	}

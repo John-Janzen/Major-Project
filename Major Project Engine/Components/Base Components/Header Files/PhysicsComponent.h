@@ -14,8 +14,6 @@ public:
 	PhysicsComponent();
 	~PhysicsComponent();
 
-	void Receive(int message) {}
-
 	btCollisionShape * GetCollisionShape() { return shape; }
 	btScalar GetMass() { return mass; }
 	btVector3 GetLocalInertia() { return local_inertia; }
