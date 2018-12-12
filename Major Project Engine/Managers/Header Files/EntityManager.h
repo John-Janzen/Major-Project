@@ -31,12 +31,12 @@ public:
 		}
 	}
 
-	Entity * CreateEntity()
+	/*Entity * CreateEntity()
 	{
 		auto inserted = _entities.emplace(id_counter, new Entity(std::string("Default" + ' ' + id_counter), id_counter));
 		id_counter++;
 		return static_cast<Entity*>(inserted.first->second);
-	}
+	}*/
 
 	template <class T>
 	T * CreateEntity()

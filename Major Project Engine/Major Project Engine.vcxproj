@@ -76,6 +76,7 @@
     <ClInclude Include="Header Files\Timer.h" />
     <ClInclude Include="Systems\Header Files\TestSystem.h" />
     <ClInclude Include="Managers\Header Files\TaskManager.h" />
+    <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

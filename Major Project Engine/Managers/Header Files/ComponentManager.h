@@ -118,6 +118,15 @@ public:
 		return found;
 	}
 
+	void SendMessage(const EntityID entity_id, int message)
+	{
+		auto range = _components.equal_range(entity_id);
+		for (auto it = range.first; it != range.second; ++it)
+		{
+			(it->second)->Receive(message);
+		}
+	}
+
 private:
 	ComponentStorage _components;
 };

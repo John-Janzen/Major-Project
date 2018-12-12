@@ -18,6 +18,8 @@ public:
 	CameraComponent();
 	~CameraComponent();
 
+	void Receive(int message) {}
+
 	GLfloat * SetProjectionLook(const glm::mat4 & matrix) { return glm::value_ptr(projection_look_matrix = projection_matrix * (look_matrix * matrix)); }
 	GLfloat * GetProjectionPtr() { return glm::value_ptr(projection_look_matrix); }
 

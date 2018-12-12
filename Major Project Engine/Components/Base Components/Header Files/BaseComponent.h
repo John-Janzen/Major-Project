@@ -10,6 +10,7 @@ class BaseComponent
 public:
 	BaseComponent() : death_flag(false) {}
 	virtual ~BaseComponent() {}
+	virtual void Receive(int message) = 0;
 
 	void SetDeathFlag() { death_flag = true; }
 private:

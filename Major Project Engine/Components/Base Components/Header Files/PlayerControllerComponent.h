@@ -18,6 +18,8 @@ public:
 	PlayerControllerComponent() {}
 	~PlayerControllerComponent(){}
 
+	void Receive(int message) {}
+
 	const CONTROL_TYPE & GetType() const { return current_type; }
 
 private:

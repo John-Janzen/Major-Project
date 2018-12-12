@@ -44,10 +44,12 @@ Physics::~Physics()
 
 void Physics::Update(void * ptr)
 {
-	Scene * scene = static_cast<Scene*>(ptr);
+	/*Scene * scene = static_cast<Scene*>(ptr);
 	dynamicWorld->stepSimulation(1.f / 60.f);
-	PhysicsComponent * p_cp;
-	for (auto & entity : scene->GetEntityManager()->retreive_list())
+	PhysicsComponent * p_cp;*/
+
+
+	/*for (auto & entity : scene->GetEntityManager()->retreive_list())
 	{
 		if ((p_cp = scene->GetCompManager()->GetComponent<PhysicsComponent*>(entity.second->GetID())) != nullptr)
 		{
@@ -57,12 +59,12 @@ void Physics::Update(void * ptr)
 				body->getMotionState()->getWorldTransform(entity.second->GetTransformAdd());
 			}
 		}
-	}
+	}*/
 }
 
 JOB_RETURN Physics::Load(void * content)
 {
-	Scene * scene = static_cast<Scene*>(content);
+	/*Scene * scene = static_cast<Scene*>(content);
 	PhysicsComponent * p_cp;
 	for (auto entity : scene->GetEntityManager()->retreive_list())
 	{
@@ -74,7 +76,7 @@ JOB_RETURN Physics::Load(void * content)
 			p_cp->SetRigidBody(new btRigidBody(rbInfo));
 			dynamicWorld->addRigidBody(p_cp->GetRigidBody());
 		}
-	}
+	}*/
 	return JOB_COMPLETED;
 }
 
