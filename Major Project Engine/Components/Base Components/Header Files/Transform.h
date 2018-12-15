@@ -8,7 +8,7 @@ class Transform :
 {
 public:
 	Transform();
-	Transform(btVector3 position);
+	Transform(const btVector3 position);
 	~Transform();
 
 	btTransform _transform;
@@ -20,10 +20,10 @@ inline Transform::Transform()
 	_transform.setIdentity();
 }
 
-inline Transform::Transform(btVector3 position) 
+inline Transform::Transform(const btVector3 position) 
 {
 	_transform = btTransform();
-	_transform.getIdentity();
+	_transform.setIdentity();
 	_transform.setOrigin(position);
 }
 

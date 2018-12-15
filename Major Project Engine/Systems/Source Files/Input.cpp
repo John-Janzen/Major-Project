@@ -23,12 +23,12 @@ void Input::Update
 )
 {
 	PlayerControllerComponent * pc_cp;
-	ComponentManager * c_manager = current_scene->GetCompManager();
+	ComponentManager * m_components = current_scene->GetCompManager();
 	/*for (auto entity : current_scene->GetEntityManager()->GetEntities())
 	{
-		if ((pc_cp = c_manager->GetComponent<PlayerControllerComponent*>(entity->GetID())) != nullptr)
+		if ((pc_cp = m_components->GetComponent<PlayerControllerComponent*>(entity->GetID())) != nullptr)
 		{
-			PlayerControls(_dt, pc_cp, c_manager->GetComponent<Transform*>(entity->GetID()));
+			PlayerControls(_dt, pc_cp, m_components->GetComponent<Transform*>(entity->GetID()));
 		}
 	}*/
 }

@@ -10,9 +10,8 @@ class Player :
 	public Entity
 {
 public:
-	Player(const std::string & name, int id);
-	~Player();
-	void Load(ComponentManager * & c_manager);
+	Player(const std::string & name, int id) : Entity(name, id) {}
+	~Player() {}
 };
 
 

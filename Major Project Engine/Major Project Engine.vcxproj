@@ -23,11 +23,9 @@
     <ClCompile Include="Systems\Source Files\Physics.cpp" />
     <ClCompile Include="Source Files\FileLoader.cpp" />
     <ClCompile Include="Systems\Source Files\Input.cpp" />
-    <ClCompile Include="Game Objects\Source Files\Player.cpp" />
     <ClCompile Include="Scenes\Source Files\MainScene.cpp" />
     <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
     <ClCompile Include="Components\Base Components\Source Files\RenderComponent.cpp" />
-    <ClCompile Include="Game Objects\Source Files\Quad.cpp" />
     <ClCompile Include="Systems\Source Files\Render.cpp" />
     <ClCompile Include="Source Files\Game.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />

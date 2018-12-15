@@ -31,16 +31,17 @@ public:
 	}
 
 	template <class T>
-	T * CreateEntity(EntityID & id)
+	void CreateEntity(EntityID & id)
 	{
 		_entities.emplace_back(new T(std::string("Default" + ' ' + id_counter), id_counter));
 		id = id_counter;
 		id_counter++; 
-		return static_cast<T*>(_entities.back());
+		//return static_cast<T*>(_entities.back());
 	}
 
+
 	template <class T>
-	T * CreateEntity(const std::string & name)
+	T * CreateEntity(const std::string name)
 	{
 		_entities.emplace_back(new T(name, id_counter));
 		id_counter++;
@@ -48,7 +49,7 @@ public:
 	}
 
 	template <class T>
-	const EntityID & CreateEntity(const std::string & name, T * & entity)
+	const EntityID & CreateEntity(const std::string name, T * & entity)
 	{
 		_entities.emplace_back(new T(name, id_counter));
 		entity = static_cast<T*>(_entities.back());
@@ -57,12 +58,24 @@ public:
 	}
 
 	template <class T>
-	T * CreateEntity(const std::string & name, EntityID & entity_id)
+	T * CreateEntity(const std::string name, EntityID & entity_id)
 	{
 		_entities.emplace_back(new T(name, id_counter));
 		entity_id = id_counter;
 		id_counter++;
 		return static_cast<T*>(_entities.back());
+	}
+
+	template <class T>
+	T * FindEntity()
+	{
+		for (auto entity : _entities)
+		{
+			if (dynamic_cast<T*>(entity) != nullptr)
+			{
+				return static_cast<T*>(entity);
+			}
+		}
 	}
 
 	void FlagDeath(const EntityID entity_id)
@@ -81,15 +94,15 @@ public:
 		entity->SetDeathFlag();
 	}
 
-	std::list<Entity*> GetEntities()
+	EntityStorage GetEntities()
 	{
 		return _entities;
 	}
 
 private:
 	EntityStorage _entities;
-
 	EntityID id_counter;
+
 };
 
 #endif // !_ENTITYMANAGER_H

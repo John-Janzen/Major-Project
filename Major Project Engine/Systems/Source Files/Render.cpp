@@ -58,24 +58,17 @@ JOB_RETURN Render::UpdateLoop
 	void * ptr
 )
 {
-	ComponentManager * c_manager = static_cast<ComponentManager*>(ptr);
-	EntityID camera_id;
-	this->InitUpdate(c_manager->GetComponent<CameraComponent*>(camera_id),
-		c_manager->GetComponent<Transform*>(camera_id)->_transform);
+	Scene * curr_scene = static_cast<Scene*>(ptr);
+	ComponentManager * comp_ptr = curr_scene->GetCompManager();
+	this->InitUpdate(comp_ptr->GetComponent<CameraComponent*>(curr_scene->GetCameraID()),
+		comp_ptr->GetComponent<Transform*>(curr_scene->GetCameraID())->_transform);
 
-	for (auto render_it : c_manager->FindAllTypes<RenderComponent*>())
+	for (auto render_it : comp_ptr->FindAllTypes<RenderComponent*>())
 	{
 		this->ComponentUpdate(project_value_ptr, 
 			render_it.second,
-			c_manager->GetComponent<Transform*>(render_it.first)->_transform);
+			comp_ptr->GetComponent<Transform*>(render_it.first)->_transform);
 	}
-	/*for (auto entity : current_scene->GetEntityManager()->retreive_list())
-	{
-		if ((rc = current_scene->GetCompManager()->GetComponent<RenderComponent*>(entity.first)) != nullptr)
-		{
-			this->ComponentUpdate( project_value_ptr, rc, c_manager->GetComponent<Transform*>(entity.first)->_transform);
-		}
-	}*/
 
 	this->FinalUpdate();
 	return JOB_COMPLETED;
@@ -135,9 +128,9 @@ void Render::Close(void* content)
 
 JOB_RETURN Render::InitRenderComp(void * ptr)
 {
-	ComponentManager * c_manager = static_cast<ComponentManager*>(ptr);
+	ComponentManager * m_components = static_cast<ComponentManager*>(ptr);
 
-	for (auto render_it : c_manager->FindAllTypes<RenderComponent*>())
+	for (auto render_it : m_components->FindAllTypes<RenderComponent*>())
 	{
 		// Loading model job
 		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render_it.second));

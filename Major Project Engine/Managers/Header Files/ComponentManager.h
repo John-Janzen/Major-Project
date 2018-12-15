@@ -44,7 +44,7 @@ public:
 		{
 			if (dynamic_cast<T>(it->second) != nullptr)
 			{
-				copy_list.emplace(it);
+				copy_list.emplace(it->first, static_cast<T>(it->second));
 			}
 		}
 		return copy_list;
@@ -79,11 +79,12 @@ public:
 	template <class T>
 	T GetComponent(const EntityID _id)
 	{
-		for (auto it : _components)
+		auto range = _components.equal_range(_id);
+		for (auto it = range.first; it != range.second; ++it)
 		{
-			if (dynamic_cast<T>(it.second) != nullptr)
+			if (dynamic_cast<T>(it->second) != nullptr)
 			{
-				return static_cast<T>(it.second);
+				return static_cast<T>(it->second);
 			}
 		}
 		return nullptr;
