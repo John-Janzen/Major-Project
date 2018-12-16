@@ -9,6 +9,8 @@
 #include <thread>
 #include <chrono>
 #include <string>
+#include <condition_variable>
+#include <mutex>
 
 /*
 * The thread wrapper class that encapsulate the standard
@@ -31,6 +33,7 @@ public:
 	~Thread();
 
 	void Execution();
+	void Notify();
 	void Stop();
 
 	bool CheckAvailable();
@@ -55,6 +58,9 @@ private:
 	bool _running = true;
 	std::string _name;
 	int count = 0;
+
+	std::condition_variable _cv;
+	std::mutex _mutex;
 
 	// Only one instance needed for these
 	// No need for copying

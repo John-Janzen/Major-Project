@@ -71,6 +71,7 @@ public:
 private:
 	Thread * threads[MAX_THREADS];
 	std::queue<Thread*> thread_queue;
+	Thread * render_thread;
 
 	std::queue<Job*> task_queue;
 	std::size_t num_of_threads;

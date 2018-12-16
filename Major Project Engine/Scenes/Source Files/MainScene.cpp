@@ -21,7 +21,7 @@ bool MainScene::Load()
 		{
 			for (int k = 0; k < NUM_MULTI_OBJECTS; k++)
 			{
-				this->LoadMultiObject((i - (NUM_MULTI_OBJECTS / (float)2)), (j - (NUM_MULTI_OBJECTS / (float)2)), (k - (NUM_MULTI_OBJECTS / (float)2)));
+				this->LoadMultiObject((i - NUM_MULTI_OBJECTS / 2.f), (j - NUM_MULTI_OBJECTS / 2.f), (k - NUM_MULTI_OBJECTS / 2.f));
 			}
 		}
 	}
@@ -70,7 +70,7 @@ bool MainScene::LoadMultiObject(const int x, const int y, const int z)
 	Entity * m_object = m_entities->CreateEntity<MultiObject>(std::string("MultObject#" + (x + y + z)));
 	m_components->AddComponent(m_object->GetID(), new PlayerRenderComponent());
 	m_components->AddComponent(m_object->GetID(), new PlayerPhysicsComponent());
-	m_components->AddComponent(m_object->GetID(), new Transform(btVector3(btScalar(x * NUM_MULTI_OBJECTS), btScalar(y * NUM_MULTI_OBJECTS), btScalar(z * NUM_MULTI_OBJECTS))));
+	m_components->AddComponent(m_object->GetID(), new Transform(btVector3(btScalar(x * NUM_MULTI_OBJECTS / 2), btScalar(y * NUM_MULTI_OBJECTS / 2), btScalar(z * NUM_MULTI_OBJECTS / 2))));
 	return true;
 }
 

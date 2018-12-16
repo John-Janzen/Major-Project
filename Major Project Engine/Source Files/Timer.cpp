@@ -65,5 +65,5 @@ void Timer::Print(const ms_duration & time)
 
 void Timer::SetDeltaTime()
 {
-	delta_time = std::chrono::duration<float, std::milli>(hr_clock::now() - current_time_frame).count() / 1000.0f;
+	this->delta_time = std::chrono::duration<float, std::milli>(hr_clock::now() - current_time_frame).count() / 1000.0f;
 }

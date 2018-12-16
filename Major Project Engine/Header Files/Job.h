@@ -57,6 +57,7 @@ public:
 		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent)
 	{
 	}
+	Job() {};
 
 	~Job()
 	{

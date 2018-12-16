@@ -16,6 +16,10 @@ Thread::Thread(const std::string & name, const THREAD_TYPE type)
 */
 Thread::~Thread() 
 {
+	_cv.notify_all();
+	_thread->join();
+	_thread.reset();
+
 	delete(current_job);
 }
 
@@ -30,35 +34,39 @@ Thread::~Thread()
 */
 void Thread::Execution()
 {
-	while (_running)
+	while (true)
 	{
-		if (current_job != nullptr)
+		std::unique_lock<std::mutex> lk(_mutex);
+		_cv.wait(lk, [this] {return (this->current_job != nullptr); });
+
+		if (!_running)
+			break;
+
+		auto result = current_job->GetFunction()(current_job->GetContent());
+		if (result == JOB_COMPLETED)
 		{
-			//printf("%s Starting Job: %s\n", this->_name.c_str(), current_job->GetName().c_str());
-			auto result = current_job->GetFunction()(current_job->GetContent());
-			if (result == JOB_COMPLETED)
-			{
-				count++;
-				TaskManager::Instance().NotifyDone();
-				delete(current_job);
-				current_job = nullptr;
-			}
-			else if (result == JOB_RETRY)
-			{
-				TaskManager::Instance().RetryJob(current_job);
-				current_job = nullptr;
-			}
-			else
-			{
-				printf("ISSUE FOUND WITH JOB: %s", current_job->GetName().c_str());
-				throw std::invalid_argument("FOUND ISSUE");
-			}
+			count++;
+			TaskManager::Instance().NotifyDone();
+			delete(current_job);
+			current_job = nullptr;
+		}
+		else if (result == JOB_RETRY)
+		{
+			TaskManager::Instance().RetryJob(current_job);
+			current_job = nullptr;
 		}
 		else
 		{
-			std::this_thread::sleep_for(std::chrono::nanoseconds(500));
+			printf("ISSUE FOUND WITH JOB: %s", current_job->GetName().c_str());
+			throw std::invalid_argument("FOUND ISSUE");
 		}
+		lk.unlock();
 	}
+}
+
+void Thread::Notify()
+{
+	_cv.notify_all();
 }
 
 /*
@@ -68,11 +76,14 @@ void Thread::Execution()
 void Thread::Stop()
 {
 	_running = false;
-	_thread->join();
+	while (current_job != nullptr);
+	current_job = new Job();
+	this->Notify();
 }
 
 bool Thread::CheckAvailable()
 {
+	std::lock_guard<std::mutex> lk(_mutex);
 	return (current_job == nullptr);
 }
 
