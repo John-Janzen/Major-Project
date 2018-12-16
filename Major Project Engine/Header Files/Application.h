@@ -21,15 +21,6 @@
 #include <ctime>
 #include <chrono>
 
-enum GAME_STATE
-{
-	NULL_STATE,
-	INITIALIZING,
-	LOADING,
-	PLAYING,
-	EXITING
-};
-
 class Application
 {
 public:
@@ -42,6 +33,17 @@ public:
 	virtual void Close() = 0;
 
 protected:
+
+	enum GAME_STATE
+	{
+		NULL_STATE,
+		INITIALIZING,
+		LOADING,
+		PLAYING,
+		PAUSED,
+		DELOAD,
+		EXITING
+	};
 
 	Timer * timer;
 	ThreadManager * _threadpool;

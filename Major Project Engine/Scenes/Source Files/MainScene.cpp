@@ -14,12 +14,12 @@ bool MainScene::Load()
 	//m_entities->CreateEntity<Quad>("Quad")->Load(m_components);
 	this->LoadCamera();
 	this->LoadQuad();
-	//this->LoadFloor();
-	for (int i = 0; i < 2; i++)
+	this->LoadFloor();
+	for (int i = 0; i < 3; i++)
 	{
-		for (int j = 0; j < 2; j++)
+		for (int j = 0; j < 3; j++)
 		{
-			for (int k = 0; k < 2; k++)
+			for (int k = 0; k < 3; k++)
 			{
 				this->LoadMultiObject((i - (5 / (float)2)), (j - (5 / (float)2)), (k - (5 / (float)2)));
 			}
@@ -50,7 +50,7 @@ bool MainScene::LoadFloor()
 	Entity * floor = m_entities->CreateEntity<Floor>();
 	m_components->AddComponent(floor->GetID(), new PlayerRenderComponent());
 	m_components->AddComponent(floor->GetID(), new FloorPhysicsComponent());
-	m_components->AddComponent(floor->GetID(), new Transform(btVector3(btScalar(0.f), btScalar(-5.f), btScalar(0.f))));
+	m_components->AddComponent(floor->GetID(), new Transform(btVector3(btScalar(0.f), btScalar(-58.f), btScalar(0.f))));
 	return true;
 }
 

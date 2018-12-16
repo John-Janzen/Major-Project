@@ -44,39 +44,37 @@ Physics::~Physics()
 
 void Physics::Update(void * ptr)
 {
-	/*Scene * scene = static_cast<Scene*>(ptr);
+	Scene * scene = static_cast<Scene*>(ptr);
 	dynamicWorld->stepSimulation(1.f / 60.f);
-	PhysicsComponent * p_cp;*/
-
-
-	/*for (auto & entity : scene->GetEntityManager()->retreive_list())
+	ComponentManager * comp_ptr = scene->GetCompManager();
+	for (auto comp_it : comp_ptr->FindAllTypes<PhysicsComponent*>())
 	{
-		if ((p_cp = scene->GetCompManager()->GetComponent<PhysicsComponent*>(entity.second->GetID())) != nullptr)
+		if (comp_it.second != nullptr)
 		{
-			btRigidBody * body = p_cp->GetRigidBody();
+			btRigidBody * body = comp_it.second->GetRigidBody();
 			if (body && body->getMotionState())
 			{
-				body->getMotionState()->getWorldTransform(entity.second->GetTransformAdd());
+				body->getMotionState()->getWorldTransform(comp_ptr->GetComponent<Transform*>(comp_it.first)->_transform);
 			}
 		}
-	}*/
+	}
 }
 
 JOB_RETURN Physics::Load(void * content)
 {
-	/*Scene * scene = static_cast<Scene*>(content);
-	PhysicsComponent * p_cp;
-	for (auto entity : scene->GetEntityManager()->retreive_list())
+	Scene * scene = static_cast<Scene*>(content);
+	ComponentManager * comp_ptr = scene->GetCompManager();
+	for (auto comp_it : comp_ptr->FindAllTypes<PhysicsComponent*>())
 	{
-		if ((p_cp = scene->GetCompManager()->GetComponent<PhysicsComponent*>(entity.second->GetID())) != nullptr)
+		if (comp_it.second != nullptr)
 		{
-			collisionShapes.push_back(p_cp->GetCollisionShape());
-			btDefaultMotionState * motion_state = new btDefaultMotionState(entity.second->GetTransform());
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(p_cp->GetMass(), motion_state, p_cp->GetCollisionShape(), p_cp->GetLocalInertia());
-			p_cp->SetRigidBody(new btRigidBody(rbInfo));
-			dynamicWorld->addRigidBody(p_cp->GetRigidBody());
+			collisionShapes.push_back(comp_it.second->GetCollisionShape());
+			btDefaultMotionState * motion_state = new btDefaultMotionState(comp_ptr->GetComponent<Transform*>(comp_it.first)->_transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(comp_it.second->GetMass(), motion_state, comp_it.second->GetCollisionShape(), comp_it.second->GetLocalInertia());
+			comp_it.second->SetRigidBody(new btRigidBody(rbInfo));
+			dynamicWorld->addRigidBody(comp_it.second->GetRigidBody());
 		}
-	}*/
+	}
 	return JOB_COMPLETED;
 }
 
