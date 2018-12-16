@@ -29,9 +29,9 @@ public:
 	Texture * GetTexture() const { return current_texture; }
 	Texture * & GetTextureAdd() { return current_texture; }
 
-	GLuint & GetVertexBuffer() { return vert_buff_obj; }
+	//GLuint & GetVertexBuffer() { return vert_buff_obj; }
 	GLuint & GetVertexArray() { return vert_arr_obj; }
-	GLuint & GetElementBuffer() { return elem_buff_obj; }
+	//GLuint & GetElementBuffer() { return elem_buff_obj; }
 
 	const GLint & GetProjectionMatrixLoc() const { return r_project_mat4_loc; }
 	void SetProjectionMatrixLoc(const GLint & matrix_loc) { r_project_mat4_loc = matrix_loc; }
@@ -60,6 +60,8 @@ public:
 	GLint r_text_color;
 	GLint r_text_unit;
 
+	GLuint vert_arr_obj = 0;
+
 protected:
 
 	std::string model_path;
@@ -72,15 +74,12 @@ private:
 	Shader * current_shader;
 	Texture * current_texture;
 
+
 	GLint r_project_mat4_loc;
 	GLint r_model_mat4_loc;
 	GLint r_color_vec4_loc;
 
 	glm::vec4 _color = glm::vec4(1.0f);
-
-	GLuint vert_buff_obj = 0;
-	GLuint vert_arr_obj = 0;
-	GLuint elem_buff_obj = 0;
 };
 
 #endif // !_RENDERCOMPONENT_H

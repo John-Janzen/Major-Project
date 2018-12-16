@@ -13,7 +13,7 @@ public:
 	bool Load();
 	bool Unload();
 
-	static const int NUM_MULTI_OBJECTS = 4;
+	static const int NUM_MULTI_OBJECTS = 5;
 
 private:
 

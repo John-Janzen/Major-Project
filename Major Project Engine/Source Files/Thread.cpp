@@ -45,7 +45,7 @@ void Thread::Execution()
 			}
 			else if (result == JOB_RETRY)
 			{
-				TaskManager::Instance().RegisterJob(current_job);
+				TaskManager::Instance().RetryJob(current_job);
 				current_job = nullptr;
 			}
 			else
@@ -56,7 +56,7 @@ void Thread::Execution()
 		}
 		else
 		{
-			std::this_thread::sleep_for(std::chrono::microseconds(200));
+			std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 		}
 	}
 }

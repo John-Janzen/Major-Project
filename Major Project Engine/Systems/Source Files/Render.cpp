@@ -83,8 +83,9 @@ void Render::ComponentUpdate
 {
 	if (rc->GetModel() != nullptr)
 	{
+		Model * model_ptr = rc->GetModel();
 		glBindVertexArray(rc->GetVertexArray());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->GetElementBuffer());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
 
 		glUseProgram(rc->GetShader()->shade_prog);
 
@@ -193,7 +194,7 @@ JOB_RETURN Render::LoadShader(void * ptr)
 		break;
 	case WAIT_LOAD:
 		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE);
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Model_Checker"), bind_shader_job);
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker"), bind_shader_job);
 		TaskManager::Instance().RegisterJob(bind_shader_job, true);
 		return JOB_COMPLETED;
 		break;
@@ -239,20 +240,28 @@ JOB_RETURN Render::BindModel(void * ptr)
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->GetModel() != nullptr)
 	{
-		glGenBuffers(1, &rc_cp->GetElementBuffer());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc_cp->GetElementBuffer());
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			(sizeof(GLuint) * rc_cp->GetModel()->ISize),
-			rc_cp->GetModel()->_indices,
-			GL_STATIC_DRAW);
+		Model * model_ptr = rc_cp->GetModel();
 
 		glGenVertexArrays(1, &rc_cp->GetVertexArray());
 		glBindVertexArray(rc_cp->GetVertexArray());
 
-		glGenBuffers(1, &rc_cp->GetVertexBuffer());
-		glBindBuffer(GL_ARRAY_BUFFER, rc_cp->GetVertexBuffer());
-		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * rc_cp->GetModel()->VSize),
-			rc_cp->GetModel()->_vertices,
+		if (rc_cp->GetModel()->elem_buff_obj == 0)
+		{
+			glGenBuffers(1, &model_ptr->elem_buff_obj);
+		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			(sizeof(GLuint) * model_ptr->ISize),
+			model_ptr->_indices,
+			GL_STATIC_DRAW);
+
+		if (model_ptr->vert_buff_obj == 0)
+		{
+			glGenBuffers(1, &model_ptr->vert_buff_obj);
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, model_ptr->vert_buff_obj);
+		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * model_ptr->VSize),
+			model_ptr->_vertices,
 			GL_STATIC_DRAW);
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
@@ -261,9 +270,6 @@ JOB_RETURN Render::BindModel(void * ptr)
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(5 * sizeof(GL_FLOAT)));
 		glEnableVertexAttribArray(2);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
 	}
 	else
 	{
@@ -279,7 +285,10 @@ JOB_RETURN Render::BindTexture(void * ptr)
 	if (rc_cp->GetTexture() != nullptr)
 	{
 		glActiveTexture(GL_TEXTURE0);
-		glGenTextures(1, &rc_cp->GetTexture()->TextureID);
+		if (rc_cp->GetTexture()->TextureID == 0)
+		{
+			glGenTextures(1, &rc_cp->GetTexture()->TextureID);
+		}
 		glBindTexture(GL_TEXTURE_2D, rc_cp->GetTexture()->TextureID);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 			rc_cp->GetTexture()->texWidth,
@@ -310,46 +319,42 @@ JOB_RETURN Render::BindShader(void * ptr)
 	{
 		const GLuint * program;
 		if (rc_cp->GetShader()->shade_prog == 0)
+		{
 			program = &(rc_cp->GetShader()->shade_prog = glCreateProgram());
-		else
-			program = &rc_cp->GetShader()->shade_prog;
+			glAttachShader(*program, rc_cp->GetShader()->_shaderID_Vert);
+			glAttachShader(*program, rc_cp->GetShader()->_shaderID_Frag);
+			glLinkProgram(*program);
+			GLint programSuccess = GL_FALSE;
+			glGetProgramiv(*program, GL_LINK_STATUS, &programSuccess);
+			if (programSuccess != GL_TRUE)
+			{
+				printf("Error linking program %d!\n", glGetError());
+				return JOB_ISSUE;
+			}
+		}
+		program = &rc_cp->GetShader()->shade_prog;
+		glUseProgram(*program);
 
-		glAttachShader(*program, rc_cp->GetShader()->_shaderID_Vert);
-		glAttachShader(*program, rc_cp->GetShader()->_shaderID_Frag);
-		glLinkProgram(*program);
+		rc_cp->SetModelMatrixLoc(glGetUniformLocation(*program, "model_matrix"));
+		rc_cp->SetProjectionMatrixLoc(glGetUniformLocation(*program, "projection_matrix"));
+		rc_cp->SetColorShaderLoc(glGetUniformLocation(*program, "color_vec"));
 
-		GLint programSuccess = GL_FALSE;
-		glGetProgramiv(*program, GL_LINK_STATUS, &programSuccess);
-		if (programSuccess != GL_TRUE)
+		rc_cp->r_text_adj_w = glGetUniformLocation(*program, "texture_width_adj");
+		rc_cp->r_text_adj_h = glGetUniformLocation(*program, "texture_height_adj");
+
+		if (rc_cp->GetTexture() != nullptr && rc_cp->GetTexture()->TextureID != 0)
 		{
-			printf("Error linking program %d!\n", glGetError());
-			return JOB_ISSUE;
+			glUniform1i(glGetUniformLocation(*program, "tex_available"), 1);
+			glUniform1f(rc_cp->r_text_adj_w, rc_cp->GetTexture()->imgWidth / (GLfloat)rc_cp->GetTexture()->texWidth);
+			glUniform1f(rc_cp->r_text_adj_h, rc_cp->GetTexture()->imgHeight / (GLfloat)rc_cp->GetTexture()->texHeight);
 		}
 		else
 		{
-			glUseProgram(*program);
-
-			rc_cp->SetModelMatrixLoc(glGetUniformLocation(*program, "model_matrix"));
-			rc_cp->SetProjectionMatrixLoc(glGetUniformLocation(*program, "projection_matrix"));
-			rc_cp->SetColorShaderLoc(glGetUniformLocation(*program, "color_vec"));
-
-			rc_cp->r_text_adj_w = glGetUniformLocation(*program, "texture_width_adj");
-			rc_cp->r_text_adj_h = glGetUniformLocation(*program, "texture_height_adj");
-
-			if (rc_cp->GetTexture() != nullptr && rc_cp->GetTexture()->TextureID != 0)
-			{
-				glUniform1i(glGetUniformLocation(*program, "tex_available"), 1);
-				glUniform1f(rc_cp->r_text_adj_w, rc_cp->GetTexture()->imgWidth / (GLfloat)rc_cp->GetTexture()->texWidth);
-				glUniform1f(rc_cp->r_text_adj_h, rc_cp->GetTexture()->imgHeight / (GLfloat)rc_cp->GetTexture()->texHeight);
-			}
-			else
-			{
-				glUniform1i(glGetUniformLocation(*program, "tex_available"), 0);
-			}
-
-			rc_cp->r_text_color = glGetUniformLocation(*program, "tex_color");
-			rc_cp->r_text_unit = glGetUniformLocation(*program, "tex_unit");
+			glUniform1i(glGetUniformLocation(*program, "tex_available"), 0);
 		}
+
+		rc_cp->r_text_color = glGetUniformLocation(*program, "tex_color");
+		rc_cp->r_text_unit = glGetUniformLocation(*program, "tex_unit");
 	}
 	else
 	{
