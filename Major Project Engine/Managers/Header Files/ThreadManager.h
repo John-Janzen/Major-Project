@@ -70,7 +70,7 @@ public:
 
 private:
 	Thread * threads[MAX_THREADS];
-	Thread * io_thread = nullptr;
+	std::queue<Thread*> thread_queue;
 
 	std::queue<Job*> task_queue;
 	std::size_t num_of_threads;

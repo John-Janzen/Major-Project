@@ -33,9 +33,6 @@ public:
 	GLuint & GetVertexArray() { return vert_arr_obj; }
 	GLuint & GetElementBuffer() { return elem_buff_obj; }
 
-	const GLuint * GetShaderProgram() { return &shade_prog; }
-	const GLuint * SetShaderProgram(const GLuint & prog) { shade_prog = prog; return &shade_prog; }
-
 	const GLint & GetProjectionMatrixLoc() const { return r_project_mat4_loc; }
 	void SetProjectionMatrixLoc(const GLint & matrix_loc) { r_project_mat4_loc = matrix_loc; }
 
@@ -84,8 +81,6 @@ private:
 	GLuint vert_buff_obj = 0;
 	GLuint vert_arr_obj = 0;
 	GLuint elem_buff_obj = 0;
-	GLuint shade_prog = 0;
-
 };
 
 #endif // !_RENDERCOMPONENT_H

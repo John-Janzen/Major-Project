@@ -15,11 +15,11 @@ bool MainScene::Load()
 	this->LoadCamera();
 	this->LoadQuad();
 	this->LoadFloor();
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < NUM_MULTI_OBJECTS; i++)
 	{
-		for (int j = 0; j < 3; j++)
+		for (int j = 0; j < NUM_MULTI_OBJECTS; j++)
 		{
-			for (int k = 0; k < 3; k++)
+			for (int k = 0; k < NUM_MULTI_OBJECTS; k++)
 			{
 				this->LoadMultiObject((i - (5 / (float)2)), (j - (5 / (float)2)), (k - (5 / (float)2)));
 			}

@@ -86,7 +86,7 @@ void Render::ComponentUpdate
 		glBindVertexArray(rc->GetVertexArray());
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rc->GetElementBuffer());
 
-		glUseProgram(*rc->GetShaderProgram());
+		glUseProgram(rc->GetShader()->shade_prog);
 
 		if (rc->GetTexture() != nullptr && rc->GetTexture()->TextureID != 0)
 		{
@@ -308,7 +308,11 @@ JOB_RETURN Render::BindShader(void * ptr)
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
 	if (rc_cp->GetShader() != nullptr)
 	{
-		const GLuint *program = rc_cp->SetShaderProgram(glCreateProgram());
+		const GLuint * program;
+		if (rc_cp->GetShader()->shade_prog == 0)
+			program = &(rc_cp->GetShader()->shade_prog = glCreateProgram());
+		else
+			program = &rc_cp->GetShader()->shade_prog;
 
 		glAttachShader(*program, rc_cp->GetShader()->_shaderID_Vert);
 		glAttachShader(*program, rc_cp->GetShader()->_shaderID_Frag);

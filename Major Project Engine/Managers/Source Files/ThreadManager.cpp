@@ -35,6 +35,7 @@ ThreadManager::ThreadManager(const std::size_t & size)
 			break;
 		}
 		threads[i] = new Thread(name, type);
+		thread_queue.emplace(threads[i]);
 	}
 	task_queue = std::queue<Job*>();
 }
@@ -48,24 +49,18 @@ bool ThreadManager::HasJobs() { return !task_queue.empty(); }
 
 void ThreadManager::AllocateJobs()
 {
+	Thread * thread_ptr;
 	while (!JobsEmpty())
 	{
-		if (task_queue.front()->GetWaiting() != 0)
+		thread_ptr = thread_queue.front();
+		switch (task_queue.front()->GetType())
 		{
-			Job * temp = task_queue.front();
-			task_queue.pop();
-			task_queue.push(temp);
-			continue;
-		}
-		for (std::size_t i = 0; i < num_of_threads && !JobsEmpty(); i++)
-		{
-			switch (task_queue.front()->GetType())
+		case Job::RENDER_TYPE:
+			if (thread_ptr->GetType() == Thread::RENDER_THREAD)
 			{
-			case Job::RENDER_TYPE:
-				if (threads[0]->CheckAvailable())
+				if (thread_ptr->CheckAvailable())
 				{
-					threads[0]->GetLocation() = task_queue.front();
-					task_queue.front() = nullptr;
+					thread_ptr->GetLocation() = task_queue.front();
 					task_queue.pop();
 				}
 				else
@@ -73,22 +68,28 @@ void ThreadManager::AllocateJobs()
 					Job * temp = task_queue.front();
 					task_queue.pop();
 					task_queue.push(temp);
-					temp = nullptr;
-					continue;
+					thread_queue.pop();
+					thread_queue.push(thread_ptr);
 				}
-				break;
-			default:
-				if (io_thread == threads[i] && io_thread->CheckAvailable())
-					io_thread = nullptr;
-
-				if (threads[i]->CheckAvailable())
-				{
-					threads[i]->GetLocation() = task_queue.front();
-					task_queue.front() = nullptr;
-					task_queue.pop();
-				}
-				break;
 			}
+			else
+			{
+				thread_queue.pop();
+				thread_queue.push(thread_ptr);
+			}
+			break;
+		default:
+			if (thread_ptr->CheckAvailable())
+			{
+				thread_ptr->GetLocation() = task_queue.front();
+				task_queue.pop();
+			}
+			else
+			{
+				thread_queue.pop();
+				thread_queue.push(thread_ptr);
+			}
+			break;
 		}
 	}
 }

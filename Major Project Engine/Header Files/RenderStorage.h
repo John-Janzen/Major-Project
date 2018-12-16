@@ -58,6 +58,7 @@ struct Shader
 
 	std::string _name;
 	GLuint _shaderID_Vert, _shaderID_Frag;
+	GLuint shade_prog = 0;
 };
 
 enum LOAD {

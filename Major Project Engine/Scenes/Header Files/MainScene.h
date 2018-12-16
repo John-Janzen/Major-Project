@@ -13,6 +13,8 @@ public:
 	bool Load();
 	bool Unload();
 
+	static const int NUM_MULTI_OBJECTS = 4;
+
 private:
 
 	bool LoadCamera();
