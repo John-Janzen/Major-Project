@@ -12,7 +12,15 @@ public:
 	~MainScene();
 	bool Load();
 	bool Unload();
+
 private:
+
+	bool LoadCamera();
+	bool LoadQuad();
+	bool LoadFloor();
+	bool LoadPlayer();
+	bool LoadMultiObject(const int x, const int y, const int z);
+
 };
 
 #endif // !

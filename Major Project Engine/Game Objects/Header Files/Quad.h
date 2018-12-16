@@ -9,11 +9,8 @@ class Quad :
 	public Entity
 {
 public:
-	Quad(const std::string & name, int id);
-	~Quad();
-	void Load(ComponentManager * & c_manager);
-	
+	Quad(const std::string & name, int id) : Entity(name, id) {}
+	~Quad() {}
 };
-
 
 #endif // !_QUAD_H

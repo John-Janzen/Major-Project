@@ -55,19 +55,22 @@ bool Game::GameLoop()
 				break;
 			}
 		}
-
 		physics->Update(current_scene);
+
 		TaskManager::Instance().RegisterJob(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, Job::RENDER_TYPE);
-		//renderer->UpdateLoop(current_scene);
 		break;
 	}
+	case PAUSED:
+		break;
+	case DELOAD:
+		break;
 	case EXITING:
 		this->Close();
 		break;
 	default:
 		break;
 	}
-	while (timer->CheckTimeLimit())
+	while ((_threadpool->HasJobs() || TaskManager::Instance().HasJobs()) || timer->CheckTimeLimit())
 	{
 		if (TaskManager::Instance().HasJobs())
 			TaskManager::Instance().TransferJobs();

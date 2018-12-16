@@ -58,17 +58,16 @@ JOB_RETURN Render::UpdateLoop
 	void * ptr
 )
 {
-	Scene * current_scene = static_cast<Scene*>(ptr);
-	this->InitUpdate(current_scene->GetCompManager()->GetComponent<CameraComponent*>(current_scene->GetCameraID()),
-		current_scene->GetEntityManager()->FindEntity(current_scene->GetCameraID())->GetTransform());
+	Scene * curr_scene = static_cast<Scene*>(ptr);
+	ComponentManager * comp_ptr = curr_scene->GetCompManager();
+	this->InitUpdate(comp_ptr->GetComponent<CameraComponent*>(curr_scene->GetCameraID()),
+		comp_ptr->GetComponent<Transform*>(curr_scene->GetCameraID())->_transform);
 
-	RenderComponent * rc;
-	for (auto & entity : current_scene->GetEntityManager()->retreive_list())
+	for (auto render_it : comp_ptr->FindAllTypes<RenderComponent*>())
 	{
-		if ((rc = current_scene->GetCompManager()->GetComponent<RenderComponent*>(entity.first)) != nullptr)
-		{
-			this->ComponentUpdate( project_value_ptr, rc, entity.second->GetTransform());
-		}
+		this->ComponentUpdate(project_value_ptr, 
+			render_it.second,
+			comp_ptr->GetComponent<Transform*>(render_it.first)->_transform);
 	}
 
 	this->FinalUpdate();
@@ -129,20 +128,20 @@ void Render::Close(void* content)
 
 JOB_RETURN Render::InitRenderComp(void * ptr)
 {
-	ComponentManager * c_manager = static_cast<ComponentManager*>(ptr);
+	ComponentManager * m_components = static_cast<ComponentManager*>(ptr);
 
-	for (auto & rc_cp : c_manager->FindAllTypes<RenderComponent*>())
+	for (auto render_it : m_components->FindAllTypes<RenderComponent*>())
 	{
 		// Loading model job
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", rc_cp));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render_it.second));
 
 		// Loading shader job
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", rc_cp, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render_it.second, Job::RENDER_TYPE));
 
 		// Loading texture job
- 		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", rc_cp));
-		
+ 		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render_it.second));
 	}
+
 	return JOB_COMPLETED;
 }
 

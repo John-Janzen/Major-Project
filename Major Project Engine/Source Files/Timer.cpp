@@ -25,17 +25,17 @@ void Timer::Restart()
 
 void Timer::WaitTime()
 {
+	frame_count++;																// INCREMENT FRAME
+	if (ms_duration(current_time_frame - frame_rate_control) >= ms_duration(std::chrono::seconds(1)))		// CHECK IF DURATION OF FRAME IS GREATER THAN A SECOND
+	{
+		printf("Frame Count: %d", frame_count);
+		frame_rate_control = hr_clock::now();									// RESET THE FRAME TIME TO NOW
+		frame_count = 0u;														// RESET FRAME COUNT
+	}
+
 	// COMES HAPPENS BEFORE (10ms HAVE PASSED)
 	if (ms_duration(hr_clock::now() - current_time_frame) < current_time_lock)		// AS LONG AS THE WORK_TIME IS LESS THAN THE FRAMETIME NEEDED (60FPS LOCK) -> (16.66ms)
 	{
-		frame_count++;																// INCREMENT FRAME
-		if (ms_duration(current_time_frame - frame_rate_control) >= ms_duration(std::chrono::seconds(1)))		// CHECK IF DURATION OF FRAME IS GREATER THAN A SECOND
-		{
-			//printf("Frame Count: %d", frame_count);
-			frame_rate_control = hr_clock::now();									// RESET THE FRAME TIME TO NOW
-			frame_count = 0u;														// RESET FRAME COUNT
-		}
-		
 		while (true)		// SPINLOCK FROM THE CURRENT FRAMETIME BELOW TO THE BEGINNING OF THE NEXT FRAME
 		{
 			auto time = ms_duration(hr_clock::now() - current_time_frame);
