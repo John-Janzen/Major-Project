@@ -51,16 +51,10 @@ void Physics::Update(void * ptr)
 	{
 		if (comp_it.second != nullptr)
 		{
-			/*TaskManager::Instance().RegisterJob(
+			TaskManager::Instance().RegisterJob(
 				new Job(bind_function(&Physics::ComponentUpdate, this), 
 					"Physics Component Update", 
-					new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first))));*/
-			//ComponentUpdate(new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first)));
-			btRigidBody * body = comp_it.second->GetRigidBody();
-			if (body && body->getMotionState())
-			{
-				body->getMotionState()->getWorldTransform(comp_ptr->GetComponent<Transform*>(comp_it.first)->_transform);
-			}
+					new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first))));
 		}
 	}
 }
@@ -71,7 +65,11 @@ JOB_RETURN Physics::ComponentUpdate(void * ptr)
 
 	if (PCContent->p_cp != nullptr)
 	{
-		
+		btRigidBody * body = PCContent->p_cp->GetRigidBody();
+		if (body && body->getMotionState())
+		{
+			body->getMotionState()->getWorldTransform(PCContent->trans->_transform);
+		}
 	}
 	delete(PCContent);
 	return JOB_COMPLETED;

@@ -15,13 +15,13 @@ bool MainScene::Load()
 	this->LoadCamera();
 	this->LoadQuad();
 	this->LoadFloor();
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < NUM_MULTI_OBJECTS; i++)
 	{
-		for (int j = 0; j < 3; j++)
+		for (int j = 0; j < NUM_MULTI_OBJECTS; j++)
 		{
-			for (int k = 0; k < 3; k++)
+			for (int k = 0; k < NUM_MULTI_OBJECTS; k++)
 			{
-				this->LoadMultiObject((i - (5 / (float)2)), (j - (5 / (float)2)), (k - (5 / (float)2)));
+				this->LoadMultiObject((i - (NUM_MULTI_OBJECTS / (float)2)), (j - (NUM_MULTI_OBJECTS / (float)2)), (k - (NUM_MULTI_OBJECTS / (float)2)));
 			}
 		}
 	}
@@ -31,7 +31,9 @@ bool MainScene::Load()
 bool MainScene::LoadCamera()
 {
 	Entity * camera = m_entities->CreateEntity<Camera>("Camera", _camera);
-	m_components->AddComponent(camera->GetID(), new Transform(btVector3(btScalar(0.f), btScalar(0.f), btScalar(-10.f))));
+	m_components->AddComponent(camera->GetID(), new Transform(
+		btQuaternion(btScalar(0.f), btScalar(0.5f), btScalar(0.f)), 
+		btVector3(btScalar(0.f), btScalar(0.f), btScalar(-20.f))));
 	m_components->AddComponent(camera->GetID(), new PlayerControllerComponent());
 	m_components->AddComponent(camera->GetID(), new CameraComponent());
 	return true;
@@ -68,7 +70,7 @@ bool MainScene::LoadMultiObject(const int x, const int y, const int z)
 	Entity * m_object = m_entities->CreateEntity<MultiObject>(std::string("MultObject#" + (x + y + z)));
 	m_components->AddComponent(m_object->GetID(), new PlayerRenderComponent());
 	m_components->AddComponent(m_object->GetID(), new PlayerPhysicsComponent());
-	m_components->AddComponent(m_object->GetID(), new Transform(btVector3(btScalar(x * 3), btScalar(y * 3), btScalar(z * 3))));
+	m_components->AddComponent(m_object->GetID(), new Transform(btVector3(btScalar(x * NUM_MULTI_OBJECTS), btScalar(y * NUM_MULTI_OBJECTS), btScalar(z * NUM_MULTI_OBJECTS))));
 	return true;
 }
 

@@ -36,6 +36,8 @@ public:
 
 	void RegisterJob(Job * job, Job * parent_job);
 
+	void RetryJob(Job * job);
+
 	void TransferJobs();
 
 private:

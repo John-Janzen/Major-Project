@@ -28,6 +28,9 @@ struct Model
 	const GLfloat * _vertices;
 	const GLuint * _indices;
 	GLsizei VSize = 0, ISize = 0;
+
+	GLuint vert_buff_obj = 0;
+	GLuint elem_buff_obj = 0;
 };
 
 struct Texture
@@ -43,7 +46,7 @@ struct Texture
 	std::string _name;
 	const GLuint * _texture;
 	GLuint imgWidth, imgHeight, texWidth, texHeight;
-	GLuint TextureID;
+	GLuint TextureID = 0;
 };
 
 struct Shader
@@ -58,6 +61,7 @@ struct Shader
 
 	std::string _name;
 	GLuint _shaderID_Vert, _shaderID_Frag;
+	GLuint shade_prog = 0;
 };
 
 enum LOAD {

@@ -62,12 +62,10 @@ void TaskManager::RegisterJob(Job * job, bool wait)
 	if (wait)
 	{
 		waiting_jobs.emplace_back(job);
-		job = nullptr;
 	}
 	else
 	{
 		job_list.emplace_back(job);
-		job = nullptr;
 		num_of_jobs++;
 	}
 }
@@ -78,8 +76,13 @@ void TaskManager::RegisterJob(Job * job, Job * parent_job)
 	parent_job->IncrementWait();
 	job->SetParent(parent_job);
 	job_list.emplace_back(job);
-	job = nullptr;
 	num_of_jobs++;
+}
+
+void TaskManager::RetryJob(Job * job)
+{
+	std::lock_guard<std::mutex> lk(safety_lock);
+	job_list.emplace_back(job);
 }
 
 void TaskManager::TransferJobs()

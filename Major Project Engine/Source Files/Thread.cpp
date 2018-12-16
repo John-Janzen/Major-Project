@@ -32,7 +32,7 @@ void Thread::Execution()
 {
 	while (_running)
 	{
-		if (current_job)
+		if (current_job != nullptr)
 		{
 			//printf("%s Starting Job: %s\n", this->_name.c_str(), current_job->GetName().c_str());
 			auto result = current_job->GetFunction()(current_job->GetContent());
@@ -45,7 +45,7 @@ void Thread::Execution()
 			}
 			else if (result == JOB_RETRY)
 			{
-				TaskManager::Instance().RegisterJob(current_job);
+				TaskManager::Instance().RetryJob(current_job);
 				current_job = nullptr;
 			}
 			else
@@ -56,7 +56,7 @@ void Thread::Execution()
 		}
 		else
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 		}
 	}
 }
