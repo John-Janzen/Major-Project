@@ -14,6 +14,8 @@ public:
 
 	void Update(void * ptr);
 
+	JOB_RETURN ComponentUpdate(void * ptr);
+
 	JOB_RETURN Load(void* content);
 	void Close(void* content);
 

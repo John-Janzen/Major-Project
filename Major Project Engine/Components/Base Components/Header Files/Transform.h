@@ -11,6 +11,8 @@ public:
 	Transform(const btVector3 position);
 	~Transform();
 
+	bool _physics = false, _input = true, _gamelogic = true;
+
 	btTransform _transform;
 };
 

@@ -40,7 +40,7 @@ void TestSystem::Close(void* content)
 bool TestSystem::Process(void* content)
 {
 	//const InitialContent * IContent = dynamic_cast<const InitialContent*>(content);
-	InitialContent * IContent = static_cast<InitialContent*>(content);
+	/*InitialContent * IContent = static_cast<InitialContent*>(content);
 	int total = 0, count = 0;
 	for (int i : IContent->copy_section)
 	{
@@ -49,7 +49,7 @@ bool TestSystem::Process(void* content)
 	}
 	*IContent->result = total;
 
-	IContent = nullptr;
+	IContent = nullptr;*/
 	return true;
 }
 

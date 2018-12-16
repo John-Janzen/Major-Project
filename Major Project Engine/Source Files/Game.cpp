@@ -23,9 +23,8 @@ bool Game::GameLoop()
 		{
 			_state = PLAYING;
 			timer->Stop();
-		}	
+		}
 	}
-
 	switch (_state)
 	{
 	case INITIALIZING:
@@ -35,6 +34,7 @@ bool Game::GameLoop()
 		break;
 	case PLAYING:
 	{
+		//timer->Start();
 		input->Update(timer->GetDeltaTime(), current_scene);
 
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
@@ -58,6 +58,7 @@ bool Game::GameLoop()
 		physics->Update(current_scene);
 
 		TaskManager::Instance().RegisterJob(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, Job::RENDER_TYPE);
+		//timer->Stop();
 		break;
 	}
 	case PAUSED:
@@ -70,16 +71,18 @@ bool Game::GameLoop()
 	default:
 		break;
 	}
-	while ((_threadpool->HasJobs() || TaskManager::Instance().HasJobs()) || timer->CheckTimeLimit())
+	while (TaskManager::Instance().HasJobs() || _threadpool->HasJobs())
 	{
 		if (TaskManager::Instance().HasJobs())
+		{
 			TaskManager::Instance().TransferJobs();
-		else
-			if (!_threadpool->HasJobs())
-				break;
-		_threadpool->AllocateJobs();			// Allocate jobs to the threads
-	}
+		}
 
+		_threadpool->AllocateJobs();			// Allocate jobs to the threads
+
+		if (timer->CheckTimeLimit())
+			break;
+	}
 	return game_running;
 }
 

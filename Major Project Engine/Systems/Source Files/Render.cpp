@@ -65,7 +65,7 @@ JOB_RETURN Render::UpdateLoop
 
 	for (auto render_it : comp_ptr->FindAllTypes<RenderComponent*>())
 	{
-		this->ComponentUpdate(project_value_ptr, 
+		this->ComponentUpdate(project_value_ptr,
 			render_it.second,
 			comp_ptr->GetComponent<Transform*>(render_it.first)->_transform);
 	}

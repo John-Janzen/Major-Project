@@ -96,8 +96,6 @@ inline Application::~Application()
 
 inline bool Application::LoadApplication()
 {
-	//FileLoader::Instance().Init();
-
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
 		printf("Issue Initing Everything %s\n", SDL_GetError());
@@ -160,11 +158,9 @@ inline bool Application::LoadApplication()
 
 	Job * parent_job = new Job(bind_function(&Render::InitRenderComp, renderer), "Initialize_Render_Objects", current_scene->GetCompManager(), Job::RENDER_TYPE);
 	TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::Load, renderer), "Load_Render_System", sdl_context, Job::RENDER_TYPE), parent_job);
-	TaskManager::Instance().RegisterJob(bind_function(&TestSystem::Load, test_system), "Load_Test_System");
 	TaskManager::Instance().RegisterJob(bind_function(&Physics::Load, physics), "Load_Physics_Sytem", current_scene);
 
 	TaskManager::Instance().RegisterJob(parent_job, true);
-
 	return true;
 }
 

@@ -3,8 +3,6 @@
 #ifndef _JOB_H
 #define _JOB_H
 
-#include "Content.h"
-
 #include <functional>
 #include <memory>
 #include <atomic>

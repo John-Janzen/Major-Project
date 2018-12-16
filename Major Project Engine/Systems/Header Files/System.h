@@ -5,6 +5,7 @@
 
 #include "TaskManager.h"
 #include "Scene.h"
+#include "Content.h"
 
 class System
 {

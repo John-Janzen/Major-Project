@@ -51,6 +51,11 @@ void Physics::Update(void * ptr)
 	{
 		if (comp_it.second != nullptr)
 		{
+			/*TaskManager::Instance().RegisterJob(
+				new Job(bind_function(&Physics::ComponentUpdate, this), 
+					"Physics Component Update", 
+					new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first))));*/
+			//ComponentUpdate(new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first)));
 			btRigidBody * body = comp_it.second->GetRigidBody();
 			if (body && body->getMotionState())
 			{
@@ -58,6 +63,18 @@ void Physics::Update(void * ptr)
 			}
 		}
 	}
+}
+
+JOB_RETURN Physics::ComponentUpdate(void * ptr)
+{
+	PhysicsComponentContent * PCContent = static_cast<PhysicsComponentContent*>(ptr);
+
+	if (PCContent->p_cp != nullptr)
+	{
+		
+	}
+	delete(PCContent);
+	return JOB_COMPLETED;
 }
 
 JOB_RETURN Physics::Load(void * content)
