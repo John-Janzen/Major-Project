@@ -20,7 +20,7 @@ public:
 		return inst;
 	}
 
-	void Init(ThreadManager * t_manager);
+	void Init();
 
 	void Close();
 
@@ -38,14 +38,13 @@ public:
 
 	void RetryJob(Job * job);
 
-	void TransferJobs();
+	void TransferJobs(ThreadManager * & t_manager);
 
 private:
 
 	//static const std::size_t MAX_JOBS = 30;
 
 	TaskManager() {}
-	ThreadManager * _threadpool_p;
 
 	// List of jobs available
 	std::list<Job*> job_list;

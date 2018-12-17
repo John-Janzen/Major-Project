@@ -23,7 +23,7 @@ public:
 
 private:
 	GLfloat _fov = 60.0f;
-	GLfloat _near = 0.1f, _far = 100.0f;
+	GLfloat _near = 0.1f, _far = 1000.0f;
 	const int SCREEN_WIDTH = 1280;
 	const int SCREEN_HEIGHT = 720;
 

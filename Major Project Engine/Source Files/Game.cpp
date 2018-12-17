@@ -7,7 +7,7 @@ Game::~Game() {}
 bool Game::Load()
 {
 	//Application::Load(std::make_unique<MainScene>());
-	timer->Start();
+	Timer::Instance().Start();
 	this->Load_Scene(MAIN_SCENE);
 	this->LoadApplication();
 	_state = LOADING;
@@ -16,13 +16,13 @@ bool Game::Load()
 
 bool Game::GameLoop()
 {
-	timer->WaitTime();
+	Timer::Instance().WaitTime();
 	if (TaskManager::Instance().FrameStart())
 	{
 		if (_state == LOADING)
 		{
 			_state = PLAYING;
-			timer->Stop();
+			Timer::Instance().Stop();
 		}
 	}
 	switch (_state)
@@ -35,7 +35,7 @@ bool Game::GameLoop()
 	case PLAYING:
 	{
 		//timer->Start();
-		input->Update(timer->GetDeltaTime(), current_scene);
+		input->Update(Timer::Instance().GetDeltaTime(), current_scene);
 
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{
@@ -55,7 +55,7 @@ bool Game::GameLoop()
 				break;
 			}
 		}
-		physics->Update(current_scene);
+		TaskManager::Instance().RegisterJob(bind_function(&Physics::Update, physics), "Physics_Update", current_scene);
 
 		TaskManager::Instance().RegisterJob(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, Job::RENDER_TYPE);
 		//timer->Stop();
@@ -75,12 +75,12 @@ bool Game::GameLoop()
 	{
 		if (TaskManager::Instance().HasJobs())
 		{
-			TaskManager::Instance().TransferJobs();
+			TaskManager::Instance().TransferJobs(_threadpool);
 		}
 
 		_threadpool->AllocateJobs();			// Allocate jobs to the threads
 
-		if (timer->CheckTimeLimit())
+		if (Timer::Instance().CheckTimeLimit())
 			break;
 	}
 	return game_running;

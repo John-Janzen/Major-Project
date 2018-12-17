@@ -45,7 +45,6 @@ protected:
 		EXITING
 	};
 
-	Timer * timer;
 	ThreadManager * _threadpool;
 
 	bool game_running = true;
@@ -70,8 +69,8 @@ inline Application::Application(const std::size_t & num_of_threads)
 	: _state(INITIALIZING)
 {
 	_threadpool = new ThreadManager(num_of_threads);
-	TaskManager::Instance().Init(_threadpool);
-	timer = new Timer();
+	TaskManager::Instance().Init();
+	Timer::Instance().Init();
 }
 
 inline Application::~Application()
@@ -83,7 +82,6 @@ inline Application::~Application()
 	if (input != nullptr) delete input;
 	if (physics != nullptr) delete physics;
 	if (test_system != nullptr) delete test_system;
-	if (timer != nullptr) delete timer;
 	
 	if (current_scene != nullptr) delete(current_scene);
 	
@@ -145,7 +143,7 @@ inline bool Application::LoadApplication()
 				if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
 					SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 				}
-				timer->SetTimeLock(1000.f / (float)mode.refresh_rate);
+				Timer::Instance().SetTimeLock(1000.f / (float)mode.refresh_rate);
 				/*timer->SetTimeLock(1000.0f / (float)mode.refresh_rate);*/
 			}
 		}

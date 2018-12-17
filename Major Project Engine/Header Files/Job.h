@@ -32,11 +32,11 @@ JobFunction bind_function(JOB_RETURN(T::* pFunc)(void*), T * const sys = nullptr
 *
 * Function gives the thread an actual function to work on - However,
 * this is extremely limiting as all jobs currently have to work
-* at a void ?function? (Content*) architecture.
+* at a JOB_RETURN ?function? (Content*) architecture.
 *
 * (Will need to develop further)
 */
-class Job
+struct Job
 {
 public:
 
@@ -54,9 +54,7 @@ public:
 
 
 	Job(JobFunction function, const std::string name, void* data = nullptr, const JOB_TYPE type = ANY_TYPE, Job * parent = nullptr)
-		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent)
-	{
-	}
+		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent) {}
 	Job() {};
 
 	~Job()
@@ -79,27 +77,13 @@ public:
 
 	std::string GetName() { return job_name; }
 
-	void SetParent(Job * parent)
-	{
-		_parent_job = parent;
-	}
+	void SetParent(Job * parent) { _parent_job = parent; }
 
-	void IncrementWait()
-	{
-		_awaiting++;
-	}
+	void IncrementWait() { _awaiting++; }
 
-	void OnNotify()
-	{
-		_awaiting--;
-	}
+	void OnNotify() { _awaiting--; }
 
-	std::atomic_int & GetWaiting()
-	{
-		return _awaiting;
-	}
-
-private:
+	std::atomic_int & GetWaiting() { return _awaiting; }
 
 	std::string job_name;
 	JOB_TYPE j_type;

@@ -2,9 +2,8 @@
 
 TaskManager::~TaskManager() {}
 
-void TaskManager::Init(ThreadManager * t_manager)
+void TaskManager::Init()
 {
-	_threadpool_p = t_manager;
 	job_list = std::list<Job*>();
 	waiting_jobs = std::list<Job*>();
 }
@@ -85,7 +84,7 @@ void TaskManager::RetryJob(Job * job)
 	job_list.emplace_back(job);
 }
 
-void TaskManager::TransferJobs()
+void TaskManager::TransferJobs(ThreadManager * & threadpool)
 {
 	std::lock_guard<std::mutex> lk(safety_lock);
 	std::list<Job*>::iterator job_it = waiting_jobs.begin();
@@ -100,7 +99,7 @@ void TaskManager::TransferJobs()
 		}
 		job_it++;
 	}
-	_threadpool_p->GetJobs(&job_list);
+	threadpool->GetJobs(&job_list);
 	job_list.clear();
 	jobs_to_finish += num_of_jobs;
 	num_of_jobs = 0;

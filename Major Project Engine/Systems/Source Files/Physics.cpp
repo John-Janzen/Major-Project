@@ -42,10 +42,10 @@ Physics::~Physics()
 	collisionShapes.clear();
 }
 
-void Physics::Update(void * ptr)
+JOB_RETURN Physics::Update(void * ptr)
 {
 	Scene * scene = static_cast<Scene*>(ptr);
-	dynamicWorld->stepSimulation(1.f / 60.f);
+	dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime());
 	ComponentManager * comp_ptr = scene->GetCompManager();
 	for (auto comp_it : comp_ptr->FindAllTypes<PhysicsComponent*>())
 	{
@@ -57,6 +57,7 @@ void Physics::Update(void * ptr)
 					new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first))));
 		}
 	}
+	return JOB_COMPLETED;
 }
 
 JOB_RETURN Physics::ComponentUpdate(void * ptr)

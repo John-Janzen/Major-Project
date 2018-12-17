@@ -12,7 +12,7 @@ public:
 	Physics();
 	~Physics();
 
-	void Update(void * ptr);
+	JOB_RETURN Update(void * ptr);
 
 	JOB_RETURN ComponentUpdate(void * ptr);
 

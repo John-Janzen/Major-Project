@@ -6,6 +6,7 @@
 #include "TaskManager.h"
 #include "Scene.h"
 #include "Content.h"
+#include "Timer.h"
 
 class System
 {
@@ -17,7 +18,6 @@ public:
 	virtual void Close(void* content) = 0;
 
 private:
-
 };
 
 inline System::System() {}
