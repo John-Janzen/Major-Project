@@ -25,7 +25,7 @@ JobFunction bind_function(JOB_RETURN(T::* pFunc)(void*), T * const sys = nullptr
 }
 
 /*
-* Job class that holds the data for the threads
+* Job class that holds the data for the threads 
 * to read and work on.
 *
 * Job type as stated above will govern what a job will do.
