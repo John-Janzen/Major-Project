@@ -64,7 +64,7 @@ public:
 	*/
 	void StopThreads();
 
-	void GetJobs(std::list<Job*> * job_list);
+	std::priority_queue<Job*, std::vector<Job*>, Job>& GetQueue();
 
 	std::size_t GetNumThreads() { return num_of_threads; }
 
@@ -73,7 +73,7 @@ private:
 	std::queue<Thread*> thread_queue;
 	Thread * render_thread;
 
-	std::queue<Job*> task_queue;
+	std::priority_queue<Job*, std::vector<Job*>, Job> task_queue;
 	std::size_t num_of_threads;
 };
 

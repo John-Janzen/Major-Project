@@ -13,7 +13,7 @@ public:
 	bool Load();
 	bool Unload();
 
-	static const int NUM_MULTI_OBJECTS = 5;
+	static const int NUM_MULTI_OBJECTS = 3;
 
 private:
 
@@ -21,7 +21,7 @@ private:
 	bool LoadQuad();
 	bool LoadFloor();
 	bool LoadPlayer();
-	bool LoadMultiObject(const int x, const int y, const int z);
+	bool LoadMultiObject(const float x, const float y, const float z);
 
 };
 

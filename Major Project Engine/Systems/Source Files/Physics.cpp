@@ -44,19 +44,19 @@ Physics::~Physics()
 
 JOB_RETURN Physics::Update(void * ptr)
 {
-	Scene * scene = static_cast<Scene*>(ptr);
+	ComponentManager * comp_ptr = static_cast<ComponentManager*>(ptr);
 	dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime());
-	ComponentManager * comp_ptr = scene->GetCompManager();
 	for (auto comp_it : comp_ptr->FindAllTypes<PhysicsComponent*>())
 	{
 		if (comp_it.second != nullptr)
 		{
 			TaskManager::Instance().RegisterJob(
-				new Job(bind_function(&Physics::ComponentUpdate, this), 
-					"Physics Component Update", 
-					new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first))));
+				new Job(bind_function(&Physics::ComponentUpdate, this),
+					"Physics Component Update",
+					new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first)), job::JOB_PHYSICS_COMPONENT));
 		}
 	}
+	
 	return JOB_COMPLETED;
 }
 

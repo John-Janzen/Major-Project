@@ -22,7 +22,6 @@ void Input::Update
 	const Scene * current_scene
 )
 {
-	PlayerControllerComponent * pc_cp;
 	ComponentManager * comp_ptr = current_scene->GetCompManager();
 
 	for (auto comp : comp_ptr->FindAllTypes<PlayerControllerComponent*>())

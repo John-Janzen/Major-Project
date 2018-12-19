@@ -24,6 +24,45 @@ JobFunction bind_function(JOB_RETURN(T::* pFunc)(void*), T * const sys = nullptr
 	return std::bind(pFunc, sys, std::placeholders::_1);
 }
 
+
+namespace job 
+{
+	/*
+	* List of Job Types that the threads will
+	* run. This will provide a verious number
+	* of jobs and a priority later down the line.
+	*/
+	enum JOB_ID
+	{
+		JOB_NULL = 0x000,
+		JOB_DEFAULT,
+		JOB_LOAD_MODEL,
+		JOB_LOAD_TEXTURE,
+		JOB_MODEL_CHECKER,
+		JOB_TEXTURE_CHECKER,
+		JOB_SHADER_CHECKER,
+
+		JOB_PHYSICS_DEFAULT = 0x100,
+		JOB_PHYSICS_LOAD,
+		JOB_PHYSICS_UPDATE,
+		JOB_PHYSICS_COMPONENT,
+
+		JOB_INPUT_DEFAULT = 0x200,
+		JOB_INPUT_LOAD,
+		JOB_INPUT_UPDATE,
+
+		JOB_RENDER_DEFAULT = 0x300,
+		JOB_RENDER_LOAD,
+		JOB_RENDER_UPDATE,
+		JOB_BIND_MODEL,
+		JOB_BIND_TEXTURE,
+		JOB_BIND_SHADER,
+		JOB_LOAD_SHADER,
+
+		JOB_HEAD_END
+	};
+}
+
 /*
 * Job class that holds the data for the threads 
 * to read and work on.
@@ -40,22 +79,10 @@ struct Job
 {
 public:
 
-	/*
-	* List of Job Types that the threads will
-	* run. This will provide a verious number
-	* of jobs and a priority later down the line.
-	*/
-	enum JOB_TYPE
-	{
-		NULL_TYPE,
-		ANY_TYPE,
-		RENDER_TYPE
-	};
-
-
-	Job(JobFunction function, const std::string name, void* data = nullptr, const JOB_TYPE type = ANY_TYPE, Job * parent = nullptr)
+	Job(JobFunction function, const std::string name, void* data = nullptr, const job::JOB_ID type = job::JOB_DEFAULT, Job * parent = nullptr)
 		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent) {}
-	Job() {};
+
+	Job() : _content(nullptr), j_type(job::JOB_DEFAULT), _parent_job(nullptr) {}
 
 	~Job()
 	{
@@ -63,32 +90,31 @@ public:
 		if (_content != nullptr) _content = nullptr;
 		if (_parent_job != nullptr)
 		{
-			_parent_job->OnNotify();
+			_parent_job->_awaiting--;
 			_parent_job = nullptr;
 		}
+		if (f_time_data != nullptr) f_time_data = nullptr;
 	}
 
-	/* Gets the function of the job */
-	JobFunction GetFunction() { return _func; }
+	JOB_RETURN operator()()
+	{
+		return _func(_content);
+	}
 
-	void * GetContent() { return _content; }
-
-	const JOB_TYPE GetType() { return j_type; }
-
-	std::string GetName() { return job_name; }
-
-	void SetParent(Job * parent) { _parent_job = parent; }
-
-	void IncrementWait() { _awaiting++; }
-
-	void OnNotify() { _awaiting--; }
-
-	std::atomic_int & GetWaiting() { return _awaiting; }
+	bool operator()(Job * const & lhs, Job * const & rhs)
+	{
+		return lhs->_scale < rhs->_scale;
+	}
 
 	std::string job_name;
-	JOB_TYPE j_type;
-	std::atomic<int> _awaiting = 0;
-	Job * _parent_job;
+	
+	job::JOB_ID j_type;
+	float _scale = 0;
+	int _age = 0;
+	float * f_time_data = nullptr;
+
+	int _awaiting = 0;
+	Job * _parent_job = nullptr;
 	
 	JobFunction _func;
 	void* _content;

@@ -4,7 +4,7 @@
 #define _TASKMANAGER_H
 
 #include "ThreadManager.h"
-#include "BlockingQueue.h"
+#include "Scheduler.h"
 
 #include <list>
 #include <atomic>
@@ -20,7 +20,9 @@ public:
 		return inst;
 	}
 
-	void Init();
+	void Init(const std::size_t & thread_size);
+
+	void SetTimeLock(const float & time_lock);
 
 	void Close();
 
@@ -30,7 +32,7 @@ public:
 
 	void NotifyDone();
 
-	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_TYPE type = Job::ANY_TYPE);
+	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const job::JOB_ID type = job::JOB_DEFAULT);
 
 	void RegisterJob(Job * job, bool wait = false);
 
@@ -38,13 +40,19 @@ public:
 
 	void RetryJob(Job * job);
 
-	void TransferJobs(ThreadManager * & t_manager);
+	void ThreadPoolAlloc();
+
+	void ManageJobs();
+
+	std::list<Job*> & GetJobList();
 
 private:
 
 	//static const std::size_t MAX_JOBS = 30;
-
 	TaskManager() {}
+
+	Scheduler * _scheduler;
+	ThreadManager * _threadpool;
 
 	// List of jobs available
 	std::list<Job*> job_list;

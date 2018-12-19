@@ -25,6 +25,8 @@ bool Game::GameLoop()
 			Timer::Instance().Stop();
 		}
 	}
+	TaskManager::Instance().ThreadPoolAlloc();
+
 	switch (_state)
 	{
 	case INITIALIZING:
@@ -55,9 +57,9 @@ bool Game::GameLoop()
 				break;
 			}
 		}
-		TaskManager::Instance().RegisterJob(bind_function(&Physics::Update, physics), "Physics_Update", current_scene);
+		TaskManager::Instance().RegisterJob(bind_function(&Physics::Update, physics), "Physics_Update", current_scene->GetCompManager(), job::JOB_PHYSICS_UPDATE);
 
-		TaskManager::Instance().RegisterJob(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, Job::RENDER_TYPE);
+		TaskManager::Instance().RegisterJob(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, job::JOB_RENDER_UPDATE);
 		//timer->Stop();
 		break;
 	}
@@ -71,14 +73,9 @@ bool Game::GameLoop()
 	default:
 		break;
 	}
-	while (TaskManager::Instance().HasJobs() || _threadpool->HasJobs())
+	while (TaskManager::Instance().HasJobs())
 	{
-		if (TaskManager::Instance().HasJobs())
-		{
-			TaskManager::Instance().TransferJobs(_threadpool);
-		}
-
-		_threadpool->AllocateJobs();			// Allocate jobs to the threads
+		TaskManager::Instance().ManageJobs();
 
 		if (Timer::Instance().CheckTimeLimit())
 			break;
@@ -88,7 +85,6 @@ bool Game::GameLoop()
 
 void Game::Close()
 {
-	_threadpool->PrintJobs();			// Print the stats
 	game_running = false;
 }
 

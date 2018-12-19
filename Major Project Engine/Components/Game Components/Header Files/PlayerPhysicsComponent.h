@@ -18,8 +18,8 @@ private:
 
 inline PlayerPhysicsComponent::PlayerPhysicsComponent() 
 {
-	shape = new btBoxShape(btVector3(btScalar(1.f), btScalar(1.f), btScalar(1.f)));
-	//shape = new btSphereShape(btScalar(1.f));
+	//shape = new btBoxShape(btVector3(btScalar(1.f), btScalar(1.f), btScalar(1.f)));
+	shape = new btSphereShape(btScalar(1.f));
 	mass = btScalar(1.f);
 	local_inertia = btVector3(0.f, 0.f, 0.f);
 

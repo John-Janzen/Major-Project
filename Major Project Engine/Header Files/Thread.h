@@ -62,10 +62,10 @@ private:
 	std::condition_variable _cv;
 	std::mutex _mutex;
 
-	// Only one instance needed for these
-	// No need for copying
 	std::unique_ptr<std::thread> _thread;
 	Job * current_job;
+
+	
 };
 
 #endif // !_THREAD_H

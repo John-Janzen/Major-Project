@@ -134,13 +134,13 @@ JOB_RETURN Render::InitRenderComp(void * ptr)
 	for (auto render_it : m_components->FindAllTypes<RenderComponent*>())
 	{
 		// Loading model job
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render_it.second));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render_it.second, job::JOB_LOAD_MODEL));
 
 		// Loading shader job
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render_it.second, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render_it.second, job::JOB_LOAD_SHADER));
 
 		// Loading texture job
- 		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render_it.second));
+ 		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render_it.second, job::JOB_LOAD_TEXTURE));
 	}
 
 	return JOB_COMPLETED;
@@ -151,24 +151,23 @@ JOB_RETURN Render::LoadModel(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	Job * bind_model_job;
 
-	auto load_type = _models->HasItem(rc->GetModelPath(), rc->GetModelAdd());
-	switch(load_type)
+	switch(_models->HasItem(rc->GetModelPath(), rc->GetModelAdd()))
 	{
 	case LOAD::CURRENT_LOAD:
 		if (LoadOBJModelFile(rc->GetModelPath(), rc->GetModelAdd()))
 		{
-			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE));
+			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, job::JOB_BIND_MODEL));
 			return JOB_COMPLETED;
 		}
 		break;
 	case LOAD::WAIT_LOAD:
-		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE);
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker"), bind_model_job);
+		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, job::JOB_BIND_MODEL);
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker", nullptr, job::JOB_MODEL_CHECKER), bind_model_job);
 		TaskManager::Instance().RegisterJob(bind_model_job, true);
 		return JOB_COMPLETED;
 		break;
 	case LOAD::DONE_LOAD:
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, job::JOB_BIND_MODEL));
 		return JOB_COMPLETED;
 		break;
 	default:
@@ -182,24 +181,23 @@ JOB_RETURN Render::LoadShader(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	Job * bind_shader_job;
 
-	auto load_type = _shaders->HasItem(rc->GetShaderPath(), rc->GetShaderAdd());
-	switch (load_type)
+	switch (_shaders->HasItem(rc->GetShaderPath(), rc->GetShaderAdd()))
 	{
 	case CURRENT_LOAD:
 		if (LoadShaderFile(rc->GetVShaderPath(), rc->GetFShaderPath(), rc->GetShaderAdd()))
 		{
-			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE));
+			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, job::JOB_BIND_SHADER));
 			return JOB_COMPLETED;
 		}
 		break;
 	case WAIT_LOAD:
-		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE);
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker"), bind_shader_job);
+		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, job::JOB_BIND_SHADER);
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker", nullptr, job::JOB_SHADER_CHECKER), bind_shader_job);
 		TaskManager::Instance().RegisterJob(bind_shader_job, true);
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, job::JOB_BIND_SHADER));
 		return JOB_COMPLETED;
 		break;
 	}
@@ -211,24 +209,23 @@ JOB_RETURN Render::LoadTexture(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	Job * bind_texture_job;
 
-	auto load_type = _textures->HasItem(rc->GetTexturePath(), rc->GetTextureAdd());
-	switch (load_type)
+	switch (_textures->HasItem(rc->GetTexturePath(), rc->GetTextureAdd()))
 	{
 	case CURRENT_LOAD:
 		if (LoadTextureFile(rc->GetTexturePath(), rc->GetTextureAdd()))
 		{
-			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE));
+			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, job::JOB_BIND_TEXTURE));
 			return JOB_COMPLETED;
 		}
 		break;
 	case WAIT_LOAD:
-		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE);
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker"), bind_texture_job);
+		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, job::JOB_BIND_TEXTURE);
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker", nullptr, job::JOB_TEXTURE_CHECKER), bind_texture_job);
 		TaskManager::Instance().RegisterJob(bind_texture_job, true);
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::RENDER_TYPE));
+		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, job::JOB_BIND_TEXTURE));
 		return JOB_COMPLETED;
 		break;
 	}

@@ -4,6 +4,7 @@
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 #include <stdio.h>
+#include <exception>
 
 class Physics :
 	public System

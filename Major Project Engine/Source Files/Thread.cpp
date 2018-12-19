@@ -1,5 +1,6 @@
 #include "Thread.h"
 #include "TaskManager.h"
+
 /*
 * Constructor that registers a name for the
 * thread class.
@@ -16,10 +17,8 @@ Thread::Thread(const std::string & name, const THREAD_TYPE type)
 */
 Thread::~Thread() 
 {
-	_cv.notify_all();
 	_thread->join();
 	_thread.reset();
-
 	delete(current_job);
 }
 
@@ -34,6 +33,7 @@ Thread::~Thread()
 */
 void Thread::Execution()
 {
+	std::chrono::high_resolution_clock::time_point current_time;
 	while (true)
 	{
 		std::unique_lock<std::mutex> lk(_mutex);
@@ -42,23 +42,29 @@ void Thread::Execution()
 		if (!_running)
 			break;
 
-		auto result = current_job->GetFunction()(current_job->GetContent());
-		if (result == JOB_COMPLETED)
+		if (current_job->f_time_data != nullptr)
+			current_time = std::chrono::high_resolution_clock::now();
+		
+		switch ((*current_job)())
 		{
+		case JOB_COMPLETED:
 			count++;
 			TaskManager::Instance().NotifyDone();
+			if (current_job->f_time_data != nullptr)
+				*current_job->f_time_data = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - current_time).count();
 			delete(current_job);
 			current_job = nullptr;
-		}
-		else if (result == JOB_RETRY)
-		{
+			break;
+		case JOB_RETRY:
 			TaskManager::Instance().RetryJob(current_job);
 			current_job = nullptr;
-		}
-		else
-		{
-			printf("ISSUE FOUND WITH JOB: %s", current_job->GetName().c_str());
+			break;
+		case JOB_ISSUE:
+			printf("ISSUE FOUND WITH JOB: %s", current_job->job_name.c_str());
 			throw std::invalid_argument("FOUND ISSUE");
+			break;
+		default:
+			break;
 		}
 		lk.unlock();
 	}
@@ -75,8 +81,8 @@ void Thread::Notify()
 */
 void Thread::Stop()
 {
-	_running = false;
 	while (current_job != nullptr);
+	_running = false;
 	current_job = new Job();
 	this->Notify();
 }

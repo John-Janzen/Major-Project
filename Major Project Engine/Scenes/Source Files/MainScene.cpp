@@ -65,9 +65,9 @@ bool MainScene::LoadPlayer()
 	return true;
 }
 
-bool MainScene::LoadMultiObject(const int x, const int y, const int z)
+bool MainScene::LoadMultiObject(const float x, const float y, const float z)
 {
-	Entity * m_object = m_entities->CreateEntity<MultiObject>(std::string("MultObject#" + (x + y + z)));
+	Entity * m_object = m_entities->CreateEntity<MultiObject>(std::string("MultObject#" + static_cast<int>(x + y + z)));
 	m_components->AddComponent(m_object->GetID(), new PlayerRenderComponent());
 	m_components->AddComponent(m_object->GetID(), new PlayerPhysicsComponent());
 	m_components->AddComponent(m_object->GetID(), new Transform(btVector3(btScalar(x * NUM_MULTI_OBJECTS / 2), btScalar(y * NUM_MULTI_OBJECTS / 2), btScalar(z * NUM_MULTI_OBJECTS / 2))));
