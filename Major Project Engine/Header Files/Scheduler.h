@@ -17,7 +17,7 @@ public:
 
 	using hr_clock = std::chrono::high_resolution_clock;
 	using ms = std::chrono::duration<float, std::milli>;
-	using FuncTimes = std::map<job::JOB_ID, float>;
+	using FuncTimes = std::map<Job::JOB_ID, float>;
 
 	Scheduler(const std::size_t & size);
 	~Scheduler();

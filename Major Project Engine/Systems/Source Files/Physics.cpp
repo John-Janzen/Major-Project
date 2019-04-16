@@ -1,6 +1,7 @@
 #include "Physics.h"
 
-Physics::Physics() 
+Physics::Physics(TaskManager & tm)
+	: System(tm)
 {
 	collisionConfiguration = new btDefaultCollisionConfiguration();
 	dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -50,10 +51,10 @@ JOB_RETURN Physics::Update(void * ptr)
 	{
 		if (comp_it.second != nullptr)
 		{
-			TaskManager::Instance().RegisterJob(
+			m_task.RegisterJob(
 				new Job(bind_function(&Physics::ComponentUpdate, this),
 					"Physics Component Update",
-					new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first)), job::JOB_PHYSICS_COMPONENT));
+					new PhysicsComponentContent(comp_it.second, comp_ptr->GetComponent<Transform*>(comp_it.first)), Job::JOB_PHYSICS_COMPONENT));
 		}
 	}
 	

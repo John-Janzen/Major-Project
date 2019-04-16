@@ -53,7 +53,7 @@ private:
 	hr_clock::time_point frame_rate_control;
 
 	float delta_time;
-	ms current_time_lock;
+	ms current_time_lock = ms(16.6667f);
 
 	hr_clock::time_point timer_start;
 	hr_clock::time_point timer_end;

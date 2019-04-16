@@ -15,7 +15,7 @@ https://github.com/John-Janzen
 
 *//*====================================================================================*/
 
-#include "Game.h"
+#include "Application.h"
 
 /*
 Main entry point of the program.
@@ -24,11 +24,9 @@ Initializes and runs everything in the engine.
 int main(int argc, char * args[])
 {
 
-	Application * game = new Game(std::thread::hardware_concurrency() / 2);
+	Application * game = new Application();
 	
 	while (game->GameLoop());
-
-	delete(game);
 
 	return 0;
 }

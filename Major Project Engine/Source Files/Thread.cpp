@@ -5,8 +5,8 @@
 * Constructor that registers a name for the
 * thread class.
 */
-Thread::Thread(const std::string & name, const THREAD_TYPE type)
-	:_name(name), t_type(type)
+Thread::Thread(BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type)
+	: job_list(queue), _name(name), t_type(type)
 {
 	_thread = std::make_unique<std::thread>(&Thread::Execution, this);
 }
@@ -19,7 +19,6 @@ Thread::~Thread()
 {
 	_thread->join();
 	_thread.reset();
-	delete(current_job);
 }
 
 /*
@@ -33,30 +32,20 @@ Thread::~Thread()
 */
 void Thread::Execution()
 {
-	std::chrono::high_resolution_clock::time_point current_time;
-	while (true)
+	Job * current_job;
+	while (_running)
 	{
-		std::unique_lock<std::mutex> lk(_mutex);
-		_cv.wait(lk, [this] {return (this->current_job != nullptr); });
+		job_list.Aquire(current_job);
 
-		if (!_running)
-			break;
-
-		if (current_job->f_time_data != nullptr)
-			current_time = std::chrono::high_resolution_clock::now();
-		
 		switch ((*current_job)())
 		{
 		case JOB_COMPLETED:
 			count++;
-			TaskManager::Instance().NotifyDone();
-			if (current_job->f_time_data != nullptr)
-				*current_job->f_time_data = std::chrono::duration<float, std::milli>(std::chrono::high_resolution_clock::now() - current_time).count();
 			delete(current_job);
 			current_job = nullptr;
 			break;
 		case JOB_RETRY:
-			TaskManager::Instance().RetryJob(current_job);
+			job_list.Emplace(current_job);
 			current_job = nullptr;
 			break;
 		case JOB_ISSUE:
@@ -66,13 +55,7 @@ void Thread::Execution()
 		default:
 			break;
 		}
-		lk.unlock();
 	}
-}
-
-void Thread::Notify()
-{
-	_cv.notify_all();
 }
 
 /*
@@ -81,19 +64,8 @@ void Thread::Notify()
 */
 void Thread::Stop()
 {
-	while (current_job != nullptr);
+	//while (current_job != nullptr);
 	_running = false;
-	current_job = new Job();
-	this->Notify();
-}
-
-bool Thread::CheckAvailable()
-{
-	std::lock_guard<std::mutex> lk(_mutex);
-	return (current_job == nullptr);
-}
-
-Job * & Thread::GetLocation()
-{
-	return current_job;
+	//current_job = new Job();
+	//this->Notify();
 }

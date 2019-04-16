@@ -17,15 +17,15 @@ void Scheduler::StartFrame()
 
 void Scheduler::SetScale(Job * & job)
 {
-	job->_scale = ((*job->f_time_data / time_limit) * 10) + (job->j_type / job::JOB_HEAD_END) + (0x100 % job->j_type) + (job->_age * 10);
+	//job->_scale = ((*job->f_time_data / time_limit) * 10) + (job->j_type / Job::JOB_HEAD_END) + (0x100 % job->j_type) + (job->_age * 10);
 }
 
 bool Scheduler::CheckForJob(Job * job)
 {
-	auto job_found = m_functions.find(job->j_type);
+	/*auto job_found = m_functions.find(job->j_type);
 	if (job_found != m_functions.end())
 	{
-		job->_scale = ((job_found->second / time_limit) * 10) + (job->j_type / job::JOB_HEAD_END) + (job->j_type % 0x100);
+		job->_scale = ((job_found->second / time_limit) * 10) + (job->j_type / Job::JOB_HEAD_END) + (job->j_type % 0x100);
 		job->f_time_data = &job_found->second;
 		return true;
 	}
@@ -33,13 +33,13 @@ bool Scheduler::CheckForJob(Job * job)
 	{
 		auto temp = m_functions.emplace(job->j_type, 0.01f);
 		job->f_time_data = &temp.first->second;
-	}
+	}*/
 	return false;
 }
 
 void Scheduler::SortJobs(std::list<Job*> & job_list, std::priority_queue<Job*, std::vector<Job*>, Job> & job_queue)
 {
-	Job * job_ptr = nullptr;
+	/*Job * job_ptr = nullptr;
 	while (!job_list.empty())
 	{
 		if (frame_time < time_limit)
@@ -64,6 +64,6 @@ void Scheduler::SortJobs(std::list<Job*> & job_list, std::priority_queue<Job*, s
 		{
 			break;
 		}
-	}
+	}*/
 	//printf("Time: %f\n", frame_time);
 }

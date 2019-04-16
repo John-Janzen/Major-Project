@@ -14,7 +14,7 @@ class Input :
 public:
 
 	float player_speed = 10;
-	Input();
+	Input(TaskManager & tm);
 	~Input();
 
 	JOB_RETURN Load(void* content);

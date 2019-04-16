@@ -3,66 +3,63 @@
 #ifndef _BLOCKINGQUEUE_H
 #define _BLOCKINGQUEUE_H
 
-#include <list>
+#include <queue>
 #include <mutex>
 
 template<typename T>
 class BlockingQueue
 {
 public:
-	BlockingQueue()
+	BlockingQueue(std::condition_variable & cv)
+		: _cv(cv)
 	{
-		_queue = std::list<T>();
+		_queue = std::queue<T>();
 	}
 
 	~BlockingQueue()
 	{
-		std::list<T>().swap(_queue);
+		std::queue<T>().swap(_queue);
 	}
 
-	T & Front()
+	void Close()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		return _queue.front();
+		open = false;
+		_cv.notify_all();
 	}
 
-	void FrontToBack()
+	void Aquire(T & loc)
 	{
-		std::lock_guard<std::mutex> lock(_mutex);
-		T temp = _queue.front();
-		_queue.pop_front();
-		_queue.push_back(temp);
-	}
-
-	bool Pop(T & location)
-	{
-		std::lock_guard<std::mutex> lock(_mutex);
-		if (!_queue.empty())
-		{
-			if (_queue.front()->GetWaiting() <= 0)
+		std::unique_lock<std::mutex> lock(_mutex);
+		_cv.wait(lock, [this, &loc] {
+			if (!this->Empty())
 			{
-				location = _queue.front();
-				_queue.pop_front();
+				loc = std::move(this->_queue.front());
+				this->_queue.pop();
+				return true;
 			}
-			else
+			if (!open)
 			{
-				_queue.emplace_back(_queue.front());
-				_queue.pop_front();
+				return true;
 			}
-			return true;
-		}
-		return false;
+			return false;
+		});
 	}
 
-	void Emplace(T item)
+	void Emplace(T && item)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
-		_queue.emplace_back(item);
+		_queue.emplace(item);
+	}
+
+	void Emplace(T & item)
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		_queue.emplace(item);
 	}
 
 	bool Empty()
 	{
-		std::lock_guard<std::mutex> lock(_mutex);
 		return _queue.empty();
 	}
 
@@ -72,11 +69,14 @@ public:
 		return _queue.size();
 	}
 
-	
-
 private:
 	std::mutex _mutex;
-	std::list<T> _queue;
+	std::condition_variable & _cv;
+	std::queue<T> _queue;
+
+	bool open = true;
+
+	float total_time = 0;
 };
 
 #endif // !_BLOCKINGQUEUE_H

@@ -15,7 +15,7 @@ class TestSystem :
 	public System
 {
 public:
-	TestSystem();
+	TestSystem(TaskManager & tm);
 	~TestSystem();
 
 	JOB_RETURN Load(void* content);

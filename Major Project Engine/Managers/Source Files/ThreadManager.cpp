@@ -15,8 +15,8 @@ ThreadManager::~ThreadManager()
 	task_queue = std::priority_queue<Job*, std::vector<Job*>, Job>();
 }
 
-ThreadManager::ThreadManager(const std::size_t & size)
-	: num_of_threads(size)
+ThreadManager::ThreadManager(std::priority_queue<Job*, std::vector<Job*>, Job> & queue, const std::size_t & size)
+	: task_queue(queue), num_of_threads(size)
 {
 	std::string name;
 	for (std::size_t i = 0; i < size; i++)
@@ -27,27 +27,26 @@ ThreadManager::ThreadManager(const std::size_t & size)
 		case 0:
 			name = "Albert";
 			type = Thread::RENDER_THREAD;
+			rthread_num = i;
+			t_queues[i] = new BlockingQueue<Job*>(render_thread);
 			break;
 		case 1:
 			name = "Curie";
+			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		case 2:
 			name = "Newton";
+			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		case 3:
 			name = "Dennis";
+			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		default:
 			break;
 		}
-		threads[i] = new Thread(name, type);
-
-		if (type == Thread::RENDER_THREAD)
-			render_thread = threads[i];
-
-		thread_queue.emplace(threads[i]);
+		threads[i] = new Thread(*t_queues[i], name, type);
 	}
-	task_queue = std::priority_queue<Job*, std::vector<Job*>, Job>();
 }
 
 void ThreadManager::Close()
@@ -60,60 +59,49 @@ bool ThreadManager::HasJobs() { return !task_queue.empty(); }
 
 void ThreadManager::AllocateJobs()
 {
-	Thread * thread_ptr;
-	while (!JobsEmpty())
+	while (!task_queue.empty())
 	{
-		thread_ptr = thread_queue.front();
-		switch (task_queue.top()->j_type / 0x100)
+		switch (task_queue.top()->j_type / JOB_STRIDE)
 		{
-		case 3:
-			if (render_thread->CheckAvailable())
-			{
-				render_thread->GetLocation() = task_queue.top();
-				task_queue.pop();
-				render_thread->Notify();
-			}
-			else
+		case Job::JOB_RENDER:
 			{
 				Job * temp = task_queue.top();
+				t_queues[rthread_num]->Emplace(temp);
 				task_queue.pop();
-				task_queue.push(temp);
+				render_thread.notify_one();
+				break;
 			}
-			break;
 		default:
-			if (thread_ptr->CheckAvailable())
 			{
-				thread_ptr->GetLocation() = task_queue.top();
+				Job * temp = task_queue.top();
+				t_queues[count]->Emplace(temp);
 				task_queue.pop();
-				thread_ptr->Notify();
+
+				if (count >= num_of_threads - 1) count = 0;
+				else count++;
+
+				if (count == 0) render_thread.notify_one();
+
+				any_thread.notify_one();
+				break;
 			}
-			thread_queue.pop();
-			thread_queue.push(thread_ptr);
-			break;
 		}
 	}
-}
-
-bool ThreadManager::JobsEmpty()
-{
-	return task_queue.empty();
 }
 
 void ThreadManager::PrintJobs()
 {
 	int total = 0;
-	for (std::size_t i = 0; i < num_of_threads; i++)
-		total += threads[i]->PrintStats();
+	for (const auto & t : threads)
+		total += t->PrintStats();
 	printf("Total count is: %u\n", total);
 }
 
 void ThreadManager::StopThreads()
 {
 	for (std::size_t i = 0; i < num_of_threads; i++)
+	{
+		t_queues[i]->Close();
 		threads[i]->Stop();
-}
-
-std::priority_queue<Job*, std::vector<Job*>, Job> & ThreadManager::GetQueue()
-{
-	return task_queue;
+	}
 }

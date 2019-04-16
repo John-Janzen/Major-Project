@@ -9,8 +9,8 @@ glm::mat4 getGLMMatrix4(const btScalar * matrix)
 		matrix[12], matrix[13], matrix[14], matrix[15]);
 }
 
-Render::Render(SDL_Window * window, const int width, const int height)
-	: sdl_window(window), screen_width(width), screen_height(height)
+Render::Render(TaskManager & tm, SDL_Window * window, const int width, const int height)
+	: System(tm), sdl_window(window), screen_width(width), screen_height(height)
 {
 	_models = new Storage<Model>();
 	_shaders = new Storage<Shader>();
@@ -134,13 +134,13 @@ JOB_RETURN Render::InitRenderComp(void * ptr)
 	for (auto render_it : m_components->FindAllTypes<RenderComponent*>())
 	{
 		// Loading model job
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render_it.second, job::JOB_LOAD_MODEL));
+		m_task.RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render_it.second, Job::JOB_LOAD_MODEL));
 
 		// Loading shader job
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render_it.second, job::JOB_LOAD_SHADER));
+		m_task.RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render_it.second, Job::JOB_LOAD_SHADER));
 
 		// Loading texture job
- 		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render_it.second, job::JOB_LOAD_TEXTURE));
+		m_task.RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render_it.second, Job::JOB_LOAD_TEXTURE));
 	}
 
 	return JOB_COMPLETED;
@@ -156,18 +156,18 @@ JOB_RETURN Render::LoadModel(void * ptr)
 	case LOAD::CURRENT_LOAD:
 		if (LoadOBJModelFile(rc->GetModelPath(), rc->GetModelAdd()))
 		{
-			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, job::JOB_BIND_MODEL));
+			m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
 			return JOB_COMPLETED;
 		}
 		break;
 	case LOAD::WAIT_LOAD:
-		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, job::JOB_BIND_MODEL);
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker", nullptr, job::JOB_MODEL_CHECKER), bind_model_job);
-		TaskManager::Instance().RegisterJob(bind_model_job, true);
+		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL);
+		m_task.RegisterJob(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker", nullptr, Job::JOB_MODEL_CHECKER), bind_model_job);
+		m_task.RegisterJob(bind_model_job, true);
 		return JOB_COMPLETED;
 		break;
 	case LOAD::DONE_LOAD:
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, job::JOB_BIND_MODEL));
+		m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
 		return JOB_COMPLETED;
 		break;
 	default:
@@ -186,18 +186,18 @@ JOB_RETURN Render::LoadShader(void * ptr)
 	case CURRENT_LOAD:
 		if (LoadShaderFile(rc->GetVShaderPath(), rc->GetFShaderPath(), rc->GetShaderAdd()))
 		{
-			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, job::JOB_BIND_SHADER));
+			m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER));
 			return JOB_COMPLETED;
 		}
 		break;
 	case WAIT_LOAD:
-		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, job::JOB_BIND_SHADER);
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker", nullptr, job::JOB_SHADER_CHECKER), bind_shader_job);
-		TaskManager::Instance().RegisterJob(bind_shader_job, true);
+		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER);
+		m_task.RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker", nullptr, Job::JOB_SHADER_CHECKER), bind_shader_job);
+		m_task.RegisterJob(bind_shader_job, true);
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, job::JOB_BIND_SHADER));
+		m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER));
 		return JOB_COMPLETED;
 		break;
 	}
@@ -214,18 +214,18 @@ JOB_RETURN Render::LoadTexture(void * ptr)
 	case CURRENT_LOAD:
 		if (LoadTextureFile(rc->GetTexturePath(), rc->GetTextureAdd()))
 		{
-			TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, job::JOB_BIND_TEXTURE));
+			m_task.RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE));
 			return JOB_COMPLETED;
 		}
 		break;
 	case WAIT_LOAD:
-		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, job::JOB_BIND_TEXTURE);
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker", nullptr, job::JOB_TEXTURE_CHECKER), bind_texture_job);
-		TaskManager::Instance().RegisterJob(bind_texture_job, true);
+		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE);
+		m_task.RegisterJob(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker", nullptr, Job::JOB_TEXTURE_CHECKER), bind_texture_job);
+		m_task.RegisterJob(bind_texture_job, true);
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
-		TaskManager::Instance().RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, job::JOB_BIND_TEXTURE));
+		m_task.RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE));
 		return JOB_COMPLETED;
 		break;
 	}

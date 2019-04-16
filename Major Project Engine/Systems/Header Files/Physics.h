@@ -10,7 +10,7 @@ class Physics :
 	public System
 {
 public:
-	Physics();
+	Physics(TaskManager & tm);
 	~Physics();
 
 	JOB_RETURN Update(void * ptr);

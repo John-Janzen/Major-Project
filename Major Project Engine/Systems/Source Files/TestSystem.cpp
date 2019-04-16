@@ -1,6 +1,7 @@
 #include "TestSystem.h"
 
-TestSystem::TestSystem()
+TestSystem::TestSystem(TaskManager & tm)
+	: System(tm)
 {}
 
 TestSystem::~TestSystem() 

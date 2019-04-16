@@ -53,7 +53,8 @@ void Timer::WaitTime()
 
 bool Timer::CheckTimeLimit()
 {
-	return ms(hr_clock::now() - current_time_frame) > current_time_lock;
+	//Print(ms(hr_clock::now() - current_time_frame));
+	return ms(hr_clock::now() - current_time_frame) < current_time_lock;
 }
 
 void Timer::Print(const ms & time)

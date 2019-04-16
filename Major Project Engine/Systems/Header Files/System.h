@@ -11,16 +11,19 @@
 class System
 {
 public:
-	System();
+	System(TaskManager & tm);
 	virtual ~System() = 0;
 
 	virtual JOB_RETURN Load(void* content) = 0;
 	virtual void Close(void* content) = 0;
 
-private:
+protected:
+	TaskManager & m_task;
 };
 
-inline System::System() {}
+inline System::System(TaskManager & tm)
+	: m_task(tm)
+{}
 
 inline System::~System() {}
 

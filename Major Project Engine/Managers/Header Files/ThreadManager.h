@@ -6,7 +6,7 @@
 #include "Thread.h"
 
 #include <queue>
-#include <list>
+#include <array>
 
 /*
 This Manager class is created as a singleton because
@@ -23,7 +23,7 @@ public:
 
 	static const std::size_t MAX_THREADS = 8;
 
-	explicit ThreadManager(const std::size_t & size);
+	explicit ThreadManager(std::priority_queue<Job*, std::vector<Job*>, Job> & queue, const std::size_t & size);
 
 	/*
 	Deletes the threads and job list.
@@ -46,11 +46,6 @@ public:
 	void AllocateJobs();
 
 	/*
-	Check if there is no jobs in the queue.
-	*/
-	bool JobsEmpty();
-
-	/*
 	Prints the stats for the jobs that the threads have
 	completed. Along with the number of jobs in total
 	that have been completed.
@@ -64,17 +59,19 @@ public:
 	*/
 	void StopThreads();
 
-	std::priority_queue<Job*, std::vector<Job*>, Job>& GetQueue();
-
 	std::size_t GetNumThreads() { return num_of_threads; }
 
 private:
-	Thread * threads[MAX_THREADS];
-	std::queue<Thread*> thread_queue;
-	Thread * render_thread;
+	std::array<Thread*, MAX_THREADS> threads = { nullptr };
+	std::array<BlockingQueue<Job*>*, MAX_THREADS> t_queues = { nullptr };
+	int rthread_num;
 
-	std::priority_queue<Job*, std::vector<Job*>, Job> task_queue;
+	std::condition_variable any_thread, render_thread;
+
+	std::priority_queue<Job*, std::vector<Job*>, Job> & task_queue;
 	std::size_t num_of_threads;
+
+	int count = 0;
 };
 
 #endif // !_THREADMANAGER_H

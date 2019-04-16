@@ -4,6 +4,7 @@
 #define _THREAD_H
 
 #include "Job.h"
+#include "BlockingQueue.h"
 
 #include <atomic>
 #include <thread>
@@ -11,6 +12,7 @@
 #include <string>
 #include <condition_variable>
 #include <mutex>
+#include <queue>
 
 /*
 * The thread wrapper class that encapsulate the standard
@@ -29,16 +31,11 @@ public:
 		IO_THREAD
 	};
 
-	Thread(const std::string & name, const THREAD_TYPE type = ANY_THREAD);
+	Thread(BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type = ANY_THREAD);
 	~Thread();
 
 	void Execution();
-	void Notify();
 	void Stop();
-
-	bool CheckAvailable();
-
-	Job * & GetLocation();
 
 	const THREAD_TYPE GetType() { return t_type; }
 
@@ -59,13 +56,10 @@ private:
 	std::string _name;
 	int count = 0;
 
-	std::condition_variable _cv;
-	std::mutex _mutex;
-
 	std::unique_ptr<std::thread> _thread;
-	Job * current_job;
+	//Job * current_job;
 
-	
+	BlockingQueue<Job*> & job_list;
 };
 
 #endif // !_THREAD_H

@@ -18,7 +18,7 @@
 class Render : public System
 {
 public:
-	Render(SDL_Window * sdl_window, const int width, const int height);
+	Render(TaskManager & tm, SDL_Window * sdl_window, const int width, const int height);
 	~Render();
 
 	JOB_RETURN Load(void* content);

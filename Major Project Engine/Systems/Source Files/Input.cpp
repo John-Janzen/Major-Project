@@ -1,6 +1,6 @@
 #include "Input.h"
 
-Input::Input() {}
+Input::Input(TaskManager & tm) : System(tm) {}
 
 Input::~Input() {}
 

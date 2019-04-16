@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Components\Base Components\Source Files\PhysicsComponent.cpp" />
+    <ClCompile Include="Source Files\Application.cpp" />
     <ClCompile Include="Source Files\Scheduler.cpp" />
     <ClCompile Include="Systems\Source Files\Physics.cpp" />
     <ClCompile Include="Source Files\FileLoader.cpp" />
@@ -28,7 +29,6 @@
     <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
     <ClCompile Include="Components\Base Components\Source Files\RenderComponent.cpp" />
     <ClCompile Include="Systems\Source Files\Render.cpp" />
-    <ClCompile Include="Source Files\Game.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Source Files\Thread.cpp" />
     <ClCompile Include="Source Files\Timer.cpp" />
@@ -59,7 +59,6 @@
     <ClInclude Include="Managers\Header Files\EntityManager.h" />
     <ClInclude Include="Header Files\Application.h" />
     <ClInclude Include="Components\Base Components\Header Files\BaseComponent.h" />
-    <ClInclude Include="Header Files\Game.h" />
     <ClInclude Include="Game Objects\Header Files\Entity.h" />
     <ClInclude Include="Header Files\BlockingQueue.h" />
     <ClInclude Include="Header Files\Content.h" />

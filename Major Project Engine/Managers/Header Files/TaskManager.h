@@ -12,15 +12,9 @@
 class TaskManager
 {
 public:
+	TaskManager(const std::size_t & thread_size);
+
 	~TaskManager();
-
-	static TaskManager& Instance()
-	{
-		static TaskManager inst;
-		return inst;
-	}
-
-	void Init(const std::size_t & thread_size);
 
 	void SetTimeLock(const float & time_lock);
 
@@ -32,30 +26,24 @@ public:
 
 	void NotifyDone();
 
-	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const job::JOB_ID type = job::JOB_DEFAULT);
+	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT);
 
-	void RegisterJob(Job * job, bool wait = false);
+	void RegisterJob(Job * & job, bool wait = false, Job * parent_job = nullptr);
 
-	void RegisterJob(Job * job, Job * parent_job);
+	void RegisterJob(Job * && job, bool wait = false, Job * parent_job = nullptr);
 
-	void RetryJob(Job * job);
-
-	void ThreadPoolAlloc();
+	void RetryJob(Job * & job);
 
 	void ManageJobs();
 
-	std::list<Job*> & GetJobList();
+	std::priority_queue<Job*, std::vector<Job*>, Job> & GetJobList() { return task_queue; }
 
 private:
 
-	//static const std::size_t MAX_JOBS = 30;
-	TaskManager() {}
-
-	Scheduler * _scheduler;
-	ThreadManager * _threadpool;
+	//Scheduler * _scheduler;
 
 	// List of jobs available
-	std::list<Job*> job_list;
+	std::priority_queue<Job*, std::vector<Job*>, Job> task_queue;
 
 	// List of jobs waiting
 	std::list<Job*> waiting_jobs;
