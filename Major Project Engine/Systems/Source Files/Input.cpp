@@ -4,11 +4,11 @@ Input::Input(TaskManager & tm) : System(tm) {}
 
 Input::~Input() {}
 
-JOB_RETURN Input::Load(void* content)
+bool Input::Load(SceneManager * & sm)
 {
 	SDL_Init(SDL_INIT_GAMECONTROLLER);
 	SDL_Init(SDL_INIT_EVENTS);
-	return JOB_COMPLETED;
+	return true;
 }
 
 void Input::Close(void* content)
@@ -18,19 +18,16 @@ void Input::Close(void* content)
 
 void Input::Update
 (
-	const GLfloat & _dt,
-	const Scene * current_scene
+	SceneManager * & sm
 )
 {
-	ComponentManager * comp_ptr = current_scene->GetCompManager();
-
-	for (auto comp : comp_ptr->FindAllTypes<PlayerControllerComponent*>())
+	/*for (auto comp : comp_ptr->FindAllTypes<PlayerControllerComponent*>())
 	{
 		if (comp.second != nullptr)
 		{
 			PlayerControls(_dt, comp.second, comp_ptr->GetComponent<Transform*>(comp.first)->_transform);
 		}
-	}
+	}*/
 }
 
 void Input::PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, btTransform & transform)

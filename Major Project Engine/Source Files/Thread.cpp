@@ -1,5 +1,4 @@
 #include "Thread.h"
-#include "TaskManager.h"
 
 /*
 * Constructor that registers a name for the

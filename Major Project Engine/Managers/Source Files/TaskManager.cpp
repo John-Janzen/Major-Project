@@ -21,7 +21,6 @@ void TaskManager::Close()
 			job_it = waiting_jobs.erase(job_it);
 		}
 	}
-
 	//if (_scheduler != nullptr) delete _scheduler;
 }
 
@@ -41,6 +40,7 @@ bool TaskManager::HasJobs()
 
 void TaskManager::NotifyDone()
 {
+	
 	jobs_to_finish--;
 }
 
@@ -121,6 +121,6 @@ void TaskManager::ManageJobs()
 		job_it++;
 	}
 	//_scheduler->SortJobs(job_list, _threadpool->GetQueue());
-	//jobs_to_finish += num_of_jobs;
+	jobs_to_finish += num_of_jobs;
 	num_of_jobs = 0;
 }

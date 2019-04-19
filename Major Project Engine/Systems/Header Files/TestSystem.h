@@ -18,8 +18,10 @@ public:
 	TestSystem(TaskManager & tm);
 	~TestSystem();
 
-	JOB_RETURN Load(void* content);
+	bool Load(SceneManager * & sm);
 	void Close(void* content);
+
+	void Update(SceneManager * & sm) {}
 
 	bool Process(void* content);
 	bool ReturnProcess(void* content);

@@ -60,6 +60,9 @@
     <ClCompile Include="Source Files\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Managers\Source Files\SceneManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header Files\Thread.h">
@@ -77,13 +80,7 @@
     <ClInclude Include="Header Files\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\Header Files\EntityManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Managers\Header Files\ThreadManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Managers\Header Files\ComponentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Header Files\FileLoader.h">
@@ -180,6 +177,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Header Files\Scheduler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\Header Files\SceneManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

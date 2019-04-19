@@ -3,11 +3,11 @@
 #ifndef _TASKMANAGER_H
 #define _TASKMANAGER_H
 
-#include "ThreadManager.h"
 #include "Scheduler.h"
 
 #include <list>
 #include <atomic>
+#include <mutex>
 
 class TaskManager
 {
@@ -25,6 +25,8 @@ public:
 	bool HasJobs();
 
 	void NotifyDone();
+
+	const std::atomic<int> & GetJobsToFinish() const { return jobs_to_finish; }
 
 	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT);
 
@@ -50,7 +52,7 @@ private:
 	std::size_t num_of_wait = 0;
 
 	std::atomic<int> num_of_jobs = 0;
-	std::atomic<int> jobs_to_finish;
+	std::atomic<int> jobs_to_finish = 0;
 	std::mutex safety_lock;
 };
 

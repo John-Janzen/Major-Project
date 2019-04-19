@@ -1,11 +1,11 @@
 #include "RenderComponent.h"
 #include "ThreadManager.h"
 
-RenderComponent::RenderComponent(const std::string model, const std::string v_shader, const std::string f_shader, const std::string texture) 
-{
-}
+RenderComponent::RenderComponent(const std::uint16_t & id, const std::string model, const std::string v_shader, const std::string f_shader, const std::string texture)
+	: BaseComponent(id) {}
 
-RenderComponent::RenderComponent()
+RenderComponent::RenderComponent(const std::uint16_t & id)
+	: BaseComponent(id)
 {
 	current_model = nullptr;
 	current_shader = nullptr;

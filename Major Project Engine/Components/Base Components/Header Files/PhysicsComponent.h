@@ -11,14 +11,14 @@ class PhysicsComponent :
 	public BaseComponent
 {
 public:
-	PhysicsComponent();
+	PhysicsComponent(const std::uint16_t & id);
 	~PhysicsComponent();
 
 	btCollisionShape * GetCollisionShape() { return shape; }
-	btScalar GetMass() { return mass; }
-	btVector3 GetLocalInertia() { return local_inertia; }
+	btScalar GetMass() const { return mass; }
+	btVector3 GetLocalInertia() const { return local_inertia; }
 
-	btRigidBody * GetRigidBody() { return rigid_body; }
+	btRigidBody * GetRigidBody() const { return rigid_body; }
 	void SetRigidBody(btRigidBody * rb) { rigid_body = rb; }
 
 protected:

@@ -10,18 +10,18 @@ class MainScene :
 public:
 	MainScene();
 	~MainScene();
-	bool Load();
+	bool Load(SceneManager & sm);
 	bool Unload();
 
 	static const int NUM_MULTI_OBJECTS = 3;
 
 private:
 
-	bool LoadCamera();
-	bool LoadQuad();
-	bool LoadFloor();
-	bool LoadPlayer();
-	bool LoadMultiObject(const float x, const float y, const float z);
+	bool LoadCamera(SceneManager & sm);
+	bool LoadQuad(SceneManager & sm);
+	bool LoadFloor(SceneManager & sm);
+	bool LoadPlayer(SceneManager & sm);
+	bool LoadMultiObject(SceneManager & sm, const float x, const float y, const float z);
 
 };
 

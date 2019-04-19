@@ -9,7 +9,7 @@ TestSystem::~TestSystem()
 	std::cout << "Test System destructor called" << std::endl;
 }
 
-JOB_RETURN TestSystem::Load(void* content)
+bool TestSystem::Load(SceneManager * & sm)
 {
 	//testing_field = std::vector<int>();
 	////srand(time(NULL));

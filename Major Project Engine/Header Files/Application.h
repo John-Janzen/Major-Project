@@ -3,8 +3,7 @@
 #ifndef _APPLICATION_H
 #define _APPLICATION_H
 
-#include "ComponentManager.h"
-#include "EntityManager.h"
+#include "SceneManager.h"
 #include "TaskManager.h"
 #include "ThreadManager.h"
 
@@ -29,10 +28,6 @@ public:
 	Application();
 	~Application();
 
-	bool InitApp(const std::size_t & num_of_threads);
-
-	bool LoadApp();
-
 	bool GameLoop();
 
 	bool LoadScene(const SCENE_SELECTION type);
@@ -41,6 +36,12 @@ public:
 
 private:
 
+	bool InitApp(const std::size_t & num_of_threads);
+
+	bool LoadApp();
+
+	void StartNewFrame();
+
 	Render * renderer = nullptr;
 	Input * input = nullptr;
 	TestSystem * test_system = nullptr;
@@ -48,6 +49,7 @@ private:
 
 	ThreadManager * m_thread = nullptr;
 	TaskManager * m_task = nullptr;
+	SceneManager * m_scene = nullptr;
 
 protected:
 
@@ -65,14 +67,11 @@ protected:
 	bool game_running = true;
 	GAME_STATE _state;
 
-	Scene * current_scene;
+	Scene * current_scene = nullptr;
 
 	GLfloat frame_rate;
-	SDL_Window * sdl_window;
-	SDL_GLContext sdl_context, sdl_init_context;
 
-	const int SCREEN_WIDTH = 1280;
-	const int SCREEN_HEIGHT = 720;
+	bool LoadedApp = false, Initialized = false;
 };
 
 #endif // !_APPLICATION_H

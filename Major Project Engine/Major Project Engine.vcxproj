@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Components\Base Components\Source Files\PhysicsComponent.cpp" />
+    <ClCompile Include="Managers\Source Files\SceneManager.cpp" />
     <ClCompile Include="Source Files\Application.cpp" />
     <ClCompile Include="Source Files\Scheduler.cpp" />
     <ClCompile Include="Systems\Source Files\Physics.cpp" />
@@ -51,12 +52,11 @@
     <ClInclude Include="Components\Game Components\Header Files\PlayerPhysicsComponent.h" />
     <ClInclude Include="Game Objects\Header Files\MultiObject.h" />
     <ClInclude Include="Header Files\Scheduler.h" />
+    <ClInclude Include="Managers\Header Files\SceneManager.h" />
     <ClInclude Include="Systems\Header Files\Physics.h" />
     <ClInclude Include="Systems\Header Files\Input.h" />
     <ClInclude Include="Game Objects\Header Files\Player.h" />
     <ClInclude Include="Scenes\Header Files\MainScene.h" />
-    <ClInclude Include="Managers\Header Files\ComponentManager.h" />
-    <ClInclude Include="Managers\Header Files\EntityManager.h" />
     <ClInclude Include="Header Files\Application.h" />
     <ClInclude Include="Components\Base Components\Header Files\BaseComponent.h" />
     <ClInclude Include="Game Objects\Header Files\Entity.h" />

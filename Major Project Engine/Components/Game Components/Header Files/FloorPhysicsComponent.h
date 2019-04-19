@@ -4,14 +4,16 @@ class FloorPhysicsComponent :
 	public PhysicsComponent
 {
 public:
-	FloorPhysicsComponent();
+	FloorPhysicsComponent(const std::uint16_t & id);
 	~FloorPhysicsComponent();
 
 private:
 
 };
 
-inline FloorPhysicsComponent::FloorPhysicsComponent() 
+inline FloorPhysicsComponent::FloorPhysicsComponent(const std::uint16_t & id)
+	: PhysicsComponent(id)
+
 {
 	shape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
 	mass = btScalar(0.f);

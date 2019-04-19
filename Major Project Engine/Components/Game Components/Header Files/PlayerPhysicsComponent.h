@@ -9,14 +9,15 @@ class PlayerPhysicsComponent
 	: public PhysicsComponent
 {
 public:
-	PlayerPhysicsComponent();
+	PlayerPhysicsComponent(const std::uint16_t & id);
 	~PlayerPhysicsComponent();
 
 private:
 
 };
 
-inline PlayerPhysicsComponent::PlayerPhysicsComponent() 
+inline PlayerPhysicsComponent::PlayerPhysicsComponent(const std::uint16_t & id)
+	: PhysicsComponent(id)
 {
 	//shape = new btBoxShape(btVector3(btScalar(1.f), btScalar(1.f), btScalar(1.f)));
 	shape = new btSphereShape(btScalar(1.f));

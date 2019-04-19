@@ -17,10 +17,10 @@ public:
 	Input(TaskManager & tm);
 	~Input();
 
-	JOB_RETURN Load(void* content);
+	bool Load(SceneManager * & sm);
 	void Close(void* content);
 
-	void Update(const GLfloat & _dt, const Scene * current_scene);
+	void Update(SceneManager * & sm);
 
 	void PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, btTransform & transform);
 

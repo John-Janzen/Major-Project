@@ -15,43 +15,55 @@
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
 
+static const std::size_t DEFAULT_WIDTH = 1280;
+static const std::size_t DEFAULT_HEIGHT = 720;
+
 class Render : public System
 {
 public:
-	Render(TaskManager & tm, SDL_Window * sdl_window, const int width, const int height);
+	Render(TaskManager & tm);
 	~Render();
 
-	JOB_RETURN Load(void* content);
+	bool Load(SceneManager * & sm);
 
 	void Close(void* content);
-	
-	JOB_RETURN UpdateLoop(void * ptr);
+
+	void Update(SceneManager * & sm);
 
 	JOB_RETURN InitRenderComp(void * ptr);
 
 private:
 
-	void InitUpdate(CameraComponent * c_cp, const btTransform tran);
+	void InitUpdate();
 
-	void ComponentUpdate(GLfloat * project_value, RenderComponent * & rc, const btTransform transform);
+	JOB_RETURN ComponentUpdate(void * ptr);
 
 	void FinalUpdate();
 
-	bool InitSDL(SDL_GLContext context);
+	bool InitSDL();
 
 	bool InitGL();
 
+	JOB_RETURN GiveThreadedContext(void * ptr);
+
 	JOB_RETURN LoadModel(void * ptr);
-
 	JOB_RETURN LoadShader(void * ptr);
-
 	JOB_RETURN LoadTexture(void * ptr);
 
 	JOB_RETURN BindModel(void * ptr);
-
 	JOB_RETURN BindTexture(void * ptr);
-
 	JOB_RETURN BindShader(void * ptr);
+
+	glm::mat4 projection_look_matrix;
+	glm::mat4 projection_matrix;
+	glm::mat4 look_matrix;
+
+	GLfloat _fov = 60.0f;
+	GLfloat _near = 0.1f, _far = 1000.0f;
+	std::size_t SCREEN_WIDTH = DEFAULT_WIDTH;
+	std::size_t SCREEN_HEIGHT = DEFAULT_HEIGHT;
+
+	SDL_GLContext sdl_gl_context;
 
 	SDL_Window * sdl_window;
 

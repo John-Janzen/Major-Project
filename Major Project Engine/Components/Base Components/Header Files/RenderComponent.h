@@ -13,8 +13,8 @@
 class RenderComponent : public BaseComponent
 {
 public:
-	RenderComponent(const std::string model, const std::string v_shader, const std::string f_shader, const std::string texture);
-	RenderComponent();
+	RenderComponent(const std::uint16_t & id, const std::string model, const std::string v_shader, const std::string f_shader, const std::string texture);
+	RenderComponent(const std::uint16_t & id);
 	~RenderComponent();
 
 	void SetModel(Model * model) { current_model = model; }

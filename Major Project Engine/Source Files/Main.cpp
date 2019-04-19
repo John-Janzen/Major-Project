@@ -28,5 +28,6 @@ int main(int argc, char * args[])
 	
 	while (game->GameLoop());
 
+	delete game;
 	return 0;
 }

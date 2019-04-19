@@ -13,12 +13,12 @@ public:
 	Physics(TaskManager & tm);
 	~Physics();
 
-	JOB_RETURN Update(void * ptr);
+	void Update(SceneManager * & sm);
 
 	JOB_RETURN ComponentUpdate(void * ptr);
 
-	JOB_RETURN Load(void* content);
-	void Close(void* content);
+	bool Load(SceneManager * & sm);
+	void Close(void * content);
 
 private:
 	btDefaultCollisionConfiguration * collisionConfiguration;
