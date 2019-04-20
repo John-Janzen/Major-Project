@@ -75,8 +75,7 @@ bool Application::LoadApp()
 
 void Application::StartNewFrame()
 {
-
-	while ((m_thread->HasJobs() || m_task->HasJobs()) || Timer::Instance().CheckTimeLimit())
+	while ((m_thread->HasJobs() || m_task->HasJobs()))
 	{
 		int num = m_task->ManageJobs();
 		m_thread->AllocateJobs(num);

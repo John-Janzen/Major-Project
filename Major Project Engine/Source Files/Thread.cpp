@@ -17,8 +17,7 @@ Thread::Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std:
 */
 Thread::~Thread() 
 {
-	_thread->join();
-	_thread.reset();
+	
 }
 
 /*
@@ -73,6 +72,8 @@ void Thread::Stop()
 {
 	//while (current_job != nullptr);
 	_running = false;
+	_thread->join();
+	_thread.reset();
 	//current_job = new Job();
 	//this->Notify();
 }

@@ -37,13 +37,13 @@ void Timer::WaitTime()
 	if (ms(hr_clock::now() - current_time_frame) < current_time_lock)		// AS LONG AS THE WORK_TIME IS LESS THAN THE FRAMETIME NEEDED (60FPS LOCK) -> (16.66ms)
 	{
 		//printf("Timer: %f\n", ms(hr_clock::now() - current_time_frame).count());
-		while (true)		// SPINLOCK FROM THE CURRENT FRAMETIME BELOW TO THE BEGINNING OF THE NEXT FRAME
+		while (true)		// SPINLOCK FROM THE CURRENT FRAMETIME BELOW TO THE BEGINNING OF THE NEXT FRAME 
 		{
 			auto time = ms(hr_clock::now() - current_time_frame);
 			if (time > current_time_lock)
 				break;
 			//std::this_thread::yield();
-		}
+		} 
 		//printf("Timer: %f\n", ms(hr_clock::now() - current_time_frame).count());
 		//printf("%d FrameSleep elapsed: %f\n", frame_count, std::chrono::duration<double, std::milli>(hr_clock::now() - current_time_frame).count());		// PRINT RESULTS
 	}

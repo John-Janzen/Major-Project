@@ -7,6 +7,8 @@
 #include "GameComponents.h"
 #include "ComponentHeaders.h"
 
+#include "iostream"
+
 enum SCENE_SELECTION
 {
 	NULL_SCENE,

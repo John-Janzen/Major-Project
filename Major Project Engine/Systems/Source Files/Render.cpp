@@ -45,7 +45,7 @@ bool Render::Load()
 	projection_matrix = glm::perspective(glm::radians(_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, _near, _far);
 	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	btScalar transform[16];
-	btTransform(btQuaternion(btScalar(0.f), btScalar(0.4f), btScalar(0.f)), btVector3(btScalar(0.f), btScalar(0.f), btScalar(-20.f))).getOpenGLMatrix(transform);
+	btTransform(btQuaternion(btScalar(0.f), btScalar(0.4f), btScalar(0.f)), btVector3(btScalar(0.f), btScalar(0.f), btScalar(-40.f))).getOpenGLMatrix(transform);
 
 	projection_look_matrix = projection_matrix * (look_matrix *	getGLMMatrix4(transform));
 

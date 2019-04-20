@@ -9,6 +9,7 @@ bool MainScene::Load(SceneManager & sm)
 {	
 	//m_entities->CreateEntity<Quad>("Quad")->Load(m_components);
 	//this->LoadCamera();
+	std::cout << "Number of objects being created: " << NUM_MULTI_OBJECTS * NUM_MULTI_OBJECTS * NUM_MULTI_OBJECTS << std::endl;
 	this->LoadQuad(sm);
 	this->LoadFloor(sm);
 	//this->LoadPlayer(sm);
