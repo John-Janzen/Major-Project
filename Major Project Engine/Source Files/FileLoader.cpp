@@ -85,13 +85,11 @@ bool LoadOBJModelFile(const std::string path, Model * & model)
 	std::map<std::string, GLuint> library;
 
 	GLuint location = 0;
-	glm::vec3 vertex[50] = {}, normal[50] = {};
-	glm::vec2 uv[50] = {};
+	std::vector<glm::vec3> vertex, normal;
+	std::vector<glm::vec2> uv;
 	glm::uvec3 face[3];
 	char lineHeader[8];
 	std::string to;
-
-	std::size_t v_count = 0, n_count = 0, t_count = 0;
 
 	std::string opened_file = OpenFileRead(path);
 	std::stringstream ss(opened_file);
@@ -103,18 +101,21 @@ bool LoadOBJModelFile(const std::string path, Model * & model)
 			
 			if (strcmp(lineHeader, "v") == 0)
 			{
-				sscanf_s(to.c_str(), "%s %f %f %f", lineHeader, (unsigned)_countof(lineHeader), &vertex[v_count].x, &vertex[v_count].y, &vertex[v_count].z);
-				v_count++;
+				glm::vec3 v_temp;
+				sscanf_s(to.c_str(), "%s %f %f %f", lineHeader, (unsigned)_countof(lineHeader), &v_temp.x, &v_temp.y, &v_temp.z);
+				vertex.emplace_back(v_temp);
 			}
 			else if (strcmp(lineHeader, "vt") == 0)
 			{
-				sscanf_s(to.c_str(), "%s %f %f", lineHeader, (unsigned)_countof(lineHeader), &uv[t_count].x, &uv[t_count].y);
-				t_count++;
+				glm::vec2 t_temp;
+				sscanf_s(to.c_str(), "%s %f %f", lineHeader, (unsigned)_countof(lineHeader), &t_temp.x, &t_temp.y);
+				uv.emplace_back(t_temp);
 			}
 			else if (strcmp(lineHeader, "vn") == 0)
 			{
-				sscanf_s(to.c_str(), "%s %f %f %f", lineHeader, (unsigned)_countof(lineHeader), &normal[n_count].x, &normal[n_count].y, &normal[n_count].z);
-				n_count++;
+				glm::vec3 n_temp;
+				sscanf_s(to.c_str(), "%s %f %f %f", lineHeader, (unsigned)_countof(lineHeader), &n_temp.x, &n_temp.y, &n_temp.z);
+				normal.emplace_back(n_temp);
 			}
 			else if (strcmp(lineHeader, "f") == 0)
 			{
@@ -125,6 +126,7 @@ bool LoadOBJModelFile(const std::string path, Model * & model)
 
 				if (matches != 10) {
 					printf("File can't be read by our simple parser : ( Try exporting with other options )\n");
+					assert(matches != 10);
 					break;
 				}
 				else

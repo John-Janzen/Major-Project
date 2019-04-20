@@ -4,6 +4,7 @@
 #define _THREADMANAGER_H
 
 #include "Thread.h"
+#include "SharedQueue.h"
 
 #include <queue>
 #include <array>
@@ -23,7 +24,7 @@ public:
 
 	static const std::size_t MAX_THREADS = 8;
 
-	explicit ThreadManager(std::priority_queue<Job*, std::vector<Job*>, Job> & queue, const std::size_t & size);
+	explicit ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size);
 
 	/*
 	Deletes the threads and job list.
@@ -43,7 +44,7 @@ public:
 	all of the threads available to make sure they are not busy
 	before handing a job off the queue.
 	*/
-	void AllocateJobs();
+	void AllocateJobs(const int num_new_jobs);
 
 	/*
 	Prints the stats for the jobs that the threads have
@@ -59,18 +60,32 @@ public:
 	*/
 	void StopThreads();
 
-	std::size_t GetNumThreads() { return num_of_threads; }
+	void RetryJob(Job * & job)
+	{
+		task_queue.Emplace(job);
+	}
+
+	void NotifyDone()
+	{
+		std::lock_guard<std::mutex> lock(finished_job);
+		jobs_to_finish--;
+	}
+
+	std::atomic<int> jobs_to_finish = 0;
+
+	const std::size_t GetNumThreads() const { return num_of_threads; }
 
 private:
 	std::array<Thread*, MAX_THREADS> threads = { nullptr };
 	std::array<BlockingQueue<Job*>*, MAX_THREADS> t_queues = { nullptr };
-	int rthread_num;
+	std::size_t rthread_num;
 
 	std::condition_variable any_thread, render_thread;
 
-	std::priority_queue<Job*, std::vector<Job*>, Job> & task_queue;
+	SharedQueue<Job*> & task_queue;
 	std::size_t num_of_threads;
-
+	std::mutex finished_job;
+	
 	int count = 0;
 };
 

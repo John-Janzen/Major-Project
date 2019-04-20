@@ -7,15 +7,14 @@ ThreadManager::~ThreadManager()
 		delete(threads[i]);
 	}
 
-	for (int i = 0; i < task_queue.size(); i++)
+	for (int i = 0; i < task_queue.Size(); i++)
 	{
-		delete task_queue.top();
-		task_queue.pop();
+		delete task_queue.Front();
+		task_queue.Pop();
 	}
-	task_queue = std::priority_queue<Job*, std::vector<Job*>, Job>();
 }
 
-ThreadManager::ThreadManager(std::priority_queue<Job*, std::vector<Job*>, Job> & queue, const std::size_t & size)
+ThreadManager::ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size)
 	: task_queue(queue), num_of_threads(size)
 {
 	std::string name;
@@ -45,42 +44,64 @@ ThreadManager::ThreadManager(std::priority_queue<Job*, std::vector<Job*>, Job> &
 		default:
 			break;
 		}
-		threads[i] = new Thread(*t_queues[i], name, type);
+		threads[i] = new Thread(this, *t_queues[i], name, type);
 	}
 }
 
 void ThreadManager::Close()
 {
 	StopThreads();
-	PrintJobs();
+	//PrintJobs();
 }
 
-bool ThreadManager::HasJobs() { return !task_queue.empty(); }
+bool ThreadManager::HasJobs() 
+{ 
+	bool check = false;
 
-void ThreadManager::AllocateJobs()
-{
-	while (!task_queue.empty())
+	for (const auto queue : t_queues)
 	{
-		switch (task_queue.top()->j_type / JOB_STRIDE)
+		if (queue == nullptr) continue;
+
+		check |= !queue->Empty();
+		if (!queue->Empty())
+		{
+			queue->Alert();
+		}
+	}
+	check |= !task_queue.Empty();
+
+	return check; 
+}
+
+void ThreadManager::AllocateJobs(const int num_new_jobs)
+{
+	{
+		std::lock_guard<std::mutex> lock(finished_job);
+		jobs_to_finish += num_new_jobs;
+	}
+
+	while (!task_queue.Empty())
+	{
+		switch (task_queue.Front()->j_type / JOB_STRIDE)
 		{
 		case Job::JOB_RENDER:
 			{
-				Job * temp = task_queue.top();
+				Job * temp = task_queue.Front();
 				t_queues[rthread_num]->Emplace(temp);
-				task_queue.pop();
+				task_queue.Pop();
 				render_thread.notify_one();
 				break;
 			}
 		default:
 			{
-				Job * temp = task_queue.top();
+				Job * temp = task_queue.Front();
 				t_queues[count]->Emplace(temp);
-				task_queue.pop();
+				task_queue.Pop();
+
+				if (count == 0) render_thread.notify_one();
 
 				if (count >= num_of_threads - 1) count = 0;
 				else count++;
-
-				if (count == 0) render_thread.notify_one();
 
 				any_thread.notify_one();
 				break;

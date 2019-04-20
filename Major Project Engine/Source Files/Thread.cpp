@@ -1,13 +1,14 @@
 #include "Thread.h"
+#include "ThreadManager.h"
 
 /*
 * Constructor that registers a name for the
 * thread class.
 */
-Thread::Thread(BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type)
+Thread::Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type)
 	: job_list(queue), _name(name), t_type(type)
 {
-	_thread = std::make_unique<std::thread>(&Thread::Execution, this);
+	_thread = std::make_unique<std::thread>(&Thread::Execution, this, tm);
 }
 
 /*
@@ -29,23 +30,30 @@ Thread::~Thread()
 * go back to sleep. Else, the job will hopefully be completed
 * and the thread continues the cycle.
 */
-void Thread::Execution()
+void Thread::Execution(ThreadManager * const tm)
 {
 	Job * current_job;
 	while (_running)
 	{
 		job_list.Aquire(current_job);
 
+		if (!_running) break;
+
 		switch ((*current_job)())
 		{
 		case JOB_COMPLETED:
 			count++;
+
 			delete(current_job);
+
 			current_job = nullptr;
+			tm->NotifyDone();
 			break;
 		case JOB_RETRY:
-			job_list.Emplace(current_job);
+			tm->RetryJob(current_job);
+
 			current_job = nullptr;
+			//tm->NotifyDone();
 			break;
 		case JOB_ISSUE:
 			printf("ISSUE FOUND WITH JOB: %s", current_job->job_name.c_str());

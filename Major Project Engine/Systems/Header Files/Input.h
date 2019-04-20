@@ -14,13 +14,13 @@ class Input :
 public:
 
 	float player_speed = 10;
-	Input(TaskManager & tm);
+	Input(TaskManager & tm, SceneManager & sm);
 	~Input();
 
-	bool Load(SceneManager * & sm);
+	bool Load();
 	void Close(void* content);
 
-	void Update(SceneManager * & sm);
+	JOB_RETURN Update(void * ptr);
 
 	void PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, btTransform & transform);
 

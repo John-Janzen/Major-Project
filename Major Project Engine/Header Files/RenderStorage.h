@@ -41,7 +41,10 @@ struct Texture
 		: _name(name) {}
 	~Texture() { if (TextureID != 0) glDeleteTextures(1, _texture); }
 
-	JOB_RETURN CheckDoneLoad(void * ptr) { return (_texture != nullptr && TextureID != 0) ? JOB_COMPLETED : JOB_RETRY; }
+	JOB_RETURN CheckDoneLoad(void * ptr) 
+	{
+		return (_texture != nullptr && TextureID != 0) ? JOB_COMPLETED : JOB_RETRY; 
+	}
 
 	std::string _name;
 	const GLuint * _texture;

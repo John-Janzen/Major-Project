@@ -15,13 +15,13 @@ class TestSystem :
 	public System
 {
 public:
-	TestSystem(TaskManager & tm);
+	TestSystem(TaskManager & tm, SceneManager & sm);
 	~TestSystem();
 
-	bool Load(SceneManager * & sm);
+	bool Load();
 	void Close(void* content);
 
-	void Update(SceneManager * & sm) {}
+	JOB_RETURN Update(void * ptr) { return JOB_COMPLETED; }
 
 	bool Process(void* content);
 	bool ReturnProcess(void* content);

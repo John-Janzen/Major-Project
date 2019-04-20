@@ -32,10 +32,10 @@ bool Application::InitApp(const std::size_t & num_of_threads)
 	m_thread = new ThreadManager(m_task->GetJobList(), num_of_threads);
 	m_scene = new SceneManager();
 
-	renderer = new Render(*m_task);
-	input = new Input(*m_task);
-	physics = new Physics(*m_task);
-	test_system = new TestSystem(*m_task);
+	renderer = new Render(*m_task, *m_scene);
+	input = new Input(*m_task, *m_scene);
+	physics = new Physics(*m_task, *m_scene);
+	test_system = new TestSystem(*m_task, *m_scene);
 
 	Initialized = true;
 	return true;
@@ -53,20 +53,22 @@ bool Application::LoadApp()
 		return false;
 	}
 
-	check &= renderer->Load(m_scene);
+	check &= renderer->Load();
 
 	int display_index = 0, mode_index = 0;
 	SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0 };
 
-	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) {
+	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) 
+	{
 		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 	}
+
 	float time_lock = 1000.f / (float)mode.refresh_rate;
 	Timer::Instance().SetTimeLock(time_lock);
 	m_task->SetTimeLock(time_lock);
 
-	check &= physics->Load(m_scene);
-	check &= input->Load(m_scene);
+	check &= physics->Load();
+	check &= input->Load();
 	LoadedApp = true;
 	return check;
 }
@@ -74,13 +76,13 @@ bool Application::LoadApp()
 void Application::StartNewFrame()
 {
 
-	while (Timer::Instance().CheckTimeLimit() || m_task->HasJobs())
+	while ((m_thread->HasJobs() || m_task->HasJobs()) || Timer::Instance().CheckTimeLimit())
 	{
-		m_task->ManageJobs();
-		m_thread->AllocateJobs();
+		int num = m_task->ManageJobs();
+		m_thread->AllocateJobs(num);
 	}
 
-	if (m_task->GetJobsToFinish() <= 0)
+	if (m_thread->jobs_to_finish == 0)
 	{
 		switch (_state)
 		{
@@ -121,7 +123,7 @@ bool Application::GameLoop()
 	case PLAYING:
 	{
 		//timer->Start();
-		input->Update(m_scene);
+		//input->Update(m_scene);
 
 		SDL_Event sdl_event;
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
@@ -142,12 +144,12 @@ bool Application::GameLoop()
 				break;
 			}
 		}
-		//m_task->RegisterJob(bind_function(&Physics::Update, physics), "Physics_Update", current_scene->GetCompManager(), Job::JOB_PHYSICS_UPDATE);
-		physics->Update(m_scene);
-		renderer->Update(m_scene);
 
-		//m_task->RegisterJob(bind_function(&Render::UpdateLoop, renderer), "Render_Update", current_scene, Job::JOB_RENDER_UPDATE);
-		//timer->Stop();
+		Job * parent = new Job(bind_function(&Render::Update, renderer), "Render_Update", nullptr, Job::JOB_RENDER_UPDATE);
+		m_task->RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", nullptr, Job::JOB_PHYSICS_UPDATE), false, parent);
+
+		m_task->RegisterJob(parent, true);
+		
 		break;
 	}
 	case PAUSED:

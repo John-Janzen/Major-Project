@@ -11,19 +11,20 @@
 class System
 {
 public:
-	System(TaskManager & tm);
+	System(TaskManager & tm, SceneManager & sm);
 	virtual ~System() = 0;
 
-	virtual void Update(SceneManager * & sm) = 0;
-	virtual bool Load(SceneManager * & sm) = 0;
+	virtual JOB_RETURN Update(void * ptr) = 0;
+	virtual bool Load() = 0;
 	virtual void Close(void* content) = 0;
 
 protected:
 	TaskManager & m_task;
+	SceneManager & m_scene;
 };
 
-inline System::System(TaskManager & tm)
-	: m_task(tm)
+inline System::System(TaskManager & tm, SceneManager & sm)
+	: m_task(tm), m_scene(sm)
 {}
 
 inline System::~System() {}

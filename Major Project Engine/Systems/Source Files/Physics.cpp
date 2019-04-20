@@ -1,7 +1,7 @@
 #include "Physics.h"
 
-Physics::Physics(TaskManager & tm)
-	: System(tm)
+Physics::Physics(TaskManager & tm, SceneManager & sm)
+	: System(tm, sm)
 {
 	collisionConfiguration = new btDefaultCollisionConfiguration();
 	dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -43,29 +43,32 @@ Physics::~Physics()
 	collisionShapes.clear();
 }
 
-void Physics::Update(SceneManager * & sm)
+JOB_RETURN Physics::Update(void * ptr)
 {	
-	for (auto & physics : sm->GetComponents(SceneManager::PHYSICS))
+	dynamicWorld->stepSimulation(10);
+
+	for (auto & physics : m_scene.GetComponents(SceneManager::PHYSICS))
 	{
 		assert(dynamic_cast<PhysicsComponent*>(physics));
 		auto obj = static_cast<PhysicsComponent*>(physics);
 		{
-			BaseComponent * trans = sm->FindComponent(SceneManager::TRANSFORM, obj->_id);
+			auto trans = m_scene.FindComponent(SceneManager::TRANSFORM, obj->_id);
 			assert(dynamic_cast<Transform*>(trans));
 			{
-				m_task.RegisterJob(
+				ComponentUpdate(new PhysicsComponentContent(obj, dynamic_cast<Transform*>(trans)));
+				/*m_task.RegisterJob(
 					new Job(bind_function(&Physics::ComponentUpdate, this),
 						"Physics Component Update",
-						new PhysicsComponentContent(obj, dynamic_cast<Transform*>(trans)), Job::JOB_PHYSICS_COMPONENT));
+						new PhysicsComponentContent(obj, dynamic_cast<Transform*>(trans)), Job::JOB_PHYSICS_COMPONENT));*/
 			}
 		}
 	}
+	
+	return JOB_COMPLETED;
 }
 
-JOB_RETURN Physics::ComponentUpdate(void * ptr)
+void Physics::ComponentUpdate(PhysicsComponentContent * PCContent)
 {
-	PhysicsComponentContent * PCContent = static_cast<PhysicsComponentContent*>(ptr);
-
 	if (PCContent->p_cp != nullptr)
 	{
 		btRigidBody * body = PCContent->p_cp->GetRigidBody();
@@ -74,23 +77,21 @@ JOB_RETURN Physics::ComponentUpdate(void * ptr)
 			body->getMotionState()->getWorldTransform(PCContent->trans->_transform);
 		}
 	}
-	//delete(PCContent);
 
-	m_task.NotifyDone();
-	return JOB_COMPLETED;
+	delete(PCContent);
 }
 
-bool Physics::Load(SceneManager * & sm)
+bool Physics::Load()
 {
 	//std::vector<BaseComponent*> * objects = static_cast<std::vector<BaseComponent*>*>(content);
 	//ComponentManager * comp_ptr = scene->GetCompManager();
 
-	for (const auto & physics : sm->GetComponents(SceneManager::PHYSICS))
+	for (const auto & physics : m_scene.GetComponents(SceneManager::PHYSICS))
 	{
 		assert(dynamic_cast<PhysicsComponent*>(physics));
 		auto obj = static_cast<PhysicsComponent*>(physics);
 		{
-			BaseComponent * trans = sm->FindComponent(SceneManager::TRANSFORM, physics->_id);
+			auto trans = m_scene.FindComponent(SceneManager::TRANSFORM, physics->_id);
 			assert(dynamic_cast<Transform*>(trans));
 			{
 				collisionShapes.push_back(obj->GetCollisionShape());
@@ -100,7 +101,6 @@ bool Physics::Load(SceneManager * & sm)
 				dynamicWorld->addRigidBody(obj->GetRigidBody());
 			}
 		}
-		
 	}
 	return true;
 }

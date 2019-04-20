@@ -4,6 +4,7 @@
 #define _TASKMANAGER_H
 
 #include "Scheduler.h"
+#include "SharedQueue.h"
 
 #include <list>
 #include <atomic>
@@ -20,13 +21,7 @@ public:
 
 	void Close();
 
-	bool FrameStart();
-
 	bool HasJobs();
-
-	void NotifyDone();
-
-	const std::atomic<int> & GetJobsToFinish() const { return jobs_to_finish; }
 
 	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT);
 
@@ -36,24 +31,23 @@ public:
 
 	void RetryJob(Job * & job);
 
-	void ManageJobs();
+	int ManageJobs();
 
-	std::priority_queue<Job*, std::vector<Job*>, Job> & GetJobList() { return task_queue; }
+	SharedQueue<Job*> & GetJobList() { return task_queue; }
 
 private:
 
 	//Scheduler * _scheduler;
 
 	// List of jobs available
-	std::priority_queue<Job*, std::vector<Job*>, Job> task_queue;
+	SharedQueue<Job*> task_queue;
 
 	// List of jobs waiting
 	std::list<Job*> waiting_jobs;
 	std::size_t num_of_wait = 0;
 
 	std::atomic<int> num_of_jobs = 0;
-	std::atomic<int> jobs_to_finish = 0;
-	std::mutex safety_lock;
+	std::mutex list_lock, jobs_lock;
 };
 
 #endif // !_TASKMANAGER_H

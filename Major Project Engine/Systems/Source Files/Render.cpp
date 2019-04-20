@@ -9,8 +9,8 @@ glm::mat4 getGLMMatrix4(const btScalar * matrix)
 		matrix[12], matrix[13], matrix[14], matrix[15]);
 }
 
-Render::Render(TaskManager & tm)
-	: System(tm)
+Render::Render(TaskManager & tm, SceneManager & sm)
+	: System(tm, sm)
 {
 	_models = new Storage<Model>();
 	_shaders = new Storage<Shader>();
@@ -29,7 +29,7 @@ Render::~Render()
 	SDL_DestroyWindow(sdl_window);
 }
 
-bool Render::Load(SceneManager * & sm)
+bool Render::Load()
 {
 	if (!InitSDL())
 	{
@@ -44,9 +44,12 @@ bool Render::Load(SceneManager * & sm)
 
 	projection_matrix = glm::perspective(glm::radians(_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, _near, _far);
 	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	projection_look_matrix = projection_matrix * look_matrix;
+	btScalar transform[16];
+	btTransform(btQuaternion(btScalar(0.f), btScalar(0.4f), btScalar(0.f)), btVector3(btScalar(0.f), btScalar(0.f), btScalar(-20.f))).getOpenGLMatrix(transform);
 
-	m_task.RegisterJob(new Job(bind_function(&Render::InitRenderComp, this), "Init_Render_Objects", &sm->GetComponents(SceneManager::RENDER), Job::JOB_RENDER_LOAD));
+	projection_look_matrix = projection_matrix * (look_matrix *	getGLMMatrix4(transform));
+
+	m_task.RegisterJob(new Job(bind_function(&Render::InitRenderComp, this), "Init_Render_Objects", &m_scene.GetComponents(SceneManager::RENDER), Job::JOB_RENDER_LOAD));
 	return true;
 }
 
@@ -59,9 +62,8 @@ void Render::InitUpdate()
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-JOB_RETURN Render::ComponentUpdate(void * ptr)
+void Render::ComponentUpdate(RenderComponentContent * RCContent)
 {
-	RenderComponentContent * RCContent = static_cast<RenderComponentContent*>(ptr);
 	RenderComponent * rc = RCContent->r_cp;
 
 	if (RCContent->r_cp->GetModel() != nullptr)
@@ -99,35 +101,35 @@ JOB_RETURN Render::ComponentUpdate(void * ptr)
 		glBindVertexArray(0);
 		glUseProgram(0);
 	}
-
-	m_task.NotifyDone();
-	return JOB_COMPLETED;
+	delete RCContent;
 }
 
-void Render::FinalUpdate()
-{
-	SDL_GL_SwapWindow(sdl_window);
-}
-
-void Render::Update(SceneManager * & sm)
+JOB_RETURN Render::Update(void * ptr)
 {
 	this->InitUpdate();
+	//m_task.RegisterJob(new Job(bind_function(&Render::InitUpdate, this), "Initial_Update", nullptr, Job::JOB_RENDER_UPDATE));
 		//comp_ptr->GetComponent<Transform*>(curr_scene->GetCameraID())->_transform);
 
-	for (auto & render_it : sm->GetComponents(SceneManager::RENDER))
+	//Job * parent = new Job(bind_function(&Render::SwapBuffers, this), "Swap_Buffers", nullptr, Job::JOB_SWAP_BUFFERS);
+	
+	for (auto & render_it : m_scene.GetComponents(SceneManager::RENDER))
 	{
 		assert(dynamic_cast<RenderComponent*>(render_it));
 		auto obj = static_cast<RenderComponent*>(render_it);
 		{
-			assert(dynamic_cast<Transform*>(sm->FindComponent(SceneManager::TRANSFORM, obj->_id)));
-			auto trans = static_cast<Transform*>(sm->FindComponent(SceneManager::TRANSFORM, render_it->_id));
+			auto trans = m_scene.FindComponent(SceneManager::TRANSFORM, render_it->_id);
+			assert(dynamic_cast<Transform*>(trans));
 			{
-				m_task.RegisterJob(new Job(bind_function(&Render::ComponentUpdate, this), 
+				ComponentUpdate(new RenderComponentContent(obj, static_cast<Transform*>(trans)));
+				/*m_task.RegisterJob(new Job(bind_function(&Render::ComponentUpdate, this),
 					"R_Component_Update",
-					new RenderComponentContent(obj, trans)));
+					new RenderComponentContent(obj, static_cast<Transform*>(trans)), Job::JOB_RENDER_UPDATE), false, parent);*/
 			}
 		}
 	}
+	
+	this->SwapBuffers();
+	return JOB_COMPLETED;
 }
 
 JOB_RETURN Render::InitRenderComp(void * ptr)
@@ -142,15 +144,14 @@ JOB_RETURN Render::InitRenderComp(void * ptr)
 			// Loading model job
 			m_task.RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render, Job::JOB_LOAD_MODEL));
 
-			// Loading shader job
-			m_task.RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render, Job::JOB_LOAD_SHADER));
-
 			// Loading texture job
 			m_task.RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render, Job::JOB_LOAD_TEXTURE));
+
+			// Loading shader job
+			m_task.RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render, Job::JOB_LOAD_SHADER));
 		}
 	}
 
-	m_task.NotifyDone();
 	return JOB_COMPLETED;
 }
 
@@ -186,11 +187,6 @@ bool Render::InitSDL()
 bool Render::InitGL()
 {
 	glViewport(0, 0, screen_width, screen_height);
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
 	return true;
 }
 
@@ -211,6 +207,11 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 	}
 	else
 	{
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_TEXTURE_2D);
+
 		glewExperimental = GL_TRUE;
 		GLenum glewError = glewInit();
 		if (glewError != GLEW_OK)
@@ -218,10 +219,8 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 			printf("Error initializing GLEW! %s", glewGetErrorString(glewError));
 			return JOB_ISSUE;
 		}
-		SDL_GL_SwapWindow(sdl_window);
+		//SDL_GL_SwapWindow(sdl_window);
 	}
-
-	m_task.NotifyDone();
 	return JOB_COMPLETED;
 }
 
@@ -236,8 +235,6 @@ JOB_RETURN Render::LoadModel(void * ptr)
 		if (LoadOBJModelFile(rc->GetModelPath(), rc->GetModelAdd()))
 		{
 			m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
-
-			m_task.NotifyDone();
 			return JOB_COMPLETED;
 		}
 		break;
@@ -245,14 +242,10 @@ JOB_RETURN Render::LoadModel(void * ptr)
 		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL);
 		m_task.RegisterJob(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker", nullptr, Job::JOB_MODEL_CHECKER), bind_model_job);
 		m_task.RegisterJob(bind_model_job, true);
-
-		m_task.NotifyDone();
 		return JOB_COMPLETED;
 		break;
 	case LOAD::DONE_LOAD:
 		m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
-
-		m_task.NotifyDone();
 		return JOB_COMPLETED;
 		break;
 	default:
@@ -272,8 +265,6 @@ JOB_RETURN Render::LoadShader(void * ptr)
 		if (LoadShaderFile(rc->GetVShaderPath(), rc->GetFShaderPath(), rc->GetShaderAdd()))
 		{
 			m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER));
-
-			m_task.NotifyDone();
 			return JOB_COMPLETED;
 		}
 		break;
@@ -281,14 +272,10 @@ JOB_RETURN Render::LoadShader(void * ptr)
 		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER);
 		m_task.RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker", nullptr, Job::JOB_SHADER_CHECKER), bind_shader_job);
 		m_task.RegisterJob(bind_shader_job, true);
-
-		m_task.NotifyDone();
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
 		m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER));
-
-		m_task.NotifyDone();
 		return JOB_COMPLETED;
 		break;
 	}
@@ -306,8 +293,6 @@ JOB_RETURN Render::LoadTexture(void * ptr)
 		if (LoadTextureFile(rc->GetTexturePath(), rc->GetTextureAdd()))
 		{
 			m_task.RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE));
-
-			m_task.NotifyDone();
 			return JOB_COMPLETED;
 		}
 		break;
@@ -315,14 +300,10 @@ JOB_RETURN Render::LoadTexture(void * ptr)
 		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE);
 		m_task.RegisterJob(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker", nullptr, Job::JOB_TEXTURE_CHECKER), bind_texture_job);
 		m_task.RegisterJob(bind_texture_job, true);
-
-		m_task.NotifyDone();
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
 		m_task.RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE));
-
-		m_task.NotifyDone();
 		return JOB_COMPLETED;
 		break;
 	}
@@ -371,7 +352,7 @@ JOB_RETURN Render::BindModel(void * ptr)
 		return JOB_ISSUE;
 	}
 
-	m_task.NotifyDone();
+	
 	return JOB_COMPLETED;
 }
 
@@ -406,7 +387,7 @@ JOB_RETURN Render::BindTexture(void * ptr)
 		return JOB_ISSUE;
 	}
 
-	m_task.NotifyDone();
+	
 	return JOB_COMPLETED;
 }
 
@@ -460,7 +441,7 @@ JOB_RETURN Render::BindShader(void * ptr)
 		return JOB_ISSUE;
 	}
 
-	m_task.NotifyDone();
+	
 	return JOB_COMPLETED;
 }
 

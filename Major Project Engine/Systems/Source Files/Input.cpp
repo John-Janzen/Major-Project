@@ -1,10 +1,10 @@
 #include "Input.h"
 
-Input::Input(TaskManager & tm) : System(tm) {}
+Input::Input(TaskManager & tm, SceneManager & sm) : System(tm, sm) {}
 
 Input::~Input() {}
 
-bool Input::Load(SceneManager * & sm)
+bool Input::Load()
 {
 	SDL_Init(SDL_INIT_GAMECONTROLLER);
 	SDL_Init(SDL_INIT_EVENTS);
@@ -16,9 +16,9 @@ void Input::Close(void* content)
 
 }
 
-void Input::Update
+JOB_RETURN Input::Update
 (
-	SceneManager * & sm
+	void * ptr
 )
 {
 	/*for (auto comp : comp_ptr->FindAllTypes<PlayerControllerComponent*>())
@@ -28,6 +28,7 @@ void Input::Update
 			PlayerControls(_dt, comp.second, comp_ptr->GetComponent<Transform*>(comp.first)->_transform);
 		}
 	}*/
+	return JOB_COMPLETED;
 }
 
 void Input::PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, btTransform & transform)

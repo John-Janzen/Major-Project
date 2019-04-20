@@ -14,6 +14,8 @@
 #include <mutex>
 #include <queue>
 
+class ThreadManager;
+
 /*
 * The thread wrapper class that encapsulate the standard
 * c++ library thread class. This will provide with additional
@@ -31,10 +33,10 @@ public:
 		IO_THREAD
 	};
 
-	Thread(BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type = ANY_THREAD);
+	Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type = ANY_THREAD);
 	~Thread();
 
-	void Execution();
+	void Execution(ThreadManager * const tm);
 	void Stop();
 
 	const THREAD_TYPE GetType() { return t_type; }

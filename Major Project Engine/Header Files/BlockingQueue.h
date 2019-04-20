@@ -69,6 +69,11 @@ public:
 		return _queue.size();
 	}
 
+	void Alert()
+	{
+		_cv.notify_all();
+	}
+
 private:
 	std::mutex _mutex;
 	std::condition_variable & _cv;

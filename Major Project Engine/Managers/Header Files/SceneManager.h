@@ -12,7 +12,7 @@ class SceneManager
 {
 public:
 
-	static const std::size_t MAX_ENT = 16;
+	static const std::size_t MAX_ENT = 1024;
 
 	enum CompTypes
 	{
@@ -55,7 +55,7 @@ public:
 
 	Entity * & CreateEntity(const std::string & name)
 	{
-		_entities[count_ent] = new Entity(name, id_count);
+		_entities[count_ent] = new Entity(name, id_count++);
 		count_ent++;
 		return _entities[count_ent - 1];
 	}

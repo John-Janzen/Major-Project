@@ -1,7 +1,7 @@
 #include "TestSystem.h"
 
-TestSystem::TestSystem(TaskManager & tm)
-	: System(tm)
+TestSystem::TestSystem(TaskManager & tm, SceneManager & sm)
+	: System(tm, sm)
 {}
 
 TestSystem::~TestSystem() 
@@ -9,7 +9,7 @@ TestSystem::~TestSystem()
 	std::cout << "Test System destructor called" << std::endl;
 }
 
-bool TestSystem::Load(SceneManager * & sm)
+bool TestSystem::Load()
 {
 	//testing_field = std::vector<int>();
 	////srand(time(NULL));

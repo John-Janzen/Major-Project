@@ -15,30 +15,30 @@
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
 
-static const std::size_t DEFAULT_WIDTH = 1280;
-static const std::size_t DEFAULT_HEIGHT = 720;
+static const int DEFAULT_WIDTH = 1280;
+static const int DEFAULT_HEIGHT = 720;
 
 class Render : public System
 {
 public:
-	Render(TaskManager & tm);
+	Render(TaskManager & tm, SceneManager & sm);
 	~Render();
 
-	bool Load(SceneManager * & sm);
+	bool Load();
 
 	void Close(void* content);
 
-	void Update(SceneManager * & sm);
+	JOB_RETURN Update(void * ptr);
 
-	JOB_RETURN InitRenderComp(void * ptr);
+	void SwapBuffers() { SDL_GL_SwapWindow(sdl_window); }
 
 private:
 
 	void InitUpdate();
 
-	JOB_RETURN ComponentUpdate(void * ptr);
+	void ComponentUpdate(RenderComponentContent * RCContent);
 
-	void FinalUpdate();
+	JOB_RETURN InitRenderComp(void * ptr);
 
 	bool InitSDL();
 
@@ -60,8 +60,8 @@ private:
 
 	GLfloat _fov = 60.0f;
 	GLfloat _near = 0.1f, _far = 1000.0f;
-	std::size_t SCREEN_WIDTH = DEFAULT_WIDTH;
-	std::size_t SCREEN_HEIGHT = DEFAULT_HEIGHT;
+	int SCREEN_WIDTH = DEFAULT_WIDTH;
+	int SCREEN_HEIGHT = DEFAULT_HEIGHT;
 
 	SDL_GLContext sdl_gl_context;
 

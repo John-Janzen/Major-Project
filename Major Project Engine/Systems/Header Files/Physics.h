@@ -10,17 +10,18 @@ class Physics :
 	public System
 {
 public:
-	Physics(TaskManager & tm);
+	Physics(TaskManager & tm, SceneManager & sm);
 	~Physics();
 
-	void Update(SceneManager * & sm);
+	JOB_RETURN Update(void * ptr);
 
-	JOB_RETURN ComponentUpdate(void * ptr);
-
-	bool Load(SceneManager * & sm);
+	bool Load();
 	void Close(void * content);
 
 private:
+
+	void ComponentUpdate(PhysicsComponentContent * PCContent);
+
 	btDefaultCollisionConfiguration * collisionConfiguration;
 	btCollisionDispatcher * dispatcher;
 	btBroadphaseInterface * overlappingPairCache;
