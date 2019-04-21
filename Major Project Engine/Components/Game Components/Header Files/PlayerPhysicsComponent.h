@@ -23,7 +23,7 @@ inline PlayerPhysicsComponent::PlayerPhysicsComponent(const std::uint16_t & id)
 	//shape = new btSphereShape(btScalar(1.f));
 	mass = btScalar(1.f);
 	local_inertia = btVector3(0.f, 0.f, 0.f);
-
+	
 	bool dynamic = (mass != 0.f);
 	if (dynamic)
 		shape->calculateLocalInertia(mass, local_inertia);

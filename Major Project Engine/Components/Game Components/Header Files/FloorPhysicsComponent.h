@@ -15,7 +15,7 @@ inline FloorPhysicsComponent::FloorPhysicsComponent(const std::uint16_t & id)
 	: PhysicsComponent(id)
 
 {
-	shape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
+	shape = new btBoxShape(btVector3(btScalar(50.), btScalar(10.), btScalar(50.)));
 	mass = btScalar(0.f);
 	local_inertia = btVector3(0.f, 0.f, 0.f);
 

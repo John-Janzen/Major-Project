@@ -28,6 +28,7 @@ Application::~Application()
 bool Application::InitApp(const std::size_t & num_of_threads)
 {
 	Timer::Instance().Start();
+	n_threads = num_of_threads;
 	m_task = new TaskManager(num_of_threads);
 	m_thread = new ThreadManager(m_task->GetJobList(), num_of_threads);
 	m_scene = new SceneManager();
@@ -113,7 +114,7 @@ bool Application::GameLoop()
 	{
 	case INITIALIZING:
 		if (!Initialized)
-			game_running = this->InitApp(std::thread::hardware_concurrency() / 2);
+			game_running = this->InitApp(7);
 		break;
 	case LOADING:
 		if (!LoadedApp)
@@ -145,7 +146,19 @@ bool Application::GameLoop()
 		}
 
 		Job * parent = new Job(bind_function(&Render::Update, renderer), "Render_Update", nullptr, Job::JOB_RENDER_UPDATE);
-		m_task->RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", nullptr, Job::JOB_PHYSICS_UPDATE), false, parent);
+
+		physics->PreUpdate();
+
+		auto physicsVec = m_scene->GetComponents(SceneManager::PHYSICS);
+		int num = (physicsVec.size() / 10);
+		for (int i = 0; i < 10; i++)
+		{
+			m_task->RegisterJob(new Job(
+				bind_function(&Physics::Update, physics), 
+				"Physics_Update", 
+				new std::vector<BaseComponent*>(physicsVec.begin() + (i * num), physicsVec.begin() + ((i + 1) * num)), 
+				Job::JOB_PHYSICS_UPDATE), false, parent);
+		}
 
 		m_task->RegisterJob(parent, true);
 		

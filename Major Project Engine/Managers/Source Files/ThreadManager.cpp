@@ -42,6 +42,7 @@ ThreadManager::ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size
 			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		default:
+			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		}
 		threads[i] = new Thread(this, *t_queues[i], name, type);

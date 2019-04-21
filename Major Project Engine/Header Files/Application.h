@@ -70,6 +70,7 @@ protected:
 	Scene * current_scene = nullptr;
 
 	GLfloat frame_rate;
+	std::uint16_t n_threads;
 
 	bool LoadedApp = false, Initialized = false;
 };

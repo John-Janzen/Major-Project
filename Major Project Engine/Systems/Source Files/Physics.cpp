@@ -45,9 +45,9 @@ Physics::~Physics()
 
 JOB_RETURN Physics::Update(void * ptr)
 {	
-	dynamicWorld->stepSimulation(10);
-
-	for (auto & physics : m_scene.GetComponents(SceneManager::PHYSICS))
+	std::vector<BaseComponent*> * PVector = static_cast<std::vector<BaseComponent*>*>(ptr);
+	//Timer::Instance().Start();
+	for (auto & physics : *PVector)
 	{
 		assert(dynamic_cast<PhysicsComponent*>(physics));
 		auto obj = static_cast<PhysicsComponent*>(physics);
@@ -55,30 +55,22 @@ JOB_RETURN Physics::Update(void * ptr)
 			auto trans = m_scene.FindComponent(SceneManager::TRANSFORM, obj->_id);
 			assert(dynamic_cast<Transform*>(trans));
 			{
-				ComponentUpdate(new PhysicsComponentContent(obj, dynamic_cast<Transform*>(trans)));
-				/*m_task.RegisterJob(
-					new Job(bind_function(&Physics::ComponentUpdate, this),
-						"Physics Component Update",
-						new PhysicsComponentContent(obj, dynamic_cast<Transform*>(trans)), Job::JOB_PHYSICS_COMPONENT));*/
+				ComponentUpdate(PhysicsComponentContent(obj, dynamic_cast<Transform*>(trans)));
 			}
 		}
 	}
-	
+	delete PVector;
+	//Timer::Instance().Stop();
 	return JOB_COMPLETED;
 }
 
-void Physics::ComponentUpdate(PhysicsComponentContent * PCContent)
+void Physics::ComponentUpdate(const PhysicsComponentContent & PCContent)
 {
-	if (PCContent->p_cp != nullptr)
+	btRigidBody * body = PCContent.p_cp->GetRigidBody();
+	if (body && body->getMotionState())
 	{
-		btRigidBody * body = PCContent->p_cp->GetRigidBody();
-		if (body && body->getMotionState())
-		{
-			body->getMotionState()->getWorldTransform(PCContent->trans->_transform);
-		}
+		body->getMotionState()->getWorldTransform(PCContent.trans->_transform);
 	}
-
-	delete(PCContent);
 }
 
 bool Physics::Load()

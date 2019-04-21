@@ -50,7 +50,7 @@ bool MainScene::LoadFloor(SceneManager & sm)
 {
 	//Entity * floor = m_entities->CreateEntity<Floor>();
 	Entity * & floor = sm.CreateEntity("Floor");
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(floor->GetID(), btVector3(btScalar(0.f), btScalar(-50.f), btScalar(0.f))));
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(floor->GetID(), btVector3(btScalar(0.f), btScalar(-25.f), btScalar(0.f))));
 	sm.AddComponent(SceneManager::PHYSICS, new FloorPhysicsComponent(floor->GetID()));
 	sm.AddComponent(SceneManager::RENDER, new QuadRenderComponent(floor->GetID()));
 	return true;

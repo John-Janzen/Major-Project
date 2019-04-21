@@ -62,13 +62,13 @@ void Render::InitUpdate()
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void Render::ComponentUpdate(RenderComponentContent * RCContent)
+void Render::ComponentUpdate(const RenderComponentContent & RCContent)
 {
-	RenderComponent * rc = RCContent->r_cp;
+	RenderComponent * rc = RCContent.r_cp;
 
-	if (RCContent->r_cp->GetModel() != nullptr)
+	if (RCContent.r_cp->GetModel() != nullptr)
 	{
-		Model * model_ptr = RCContent->r_cp->GetModel();
+		Model * model_ptr = RCContent.r_cp->GetModel();
 		glBindVertexArray(rc->GetVertexArray());
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
 
@@ -90,7 +90,7 @@ void Render::ComponentUpdate(RenderComponentContent * RCContent)
 		glUniform4f(rc->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
 
 		btScalar matrix[16];
-		RCContent->trans->_transform.getOpenGLMatrix(matrix);
+		RCContent.trans->_transform.getOpenGLMatrix(matrix);
 
 		glUniformMatrix4fv(rc->GetProjectionMatrixLoc(), 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
 		glUniformMatrix4fv(rc->GetModelMatrixLoc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
@@ -101,7 +101,6 @@ void Render::ComponentUpdate(RenderComponentContent * RCContent)
 		glBindVertexArray(0);
 		glUseProgram(0);
 	}
-	delete RCContent;
 }
 
 JOB_RETURN Render::Update(void * ptr)
@@ -120,7 +119,7 @@ JOB_RETURN Render::Update(void * ptr)
 			auto trans = m_scene.FindComponent(SceneManager::TRANSFORM, render_it->_id);
 			assert(dynamic_cast<Transform*>(trans));
 			{
-				ComponentUpdate(new RenderComponentContent(obj, static_cast<Transform*>(trans)));
+				ComponentUpdate(RenderComponentContent(obj, static_cast<Transform*>(trans)));
 				/*m_task.RegisterJob(new Job(bind_function(&Render::ComponentUpdate, this),
 					"R_Component_Update",
 					new RenderComponentContent(obj, static_cast<Transform*>(trans)), Job::JOB_RENDER_UPDATE), false, parent);*/

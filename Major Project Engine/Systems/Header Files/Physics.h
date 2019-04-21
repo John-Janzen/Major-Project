@@ -13,6 +13,7 @@ public:
 	Physics(TaskManager & tm, SceneManager & sm);
 	~Physics();
 
+	void PreUpdate() { dynamicWorld->stepSimulation(1); };
 	JOB_RETURN Update(void * ptr);
 
 	bool Load();
@@ -20,7 +21,7 @@ public:
 
 private:
 
-	void ComponentUpdate(PhysicsComponentContent * PCContent);
+	void ComponentUpdate(const PhysicsComponentContent & PCContent);
 
 	btDefaultCollisionConfiguration * collisionConfiguration;
 	btCollisionDispatcher * dispatcher;
