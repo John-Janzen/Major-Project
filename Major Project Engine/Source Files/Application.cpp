@@ -114,7 +114,7 @@ bool Application::GameLoop()
 	{
 	case INITIALIZING:
 		if (!Initialized)
-			game_running = this->InitApp(7);
+			game_running = this->InitApp(4);
 		break;
 	case LOADING:
 		if (!LoadedApp)
@@ -122,7 +122,7 @@ bool Application::GameLoop()
 		break;
 	case PLAYING:
 	{
-		//timer->Start();
+		//
 		//input->Update(m_scene);
 
 		SDL_Event sdl_event;
@@ -144,24 +144,36 @@ bool Application::GameLoop()
 				break;
 			}
 		}
-
+		
+		//Timer::Instance().Start();
 		Job * parent = new Job(bind_function(&Render::Update, renderer), "Render_Update", nullptr, Job::JOB_RENDER_UPDATE);
 
 		physics->PreUpdate();
+		
+		const int Breakdown = 10;
 
 		auto physicsVec = m_scene->GetComponents(SceneManager::PHYSICS);
-		int num = (physicsVec.size() / 10);
-		for (int i = 0; i < 10; i++)
+		int num = physicsVec.size() / Breakdown;
+		int remainder = physicsVec.size() % Breakdown;
+
+		int x, y;
+
+		for (int i = 0; i < Breakdown; i++)
 		{
+			x = (i * num); y = (i + 1) * num;
+
+			if (i == 10 - 1) 
+				y += remainder;
+
 			m_task->RegisterJob(new Job(
 				bind_function(&Physics::Update, physics), 
 				"Physics_Update", 
-				new std::vector<BaseComponent*>(physicsVec.begin() + (i * num), physicsVec.begin() + ((i + 1) * num)), 
+				new std::vector<BaseComponent*>(physicsVec.begin() + x, physicsVec.begin() + y), 
 				Job::JOB_PHYSICS_UPDATE), false, parent);
 		}
 
 		m_task->RegisterJob(parent, true);
-		
+		//Timer::Instance().Stop();
 		break;
 	}
 	case PAUSED:

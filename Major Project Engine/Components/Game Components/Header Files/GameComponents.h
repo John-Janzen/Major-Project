@@ -7,5 +7,6 @@
 #include "PlayerRenderComponent.h"
 #include "PlayerPhysicsComponent.h"
 #include "FloorPhysicsComponent.h"
+#include "FloorRenderComponent.h"
 
 #endif // !_GAMECOMPONENTS_H

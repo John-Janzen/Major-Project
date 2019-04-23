@@ -43,10 +43,24 @@ public:
 
 	BaseComponent * FindComponent(const CompTypes & type, const EntityID & id)
 	{
-		for (auto & comp : _components[type])
+		for (const auto & comp : _components[type])
 		{
 			if (comp->_id == id)
 			{
+				switch (type)
+				{
+				case TRANSFORM:
+					assert(dynamic_cast<Transform*>(comp));
+					break;
+				case RENDER:
+					assert(dynamic_cast<RenderComponent*>(comp));
+					break;
+				case PHYSICS:
+					assert(dynamic_cast<PhysicsComponent*>(comp));
+					break;
+				default:
+					break;
+				}
 				return comp;
 			}
 		}

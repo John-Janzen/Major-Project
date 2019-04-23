@@ -62,71 +62,56 @@ void Render::InitUpdate()
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void Render::ComponentUpdate(const RenderComponentContent & RCContent)
+void Render::ComponentUpdate(RenderComponent * rc, Transform * trans)
 {
-	RenderComponent * rc = RCContent.r_cp;
+	Model * model_ptr = rc->GetModel();
+	glBindVertexArray(rc->GetVertexArray());
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
 
-	if (RCContent.r_cp->GetModel() != nullptr)
+	glUseProgram(rc->GetShader()->shade_prog);
+
+	if (rc->GetTexture() != nullptr && rc->GetTexture()->TextureID != 0)
 	{
-		Model * model_ptr = RCContent.r_cp->GetModel();
-		glBindVertexArray(rc->GetVertexArray());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
-
-		glUseProgram(rc->GetShader()->shade_prog);
-
-		if (rc->GetTexture() != nullptr && rc->GetTexture()->TextureID != 0)
-		{
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, rc->GetTexture()->TextureID);
-			glUniform4f(rc->GetColorShaderLoc(), rc->GetColor().x, rc->GetColor().y, rc->GetColor().z, rc->GetColor().w);
-		}
-		else
-		{
-			glm::vec4 _color = glm::vec4(1.0f, 0.411f, 0.705f, 1.0f);
-			glUniform4f(rc->GetColorShaderLoc(), _color.x, _color.y, _color.z, _color.w);
-		}
-
-		glUniform1i(rc->r_text_unit, 0);
-		glUniform4f(rc->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
-
-		btScalar matrix[16];
-		RCContent.trans->_transform.getOpenGLMatrix(matrix);
-
-		glUniformMatrix4fv(rc->GetProjectionMatrixLoc(), 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
-		glUniformMatrix4fv(rc->GetModelMatrixLoc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
-		glDrawElements(GL_TRIANGLES, rc->GetModel()->ISize, GL_UNSIGNED_INT, NULL);
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		glBindVertexArray(0);
-		glUseProgram(0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, rc->GetTexture()->TextureID);
+		glUniform4f(rc->GetColorShaderLoc(), rc->GetColor().x, rc->GetColor().y, rc->GetColor().z, rc->GetColor().w);
 	}
+	else
+	{
+		glm::vec4 _color = glm::vec4(1.0f, 0.411f, 0.705f, 1.0f);
+		glUniform4f(rc->GetColorShaderLoc(), _color.x, _color.y, _color.z, _color.w);
+	}
+
+	glUniform1i(rc->r_text_unit, 0);
+	glUniform4f(rc->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
+
+	btScalar matrix[16];
+	trans->_transform.getOpenGLMatrix(matrix);
+
+	glUniformMatrix4fv(rc->GetProjectionMatrixLoc(), 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
+	glUniformMatrix4fv(rc->GetModelMatrixLoc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
+	glDrawElements(GL_TRIANGLES, model_ptr->ISize, GL_UNSIGNED_INT, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 JOB_RETURN Render::Update(void * ptr)
 {
 	this->InitUpdate();
-	//m_task.RegisterJob(new Job(bind_function(&Render::InitUpdate, this), "Initial_Update", nullptr, Job::JOB_RENDER_UPDATE));
-		//comp_ptr->GetComponent<Transform*>(curr_scene->GetCameraID())->_transform);
 
-	//Job * parent = new Job(bind_function(&Render::SwapBuffers, this), "Swap_Buffers", nullptr, Job::JOB_SWAP_BUFFERS);
-	
-	for (auto & render_it : m_scene.GetComponents(SceneManager::RENDER))
+	Timer::Instance().Start();
+	for (auto render_it : m_scene.GetComponents(SceneManager::RENDER))
 	{
 		assert(dynamic_cast<RenderComponent*>(render_it));
-		auto obj = static_cast<RenderComponent*>(render_it);
 		{
-			auto trans = m_scene.FindComponent(SceneManager::TRANSFORM, render_it->_id);
-			assert(dynamic_cast<Transform*>(trans));
-			{
-				ComponentUpdate(RenderComponentContent(obj, static_cast<Transform*>(trans)));
-				/*m_task.RegisterJob(new Job(bind_function(&Render::ComponentUpdate, this),
-					"R_Component_Update",
-					new RenderComponentContent(obj, static_cast<Transform*>(trans)), Job::JOB_RENDER_UPDATE), false, parent);*/
-			}
+			ComponentUpdate(static_cast<RenderComponent*>(render_it), static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, render_it->_id)));
 		}
 	}
-	
+	Timer::Instance().Stop();
+
 	this->SwapBuffers();
 	return JOB_COMPLETED;
 }

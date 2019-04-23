@@ -36,7 +36,7 @@ private:
 
 	void InitUpdate();
 
-	void ComponentUpdate(const RenderComponentContent & RCContent);
+	void ComponentUpdate(RenderComponent * rc, Transform * trans);
 
 	JOB_RETURN InitRenderComp(void * ptr);
 

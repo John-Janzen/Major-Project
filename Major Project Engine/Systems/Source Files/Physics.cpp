@@ -10,7 +10,7 @@ Physics::Physics(TaskManager & tm, SceneManager & sm)
 	solver = new btSequentialImpulseConstraintSolver;
 
 	dynamicWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-	dynamicWorld->setGravity(btVector3(0, -10, 0));
+	dynamicWorld->setGravity(btVector3(0, -9.8, 0));
 }
 
 Physics::~Physics() 

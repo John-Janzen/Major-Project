@@ -185,5 +185,8 @@
     <ClInclude Include="Header Files\SharedQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Components\Game Components\Header Files\FloorRenderComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
