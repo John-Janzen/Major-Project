@@ -9,6 +9,7 @@
 #include <list>
 #include <atomic>
 #include <mutex>
+#include <map>
 
 class TaskManager
 {
@@ -34,6 +35,9 @@ public:
 	int ManageJobs();
 
 	SharedQueue<Job*> & GetJobList() { return task_queue; }
+
+	// Map of jobs that need to wait on other jobs
+	std::map<Job::JOB_ID, std::vector<Job::JOB_ID>> dictionary;
 
 private:
 

@@ -1,7 +1,6 @@
 #include "TaskManager.h"
 
-TaskManager::TaskManager(const std::size_t & thread_size)
-{}
+TaskManager::TaskManager(const std::size_t & thread_size) {}
 
 TaskManager::~TaskManager() {}
 
@@ -46,9 +45,20 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 {
 	//_scheduler->CheckForJob(job);
 	if (parent_job != nullptr)
+		job->AddParent(parent_job);
+
+	if (dictionary.find(job->j_type) != dictionary.end())
 	{
-		parent_job->_awaiting++;
-		job->_parent_job = parent_job;
+		for (auto jobs : dictionary.find(job->j_type)->second)
+		{
+			for (auto waits : waiting_jobs)
+			{
+				if (waits->j_type == jobs)
+				{
+					job->AddParent(waits);
+				}
+			}
+		}
 	}
 
 	if (wait)
@@ -58,6 +68,7 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 	}
 	else
 	{
+		
 		task_queue.Emplace(job);
 		{
 			std::lock_guard<std::mutex> lock(jobs_lock);
@@ -70,9 +81,20 @@ void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
 {
 	//_scheduler->CheckForJob(job);
 	if (parent_job != nullptr)
+		job->AddParent(parent_job);
+
+	if (dictionary.find(job->j_type) != dictionary.end())
 	{
-		parent_job->_awaiting++;
-		job->_parent_job = parent_job;
+		for (auto jobs : dictionary.find(job->j_type)->second)
+		{
+			for (auto waits : waiting_jobs)
+			{
+				if (waits->j_type == jobs)
+				{
+					job->AddParent(waits);
+				}
+			}
+		}
 	}
 
 	if (wait)

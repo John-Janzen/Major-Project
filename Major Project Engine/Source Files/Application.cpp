@@ -76,11 +76,13 @@ bool Application::LoadApp()
 
 void Application::StartNewFrame()
 {
-	while ((m_thread->HasJobs() || m_task->HasJobs()))
+	//Timer::Instance().Start();
+	while (m_thread->HasJobs() || m_task->HasJobs())
 	{
 		int num = m_task->ManageJobs();
 		m_thread->AllocateJobs(num);
 	}
+	//Timer::Instance().Stop();
 
 	if (m_thread->jobs_to_finish == 0)
 	{
@@ -114,7 +116,7 @@ bool Application::GameLoop()
 	{
 	case INITIALIZING:
 		if (!Initialized)
-			game_running = this->InitApp(4);
+			game_running = this->InitApp(6);
 		break;
 	case LOADING:
 		if (!LoadedApp)
@@ -145,35 +147,10 @@ bool Application::GameLoop()
 			}
 		}
 		
-		//Timer::Instance().Start();
-		Job * parent = new Job(bind_function(&Render::Update, renderer), "Render_Update", nullptr, Job::JOB_RENDER_UPDATE);
-
-		physics->PreUpdate();
+		m_task->RegisterJob(new Job(bind_function(&Render::Update, renderer), "Render_Update", nullptr, Job::JOB_RENDER_UPDATE), true);
 		
-		const int Breakdown = 10;
+		m_task->RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", &m_scene->GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_UPDATE));
 
-		auto physicsVec = m_scene->GetComponents(SceneManager::PHYSICS);
-		int num = physicsVec.size() / Breakdown;
-		int remainder = physicsVec.size() % Breakdown;
-
-		int x, y;
-
-		for (int i = 0; i < Breakdown; i++)
-		{
-			x = (i * num); y = (i + 1) * num;
-
-			if (i == 10 - 1) 
-				y += remainder;
-
-			m_task->RegisterJob(new Job(
-				bind_function(&Physics::Update, physics), 
-				"Physics_Update", 
-				new std::vector<BaseComponent*>(physicsVec.begin() + x, physicsVec.begin() + y), 
-				Job::JOB_PHYSICS_UPDATE), false, parent);
-		}
-
-		m_task->RegisterJob(parent, true);
-		//Timer::Instance().Stop();
 		break;
 	}
 	case PAUSED:

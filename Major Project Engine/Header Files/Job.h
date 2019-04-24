@@ -7,6 +7,7 @@
 #include <memory>
 #include <atomic>
 #include <vector>
+#include <array>
 
 enum JOB_RETURN
 {
@@ -42,6 +43,8 @@ struct Job
 {
 public:
 
+	static const int MAX_PARENTS = 10;
+
 	/*
 	* List of Job Types that the threads will
 	* run. This will provide a verious number
@@ -64,6 +67,7 @@ public:
 
 		JOB_PHYSICS_DEFAULT = JOB_STRIDE * JOB_PHYSICS,
 		JOB_PHYSICS_LOAD,
+		JOB_PHYSICS_PREUPDATE,
 		JOB_PHYSICS_UPDATE,
 		JOB_PHYSICS_COMPONENT,
 
@@ -83,21 +87,31 @@ public:
 		JOB_HEAD_END
 	};
 
-	Job(JobFunction function, const std::string name, void* data = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT, Job * parent = nullptr)
-		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent) {}
 
-	Job() : _content(nullptr), j_type(JOB_DEFAULT), _parent_job(nullptr) {}
+	Job(JobFunction function, const std::string name, void* data = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT, Job * parent = nullptr)
+		: _func(function), job_name(name), _content(data), j_type(type) 
+	{
+		if (parent != nullptr)
+		{
+			_parent_jobs[parent_count] = parent;
+			parent_count++;
+		}
+	}
+
+	Job() : _content(nullptr), j_type(JOB_DEFAULT) {}
 
 	~Job()
 	{
 		_func = NULL;
 		if (_content != nullptr) _content = nullptr;
-		if (_parent_job != nullptr)
+		for (auto & parent : _parent_jobs)
 		{
-			_parent_job->_awaiting--;
-			_parent_job = nullptr;
+			if (parent != nullptr)
+			{
+				parent->_awaiting--;
+				parent = nullptr;
+			}
 		}
-		//if (f_time_data != nullptr) f_time_data = nullptr;
 	}
 
 	JOB_RETURN operator()()
@@ -110,15 +124,27 @@ public:
 		return lhs->_scale < rhs->_scale;
 	}
 
+	void AddParent(Job * job)
+	{
+		_parent_jobs[parent_count] = job;
+		parent_count++;
+		job->_awaiting++;
+	}
+
+	// NAME
 	std::string job_name;
 	
+	// SCHEDULING TOOLS
 	JOB_ID j_type;
 	float _scale = 0;
 	int _age = 0;
 
-	int _awaiting = 0;
-	Job * _parent_job = nullptr;
+	// JOB WAITING TOOLS
+	std::atomic_int _awaiting = 0;
+	std::atomic_uint parent_count = 0;
+	std::array<Job*, MAX_PARENTS> _parent_jobs = { nullptr };
 	
+	// JOB FUNCTIONALITY
 	JobFunction _func;
 	void* _content;
 

@@ -15,6 +15,13 @@ Render::Render(TaskManager & tm, SceneManager & sm)
 	_models = new Storage<Model>();
 	_shaders = new Storage<Shader>();
 	_textures = new Storage<Texture>();
+
+	// Jobs that need to wait on other jobs go here
+	/*{
+		m_task.dictionary.emplace(Job::JOB_RENDER_UPDATE, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_RENDER_UPDATE].emplace_back(Job::JOB_PHYSICS_UPDATE);
+		m_task.dictionary[Job::JOB_RENDER_UPDATE].emplace_back(Job::JOB_PHYSICS_COMPONENT);
+	}*/
 }
 
 Render::~Render() 
@@ -102,7 +109,7 @@ JOB_RETURN Render::Update(void * ptr)
 {
 	this->InitUpdate();
 
-	Timer::Instance().Start();
+	//Timer::Instance().Start();
 	for (auto render_it : m_scene.GetComponents(SceneManager::RENDER))
 	{
 		assert(dynamic_cast<RenderComponent*>(render_it));
@@ -110,7 +117,7 @@ JOB_RETURN Render::Update(void * ptr)
 			ComponentUpdate(static_cast<RenderComponent*>(render_it), static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, render_it->_id)));
 		}
 	}
-	Timer::Instance().Stop();
+	//Timer::Instance().Stop();
 
 	this->SwapBuffers();
 	return JOB_COMPLETED;

@@ -13,7 +13,7 @@ public:
 	Physics(TaskManager & tm, SceneManager & sm);
 	~Physics();
 
-	void PreUpdate() { dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime()); };
+	JOB_RETURN PreUpdate(void * ptr) { dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime()); return JOB_COMPLETED; };
 	JOB_RETURN Update(void * ptr);
 
 	bool Load();
@@ -21,7 +21,7 @@ public:
 
 private:
 
-	void ComponentUpdate(const PhysicsComponentContent & PCContent);
+	JOB_RETURN ComponentUpdate(void * ptr);
 
 	btDefaultCollisionConfiguration * collisionConfiguration;
 	btCollisionDispatcher * dispatcher;
