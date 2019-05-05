@@ -1,13 +1,15 @@
 #include "Thread.h"
-#include "TaskManager.h"
+#include "ThreadManager.h"
+
 /*
 * Constructor that registers a name for the
 * thread class.
 */
-Thread::Thread(const std::string & name, const THREAD_TYPE type)
-	:_name(name), t_type(type)
+Thread::Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type)
+	: job_list(queue), _name(name), t_type(type)
 {
-	_thread = std::make_unique<std::thread>(&Thread::Execution, this);
+	//Logger = ThreadLogger();
+	_thread = std::make_unique<std::thread>(&Thread::Execution, this, tm);
 }
 
 /*
@@ -16,7 +18,7 @@ Thread::Thread(const std::string & name, const THREAD_TYPE type)
 */
 Thread::~Thread() 
 {
-	delete(current_job);
+	
 }
 
 /*
@@ -28,29 +30,41 @@ Thread::~Thread()
 * go back to sleep. Else, the job will hopefully be completed
 * and the thread continues the cycle.
 */
-void Thread::Execution()
+void Thread::Execution(ThreadManager * const tm)
 {
+	Job * current_job;
 	while (_running)
 	{
-		if (current_job)
+		job_list.Aquire(current_job);
+
+		if (!_running) break;
+
+		auto & data = Logger.Instatiate(current_job->j_type, current_job->job_name);
+
+		switch ((*current_job)())
 		{
-			//printf("%s Starting Job: %s\n", this->_name.c_str(), current_job->get_name().c_str());
-			if (current_job->get_function()(current_job->get_content()))
-			{
-				count++;
-				TaskManager::Instance().notify_done();
-				delete(current_job);
-				current_job = nullptr;
-			}
-			else 
-			{
-				TaskManager::Instance().register_job(current_job);
-				current_job = nullptr;
-			}
-		}
-		else
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		case JOB_COMPLETED:
+			count++;
+
+			delete(current_job);
+			current_job = nullptr;
+
+			data.t_end = std::chrono::high_resolution_clock::now();
+			tm->NotifyDone();
+			break;
+		case JOB_RETRY:
+			tm->RetryJob(current_job);
+
+			current_job = nullptr;
+
+			data.t_end = std::chrono::high_resolution_clock::now();
+			break;
+		case JOB_ISSUE:
+			printf("ISSUE FOUND WITH JOB: %s", current_job->job_name.c_str());
+			throw std::invalid_argument("FOUND ISSUE");
+			break;
+		default:
+			break;
 		}
 	}
 }
@@ -61,16 +75,10 @@ void Thread::Execution()
 */
 void Thread::Stop()
 {
+	//while (current_job != nullptr);
 	_running = false;
 	_thread->join();
-}
-
-bool Thread::check_availability()
-{
-	return (current_job == nullptr);
-}
-
-Job * & Thread::get_location()
-{
-	return current_job;
+	_thread.reset();
+	//current_job = new Job();
+	//this->Notify();
 }

@@ -3,17 +3,16 @@
 #ifndef _BASECOMPONENT_H
 #define _BASECOMPONENT_H
 
-#include <memory>
+#include <cstdint>
 
-class BaseComponent
+struct BaseComponent
 {
 public:
-	BaseComponent() : death_flag(false) {}
+	BaseComponent(const std::uint16_t & id) : _id(id), death_flag(false) {}
 	virtual ~BaseComponent() {}
-
-	void set_death() { death_flag = true; }
-private:
 	bool death_flag;
+
+	std::uint16_t _id;
 };
 
 #endif // !_BASECOMPONENT_H

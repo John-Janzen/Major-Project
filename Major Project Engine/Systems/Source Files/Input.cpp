@@ -1,13 +1,20 @@
 #include "Input.h"
 
-Input::Input() {}
+Input::Input(TaskManager & tm, SceneManager & sm) : System(tm, sm) {}
 
 Input::~Input() {}
 
-bool Input::Load(void* content)
+bool Input::Load()
 {
 	SDL_Init(SDL_INIT_GAMECONTROLLER);
 	SDL_Init(SDL_INIT_EVENTS);
+
+	{
+		m_task.dictionary.emplace(Job::JOB_INPUT_UPDATE, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_INPUT_UPDATE].emplace_back(Job::JOB_PHYSICS_UPDATE);
+		m_task.dictionary[Job::JOB_INPUT_UPDATE].emplace_back(Job::JOB_RENDER_UPDATE);
+	}
+
 	return true;
 }
 
@@ -16,38 +23,36 @@ void Input::Close(void* content)
 
 }
 
-void Input::Update
-(
-	const GLfloat & _dt,
-	const Scene * current_scene
-)
+JOB_RETURN Input::Update (void * ptr)
 {
-	for (auto & entity : current_scene->get_ent_manager()->retreive_list())
+	for (auto comp : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
-		if (current_scene->get_comp_manager()->get_component<PlayerControllerComponent*>(entity.first) != nullptr)
+		assert(dynamic_cast<PlayerControllerComponent*>(comp));
+		auto control = static_cast<PlayerControllerComponent*>(comp);
 		{
-			player_controls(_dt, current_scene->get_comp_manager()->get_component<PlayerControllerComponent*>(entity.first), entity.second->get_transform_value());// pc_cp->get_type(), entity.second->get_transform());
+			PlayerControls(Timer::Instance().GetDeltaTime(), control, static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, comp->_id)));
 		}
 	}
+	return JOB_COMPLETED;
 }
 
-void Input::player_controls(const GLfloat & _dt, PlayerControllerComponent * & pc_cp, Transform * & transform)
+void Input::PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, Transform * transform)
 {
-	if (pc_cp->get_type() == CONTROL_TYPE::MOUSE_KEYBOARD)
+	if (pc_cp->GetType() == CONTROL_TYPE::MOUSE_KEYBOARD)
 	{
 		const Uint8 * keystate = SDL_GetKeyboardState(NULL);
-		if (keystate[SDL_SCANCODE_W]) transform->add_z_pos(5.0f * _dt);
-		if (keystate[SDL_SCANCODE_A]) transform->add_x_pos(5.0f * _dt);
-		if (keystate[SDL_SCANCODE_S]) transform->add_z_pos(-5.0f * _dt);
-		if (keystate[SDL_SCANCODE_D]) transform->add_x_pos(-5.0f * _dt);
+		if (keystate[SDL_SCANCODE_W]) transform->_transform.getOrigin() += (btVector3(0.f, 0.f, -10.f) * btScalar(_dt));
+		if (keystate[SDL_SCANCODE_A]) transform->_transform.getOrigin() += (btVector3(-10.f, 0.f, 0.f) * btScalar(_dt));
+		if (keystate[SDL_SCANCODE_S]) transform->_transform.getOrigin() += (btVector3(0.f, 0.f, 10.f) * btScalar(_dt));
+		if (keystate[SDL_SCANCODE_D]) transform->_transform.getOrigin() += (btVector3(10.f, 0.f, 0.f) * btScalar(_dt));
 	}
-	else if (pc_cp->get_type() == CONTROL_TYPE::XBOX_CONTROLLER)
+	else if (pc_cp->GetType() == CONTROL_TYPE::XBOX_CONTROLLER)
 	{
 
 	}
 }
 
-void Input::change_input()
+void Input::ChangeInput()
 {
 
 }

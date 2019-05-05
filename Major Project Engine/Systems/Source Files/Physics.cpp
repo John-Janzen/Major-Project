@@ -1,6 +1,7 @@
 #include "Physics.h"
 
-Physics::Physics() 
+Physics::Physics(TaskManager & tm, SceneManager & sm)
+	: System(tm, sm)
 {
 	collisionConfiguration = new btDefaultCollisionConfiguration();
 	dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -9,6 +10,19 @@ Physics::Physics()
 	solver = new btSequentialImpulseConstraintSolver;
 
 	dynamicWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+	dynamicWorld->setGravity(btVector3(0, -9.8, 0));
+
+	// Jobs that need to wait on other jobs go here
+	{
+		m_task.dictionary.emplace(Job::JOB_PHYSICS_UPDATE, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_PHYSICS_UPDATE].emplace_back(Job::JOB_RENDER_UPDATE);
+
+		m_task.dictionary.emplace(Job::JOB_PHYSICS_PREUPDATE, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_PHYSICS_PREUPDATE].emplace_back(Job::JOB_PHYSICS_COMPONENT);
+
+		m_task.dictionary.emplace(Job::JOB_PHYSICS_COMPONENT, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_PHYSICS_COMPONENT].emplace_back(Job::JOB_RENDER_UPDATE);
+	}
 }
 
 Physics::~Physics() 
@@ -41,73 +55,103 @@ Physics::~Physics()
 	collisionShapes.clear();
 }
 
-void Physics::Update()
+JOB_RETURN Physics::PreUpdate(void * ptr)
 {
-	//dynamicWorld->stepSimulation(1.f / 60.f, 10);
-
-	//for (int j = dynamicWorld->getNumCollisionObjects() - 1; j >= 0; j--)
-	//{
-	//	btCollisionObject * obj = dynamicWorld->getCollisionObjectArray()[j];
-	//	btRigidBody * body = btRigidBody::upcast(obj);
-	//	btTransform trans;
-	//	if (body && body->getMotionState())
-	//	{
-	//		body->getMotionState()->getWorldTransform(trans);
-	//	}
-	//	else
-	//	{
-	//		trans = obj->getWorldTransform();
-	//	}
-	//	//printf("World pos object %d = %f, %f, %f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
-	//}
+	for (auto & physics : m_scene.GetComponents(SceneManager::PHYSICS))
+	{
+		assert(dynamic_cast<PhysicsComponent*>(physics));
+		auto obj = static_cast<PhysicsComponent*>(physics);
+		{
+			if (m_scene.FindComponent(SceneManager::CONTROLLER, physics->_id) != nullptr)
+			{
+				obj->GetMotionState()->setWorldTransform(static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, physics->_id))->_transform);
+				obj->GetRigidBody()->activate(true);
+			}
+		}
+	}
+	dynamicWorld->stepSimulation(1);
+	return JOB_COMPLETED;
 }
 
-bool Physics::Load(void* content)
-{
-	dynamicWorld->setGravity(btVector3(0, -10, 0));
+JOB_RETURN Physics::Update(void * ptr)
+{	
+	std::vector<BaseComponent*> * PVector = static_cast<std::vector<BaseComponent*>*>(ptr);
+	const int Breakdown = 8;
+
+	int num = PVector->size() / Breakdown;
+	int remainder = PVector->size() % Breakdown;
+
+	int x, y;
+
+	if (num > Breakdown)
 	{
-		btCollisionShape * groundShape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
-		collisionShapes.push_back(groundShape);
-		btTransform groundTransform;
-		groundTransform.setIdentity();
-		groundTransform.setOrigin(btVector3(0, -56, 0));
-		btScalar mass(0.);
+		for (int i = 0; i < Breakdown; i++)
+		{
+			x = (i * num); y = (i + 1) * num;
 
-		bool isDynamic = (mass != 0.f);
+			if (i == Breakdown - 1)
+				y += remainder;
 
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic)
-			groundShape->calculateLocalInertia(mass, localInertia);
-
-		btDefaultMotionState * myMotionState = new btDefaultMotionState(groundTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-		btRigidBody * body = new btRigidBody(rbInfo);
-
-		dynamicWorld->addRigidBody(body);
+			m_task.RegisterJob(new Job(
+				bind_function(&Physics::ComponentUpdate, this),
+				"Physics_Split_Component",
+				new std::vector<BaseComponent*>(PVector->begin() + x, PVector->begin() + y),
+				Job::JOB_PHYSICS_COMPONENT), true);
+		}
+	}
+	else
+	{
+		m_task.RegisterJob(new Job(
+			bind_function(&Physics::ComponentUpdate, this),
+			"Physics_Component",
+			new std::vector<BaseComponent*>(PVector->begin(), PVector->end()),
+			Job::JOB_PHYSICS_COMPONENT), true);
 	}
 
+	m_task.RegisterJob(new Job(bind_function(&Physics::PreUpdate, this), "Physics_Pre_Update", PVector, Job::JOB_PHYSICS_PREUPDATE), false);
+	return JOB_COMPLETED;
+}
+
+JOB_RETURN Physics::ComponentUpdate(void * ptr)
+{
+	std::vector<BaseComponent*> * PVector = static_cast<std::vector<BaseComponent*>*>(ptr);
+	for (auto & physics : *PVector)
 	{
-		btCollisionShape * colShape = new btSphereShape(btScalar(1.f));
-		collisionShapes.push_back(colShape);
+		assert(dynamic_cast<PhysicsComponent*>(physics));
+		{
+			btRigidBody * body = static_cast<PhysicsComponent*>(physics)->GetRigidBody();
+			if (body && body->getMotionState())
+			{
+				body->getMotionState()->getWorldTransform(static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, physics->_id))->_transform);
+			}
+			else
+			{
+				static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, physics->_id))->_transform = body->getWorldTransform();
+			}
+		}
+	}
+	delete PVector;
+	return JOB_COMPLETED;
+}
 
-		btTransform startTransform;
-		startTransform.setIdentity();
+bool Physics::Load()
+{
+	//std::vector<BaseComponent*> * objects = static_cast<std::vector<BaseComponent*>*>(content);
+	//ComponentManager * comp_ptr = scene->GetCompManager();
 
-		btScalar mass(1.f);
-
-		bool isDynamic = (mass != 0.f);
-
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic)
-			colShape->calculateLocalInertia(mass, localInertia);
-
-		startTransform.setOrigin(btVector3(2, 10, 0));
-
-		btDefaultMotionState * myMotionState = new btDefaultMotionState(startTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
-		btRigidBody * body = new btRigidBody(rbInfo);
-
-		dynamicWorld->addRigidBody(body);
+	for (const auto & physics : m_scene.GetComponents(SceneManager::PHYSICS))
+	{
+		assert(dynamic_cast<PhysicsComponent*>(physics));
+		auto obj = static_cast<PhysicsComponent*>(physics);
+		{
+			auto trans = static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, physics->_id));
+			{
+				collisionShapes.push_back(obj->GetCollisionShape());
+				obj->GetRigidBody()->setWorldTransform(trans->_transform);
+				obj->GetMotionState()->setWorldTransform(trans->_transform);
+				dynamicWorld->addRigidBody(obj->GetRigidBody());
+			}
+		}
 	}
 	return true;
 }

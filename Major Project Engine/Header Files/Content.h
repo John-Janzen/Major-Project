@@ -3,26 +3,26 @@
 #ifndef _CONTENT_H
 #define _CONTENT_H
 
-#include <vector>
-
-struct Content
+class Content
 {
+public:
 	virtual ~Content() {};
 };
 
-struct InitialContent : public Content
+struct PhysicsComponentContent : public Content
 {
-	std::vector<int> copy_section;
-	int * result;
+	PhysicsComponent * p_cp;
+	Transform * trans;
+	PhysicsComponentContent(PhysicsComponent * p, Transform * t) : p_cp(p), trans(t) {}
+	~PhysicsComponentContent() { p_cp = nullptr; trans = nullptr; }
+};
 
-	InitialContent(const std::vector<int> & vec, int * end_loc) : copy_section(vec)
-	{
-		result = end_loc;
-	};
-	~InitialContent() 
-	{ 
-		result = nullptr; 
-	};
+struct RenderComponentContent : public Content
+{
+	RenderComponent * r_cp;
+	Transform * trans;
+	RenderComponentContent(RenderComponent * r, Transform * t) : r_cp(r), trans(t) {}
+	~RenderComponentContent() { r_cp = nullptr; trans = nullptr; }
 };
 
 #endif // !_CONTENT_H

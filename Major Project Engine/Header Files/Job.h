@@ -3,102 +3,211 @@
 #ifndef _JOB_H
 #define _JOB_H
 
-#include "Content.h"
-
 #include <functional>
 #include <memory>
 #include <atomic>
 #include <vector>
+#include <array>
 
-/*
-* List of Job Types that the threads will
-* run. This will provide a verious number
-* of jobs and a priority later down the line.
-*/
-enum JOB_TYPE
+enum JOB_RETURN
 {
-	NULL_TYPE,
-	ANY_TYPE,
-	RENDER_TYPE,
-	IO_TYPE,
+	JOB_COMPLETED,
+	JOB_RETRY,
+	JOB_ISSUE
 };
 
 //typedef bool(*JobFunction)(void* &);
-using JobFunction = std::function<bool(void*)>;
+using JobFunction = std::function<JOB_RETURN(void*)>;
 
 template<class T>
-JobFunction bind_function(bool(T::* pFunc)(void*), T * const sys = nullptr)
+JobFunction bind_function(JOB_RETURN(T::* pFunc)(void*), T * const sys = nullptr)
 {
 	return std::bind(pFunc, sys, std::placeholders::_1);
 }
 
+const std::uint16_t JOB_STRIDE = 0x100;
+
 /*
-* Job class that holds the data for the threads
+* Job class that holds the data for the threads 
 * to read and work on.
 *
 * Job type as stated above will govern what a job will do.
 *
 * Function gives the thread an actual function to work on - However,
 * this is extremely limiting as all jobs currently have to work
-* at a void ?function? (Content*) architecture.
+* at a JOB_RETURN ?function? (Content*) architecture.
 *
 * (Will need to develop further)
 */
-class Job
+struct Job
 {
 public:
 
-	Job(JobFunction function, const std::string name, void* data = nullptr, const JOB_TYPE type = ANY_TYPE, Job * parent = nullptr)
-		: _func(function), job_name(name), _content(data), j_type(type), _parent_job(parent)
+	static const int MAX_PARENTS = 10;
+
+	/*
+	* List of Job Types that the threads will
+	* run. This will provide a verious number
+	* of jobs and a priority later down the line.
+	*/
+	enum JOB_ID
 	{
+		JOB_NULL = 0x000,
+		JOB_MISC,
+		JOB_PHYSICS,
+		JOB_INPUT,
+		JOB_RENDER,
+
+		JOB_DEFAULT = JOB_STRIDE * JOB_MISC,
+		JOB_LOAD_MODEL,
+		JOB_LOAD_TEXTURE,
+		JOB_MODEL_CHECKER,
+		JOB_TEXTURE_CHECKER,
+		JOB_SHADER_CHECKER,
+
+		JOB_PHYSICS_DEFAULT = JOB_STRIDE * JOB_PHYSICS,
+		JOB_PHYSICS_LOAD,
+		JOB_PHYSICS_PREUPDATE,
+		JOB_PHYSICS_UPDATE,
+		JOB_PHYSICS_COMPONENT,
+
+		JOB_INPUT_DEFAULT = JOB_STRIDE * JOB_INPUT,
+		JOB_INPUT_LOAD,
+		JOB_INPUT_UPDATE,
+
+		JOB_RENDER_DEFAULT = JOB_STRIDE * JOB_RENDER,
+		JOB_RENDER_LOAD,
+		JOB_RENDER_UPDATE,
+		JOB_BIND_MODEL,
+		JOB_BIND_TEXTURE,
+		JOB_BIND_SHADER,
+		JOB_LOAD_SHADER,
+		JOB_SWAP_BUFFERS,
+
+		JOB_HEAD_END
+	};
+
+	/*void TransferJobID(const Job::JOB_ID & id)
+	{
+		switch (id)
+		{
+
+		case JOB_LOAD_MODEL:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_LOAD_TEXTURE:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_MODEL_CHECKER:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_TEXTURE_CHECKER:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_SHADER_CHECKER:
+			std::cout << "Load Model\n";
+			break;
+
+		case JOB_PHYSICS_LOAD:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_PHYSICS_PREUPDATE:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_PHYSICS_UPDATE:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_PHYSICS_COMPONENT:
+			std::cout << "Load Model\n";
+			break;
+
+		case JOB_INPUT_LOAD:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_INPUT_UPDATE:
+			std::cout << "Load Model\n";
+			break;
+
+		case JOB_RENDER_LOAD:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_RENDER_UPDATE:
+			break;
+		case JOB_BIND_MODEL:
+			break;
+		case JOB_BIND_TEXTURE:
+			break;
+		case JOB_BIND_SHADER:
+			break;
+		case JOB_LOAD_SHADER:
+			break;
+		case JOB_SWAP_BUFFERS:
+			break;
+		default:
+			break;
+		}
+	}*/
+
+
+	Job(JobFunction function, const std::string name, void* data = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT, Job * parent = nullptr)
+		: _func(function), job_name(name), _content(data), j_type(type) 
+	{
+		if (parent != nullptr)
+		{
+			_parent_jobs[parent_count] = parent;
+			parent_count++;
+		}
 	}
+
+	Job() : _content(nullptr), j_type(JOB_DEFAULT) {}
 
 	~Job()
 	{
 		_func = NULL;
 		if (_content != nullptr) _content = nullptr;
-		if (_parent_job != nullptr)
+		for (auto & parent : _parent_jobs)
 		{
-			_parent_job->OnNotify();
-			_parent_job = nullptr;
+			if (parent != nullptr)
+			{
+				parent->_awaiting--;
+				parent = nullptr;
+			}
 		}
 	}
 
-	/* Gets the function of the job */
-	JobFunction get_function() { return _func; }
-
-	void* get_content() { return _content; }
-
-	const JOB_TYPE get_type() { return j_type; }
-
-	std::string get_name() { return job_name; }
-
-	void set_parent(Job * parent)
+	JOB_RETURN operator()()
 	{
-		_parent_job = parent;
+		return _func(_content);
 	}
 
-	void increment_wait()
+	bool operator()(Job * const & lhs, Job * const & rhs)
 	{
-		_awaiting++;
+		return lhs->_scale < rhs->_scale;
 	}
 
-	void OnNotify()
+	void AddParent(Job * & job)
 	{
-		_awaiting--;
+		_parent_jobs[parent_count] = job;
+		parent_count++;
+		job->_awaiting++;
+		job->reason_waiting = true;
 	}
 
-	std::atomic_int & get_waiting()
-	{
-		return _awaiting;
-	}
-
-private:
+	// NAME
 	std::string job_name;
-	JOB_TYPE j_type;
-	std::atomic<int> _awaiting = 0;
-	Job * _parent_job;
 	
+	// SCHEDULING TOOLS
+	JOB_ID j_type;
+	float _scale = 0;
+	int _age = 0;
+
+	// JOB WAITING TOOLS
+	std::atomic_int _awaiting = 0;
+	std::atomic_uint parent_count = 0;
+	std::array<Job*, MAX_PARENTS> _parent_jobs = { nullptr };
+	bool reason_waiting = false;
+	
+	// JOB FUNCTIONALITY
 	JobFunction _func;
 	void* _content;
 

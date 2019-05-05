@@ -3,55 +3,55 @@
 #ifndef _TASKMANAGER_H
 #define _TASKMANAGER_H
 
-#include "ThreadManager.h"
-#include "BlockingQueue.h"
+#include "Scheduler.h"
+#include "SharedQueue.h"
 
 #include <list>
 #include <atomic>
+#include <mutex>
+#include <map>
 
 class TaskManager
 {
 public:
+	TaskManager(const std::size_t & thread_size);
+
 	~TaskManager();
 
-	static TaskManager& Instance()
-	{
-		static TaskManager inst;
-		return inst;
-	}
-
-	void Init(ThreadManager * t_manager);
+	void SetTimeLock(const float & time_lock);
 
 	void Close();
 
-	bool frame_start();
+	bool HasJobs();
 
-	void notify_done();
+	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT);
 
-	void register_job(JobFunction function, const std::string name, void * content = nullptr, const JOB_TYPE type = JOB_TYPE::ANY_TYPE);
+	void RegisterJob(Job * & job, bool wait = false, Job * parent_job = nullptr);
 
-	void register_job(Job * job, bool wait = false);
+	void RegisterJob(Job * && job, bool wait = false, Job * parent_job = nullptr);
 
-	void register_job(Job * job, Job * parent_job);
+	void RetryJob(Job * & job);
 
-	void transfer_jobs();
+	int ManageJobs();
+
+	SharedQueue<Job*> & GetJobList() { return task_queue; }
+
+	// Map of jobs that need to wait on other jobs
+	std::map<Job::JOB_ID, std::vector<Job::JOB_ID>> dictionary;
 
 private:
 
-	//static const std::size_t MAX_JOBS = 30;
-
-	TaskManager() {}
-	ThreadManager * _threadpool_p;
+	//Scheduler * _scheduler;
 
 	// List of jobs available
-	std::list<Job*> job_list;
+	SharedQueue<Job*> task_queue;
 
 	// List of jobs waiting
 	std::list<Job*> waiting_jobs;
 	std::size_t num_of_wait = 0;
 
 	std::atomic<int> num_of_jobs = 0;
-	std::atomic<int> jobs_to_finish;
+	std::mutex list_lock, jobs_lock;
 };
 
 #endif // !_TASKMANAGER_H

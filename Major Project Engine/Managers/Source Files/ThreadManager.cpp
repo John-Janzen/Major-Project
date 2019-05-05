@@ -6,141 +6,137 @@ ThreadManager::~ThreadManager()
 	{
 		delete(threads[i]);
 	}
-	std::queue<Job*>().swap(task_queue);
+
+	for (int i = 0; i < task_queue.Size(); i++)
+	{
+		delete task_queue.Front();
+		task_queue.Pop();
+	}
 }
 
-ThreadManager::ThreadManager(const std::size_t & size)
-	: num_of_threads(size)
+ThreadManager::ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size)
+	: task_queue(queue), num_of_threads(size)
 {
 	std::string name;
 	for (std::size_t i = 0; i < size; i++)
 	{
-		THREAD_TYPE type = ANY_THREAD;
+		Thread::THREAD_TYPE type = Thread::ANY_THREAD;
 		switch (i)
 		{
 		case 0:
 			name = "Albert";
-			type = RENDER_THREAD;
+			type = Thread::RENDER_THREAD;
+			rthread_num = i;
+			t_queues[i] = new BlockingQueue<Job*>(render_thread);
 			break;
 		case 1:
 			name = "Curie";
+			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		case 2:
 			name = "Newton";
+			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		case 3:
 			name = "Dennis";
+			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		default:
+			t_queues[i] = new BlockingQueue<Job*>(any_thread);
 			break;
 		}
-		threads[i] = new Thread(name, type);
+		threads[i] = new Thread(this, *t_queues[i], name, type);
 	}
-	task_queue = std::queue<Job*>();
 }
 
 void ThreadManager::Close()
 {
-	stop_threads();
+	StopThreads();
+	//PrintJobs();
 }
 
-void ThreadManager::allocate_jobs()
-{
-	while (!jobs_empty())
+bool ThreadManager::HasJobs() 
+{ 
+	bool check = false;
+
+	for (const auto queue : t_queues)
 	{
-		if (task_queue.front()->get_waiting() != 0)
+		if (queue == nullptr) continue;
+
+		check |= !queue->Empty();
+		if (!queue->Empty())
 		{
-			Job * temp = task_queue.front();
-			task_queue.pop();
-			task_queue.push(temp);
-			continue;
+			queue->Alert();
 		}
-		for (std::size_t i = 0; i < num_of_threads && !jobs_empty(); i++)
+	}
+	check |= !task_queue.Empty();
+
+	check |= (jobs_to_finish != 0);
+
+	return check; 
+}
+
+void ThreadManager::AllocateJobs(const int num_new_jobs)
+{
+	{
+		std::lock_guard<std::mutex> lock(finished_job);
+		jobs_to_finish += num_new_jobs;
+	}
+
+	while (!task_queue.Empty())
+	{
+		switch (task_queue.Front()->j_type / JOB_STRIDE)
 		{
-			switch (task_queue.front()->get_type())
+		case Job::JOB_RENDER:
 			{
-			case RENDER_TYPE:
-				if (threads[0]->check_availability())
-				{
-					threads[0]->get_location() = task_queue.front();
-					task_queue.front() = nullptr;
-					task_queue.pop();
-				}
-				else
-				{
-					
-					Job * temp = task_queue.front();
-					task_queue.pop();
-					task_queue.push(temp);
-					temp = nullptr;
-					continue;
-				}
+				Job * temp = task_queue.Front();
+				t_queues[rthread_num]->Emplace(temp);
+				task_queue.Pop();
+				render_thread.notify_one();
 				break;
-			case IO_TYPE:
-				if (io_thread == nullptr)
-				{
-					if (threads[i]->check_availability())
-					{
-						io_thread = threads[i];
-						io_thread->get_location() = task_queue.front();
-						task_queue.front() = nullptr;
-						task_queue.pop();
-					}
-					else 
-					{
+			}
+		default:
+			{
+				Job * temp = task_queue.Front();
+				t_queues[count]->Emplace(temp);
+				task_queue.Pop();
 
-					}
-				}
-				else
-				{
-					if (io_thread->check_availability())
-					{
-						io_thread->get_location() = task_queue.front();
-						task_queue.front() = nullptr;
-						task_queue.pop();
-					}
-				}
-				break;
-			default:
-				if (io_thread == threads[i] && io_thread->check_availability())
-					io_thread = nullptr;
+				if (count == 0) render_thread.notify_one();
 
-				if (threads[i]->check_availability())
-				{
-					threads[i]->get_location() = task_queue.front();
-					task_queue.front() = nullptr;
-					task_queue.pop();
-				}
+				if (count >= num_of_threads - 1) count = 0;
+				else count++;
+
+				any_thread.notify_one();
 				break;
 			}
 		}
 	}
 }
 
-bool ThreadManager::jobs_empty()
-{
-	return task_queue.empty();
-}
-
-void ThreadManager::print_total_jobs()
+void ThreadManager::PrintJobs()
 {
 	int total = 0;
-	for (std::size_t i = 0; i < num_of_threads; i++)
-		total += threads[i]->print_stats();
+	for (const auto & t : threads)
+		if (t != nullptr)
+			total += t->PrintLogger(t_framestart);
+
 	printf("Total count is: %u\n", total);
 }
 
-void ThreadManager::stop_threads()
+void ThreadManager::NewFrame()
 {
-	for (std::size_t i = 0; i < num_of_threads; i++)
-		threads[i]->Stop();
+	for (const auto & t : threads)
+		if (t != nullptr)
+			t->ClearLogger();
+		
+	t_framestart = std::chrono::high_resolution_clock::now();
 }
 
-void ThreadManager::get_jobs(std::list<Job*> * job_list)
+void ThreadManager::StopThreads()
 {
-	while (!job_list->empty())
+	for (std::size_t i = 0; i < num_of_threads; i++)
 	{
-		task_queue.emplace(job_list->front());
-		job_list->pop_front();
+		t_queues[i]->Close();
+		threads[i]->Stop();
 	}
 }

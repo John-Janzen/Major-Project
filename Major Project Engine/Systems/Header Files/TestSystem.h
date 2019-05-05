@@ -15,14 +15,16 @@ class TestSystem :
 	public System
 {
 public:
-	TestSystem();
+	TestSystem(TaskManager & tm, SceneManager & sm);
 	~TestSystem();
 
-	bool Load(void* content);
+	bool Load();
 	void Close(void* content);
 
-	bool process(void* content);
-	bool return_process(void* content);
+	JOB_RETURN Update(void * ptr) { return JOB_COMPLETED; }
+
+	bool Process(void* content);
+	bool ReturnProcess(void* content);
 private:
 	std::vector<int> testing_field;
 	int results[4];

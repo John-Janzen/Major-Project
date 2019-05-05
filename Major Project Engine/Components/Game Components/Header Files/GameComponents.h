@@ -5,5 +5,10 @@
 
 #include "QuadRenderComponent.h"
 #include "PlayerRenderComponent.h"
+#include "PlayerPhysicsComponent.h"
+#include "FloorPhysicsComponent.h"
+#include "FloorRenderComponent.h"
+#include "MultiPhysicsComponent.h"
+#include "WallPhysicsComponent.h"
 
 #endif // !_GAMECOMPONENTS_H

@@ -10,72 +10,78 @@ template<typename T>
 class BlockingQueue
 {
 public:
-	BlockingQueue()
+	BlockingQueue(std::condition_variable & cv)
+		: _cv(cv)
 	{
 		_queue = std::queue<T>();
 	}
+
 	~BlockingQueue()
 	{
 		std::queue<T>().swap(_queue);
 	}
 
-	T & front()
+	void Close()
 	{
-		std::lock_guard<std::mutex> lock(_mutex);
-		return _queue.front();
+		//std::lock_guard<std::mutex> lock(_mutex);
+		open = false;
+		_cv.notify_all();
 	}
 
-	void front_to_back()
+	void Aquire(T & loc)
 	{
-		std::lock_guard<std::mutex> lock(_mutex);
-		T temp = _queue.front();
-		_queue.pop();
-		_queue.push(temp);
-	}
-
-	bool pop(T & location)
-	{
-		std::lock_guard<std::mutex> lock(_mutex);
-		if (!_queue.empty())
-		{
-			if (_queue.front()->get_waiting() <= 0)
+		std::unique_lock<std::mutex> lock(_mutex);
+		_cv.wait(lock, [this, &loc] {
+			if (!this->Empty())
 			{
-				location = std::move(_queue.front());
-				_queue.front() = nullptr;
-				_queue.pop();
+				loc = std::move(this->_queue.front());
+				this->_queue.pop();
+				return true;
 			}
-			else
+			if (!open)
 			{
-				_queue.emplace(std::move(_queue.front()));
-				_queue.front() = nullptr;
-				_queue.pop();
+				return true;
 			}
-			return true;
-		}
-		return false;
+			return false;
+		});
 	}
 
-	void emplace(T item)
+	void Emplace(T && item)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		_queue.emplace(item);
 	}
 
-	bool empty()
+	void Emplace(T & item)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
+		_queue.emplace(item);
+	}
+
+	bool Empty()
+	{
 		return _queue.empty();
 	}
 
-	std::size_t size()
+	std::size_t Size()
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 		return _queue.size();
 	}
 
+	void Alert()
+	{
+		_cv.notify_all();
+	}
+
 private:
 	std::mutex _mutex;
+	std::condition_variable & _cv;
 	std::queue<T> _queue;
+
+	bool open = true;
+
+	float total_time = 0;
 };
 
 #endif // !_BLOCKINGQUEUE_H

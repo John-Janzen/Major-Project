@@ -3,39 +3,25 @@
 #ifndef _ENTITY_H
 #define _ENTITY_H
 
-#include "ComponentManager.h"
-#include "Transform.h"
-
-#include <map>
-#include <typeinfo>
-#include <typeindex>
 #include <string>
+
+typedef int EntityID;
 
 class Entity
 {
 public:
-	Entity(const std::string & name, int id) : _name(name), _id(id), death_flag(false) {}
+	Entity(const std::string & name, EntityID id) : _name(name), _id(id), death_flag(false) {}
 	~Entity() {}
 
-	virtual void Load(ComponentManager * & c_manager)
-	{
-		_transform = new Transform();
-	};
+	EntityID GetID() const { return _id; }
+	std::string GetName() const { return _name; }
+	void SetDeathFlag() { death_flag = true; }
+	bool GetDeathFlag() { return death_flag; }
 
-	int get_id() const { return _id; }
-	std::string get_name() const { return _name; }
-	void set_death() { death_flag = true; }
-	bool get_death() { return death_flag; }
-
-	const Transform * get_transform() const { return _transform; }
-	Transform * & get_transform_value() { return _transform; }
-
-private:
-	std::string _name;
-	int _id;
-	bool death_flag;
 protected:
-	Transform * _transform;
+	std::string _name;
+	EntityID _id;
+	bool death_flag;
 };
 
 

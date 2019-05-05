@@ -4,30 +4,28 @@
 #define _SYSTEM_H
 
 #include "TaskManager.h"
-#include "Scene.h"
-
-enum SYSTEM_TYPE
-{
-	NULL_SYSTEM,
-	RENDER_SYSTEM,
-	INPUT_SYSTEM,
-	TEST_SYSTEM
-};
+#include "SceneManager.h"
+#include "Content.h"
+#include "Timer.h"
 
 class System
 {
 public:
-	System();
+	System(TaskManager & tm, SceneManager & sm);
 	virtual ~System() = 0;
 
-	virtual bool Load(void* content) = 0;
+	virtual JOB_RETURN Update(void * ptr) = 0;
+	virtual bool Load() = 0;
 	virtual void Close(void* content) = 0;
 
-private:
-
+protected:
+	TaskManager & m_task;
+	SceneManager & m_scene;
 };
 
-inline System::System() {}
+inline System::System(TaskManager & tm, SceneManager & sm)
+	: m_task(tm), m_scene(sm)
+{}
 
 inline System::~System() {}
 

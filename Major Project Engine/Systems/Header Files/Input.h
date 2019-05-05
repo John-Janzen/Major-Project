@@ -12,17 +12,19 @@ class Input :
 	public System
 {
 public:
-	Input();
+
+	float player_speed = 10;
+	Input(TaskManager & tm, SceneManager & sm);
 	~Input();
 
-	bool Load(void* content);
+	bool Load();
 	void Close(void* content);
 
-	void Update(const GLfloat & _dt, const Scene * current_scene);
+	JOB_RETURN Update(void * ptr);
 
-	void player_controls(const GLfloat & _dt, PlayerControllerComponent * & pc_cp, Transform * & transform);
+	void PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, Transform * transform);
 
-	void change_input();
+	void ChangeInput();
 private:
 
 };

@@ -1,26 +1,25 @@
 #pragma once
 
-#ifndef _QUADRENDERCOMPONENT_H
-#define _QUADRENDERCOMPONENT_H
+#ifndef _FLOORRENDERCOMPONENT_H
+#define _FLOORRENDERCOMPONENT_H
 
 #include "RenderComponent.h"
 
-class QuadRenderComponent : public RenderComponent
+class FloorRenderComponent :
+	public RenderComponent
 {
 public:
-	QuadRenderComponent(const std::uint16_t & id)
+	FloorRenderComponent(const std::uint16_t & id)
 		: RenderComponent(id)
 	{
-		model_path = std::string("Assets/Models/quad.obj");
+		model_path = std::string("Assets/Models/grid.obj");
 		vertex_shader_path = std::string("Assets/Shaders/default_V_shader.glvs");
 		fragment_shader_path = std::string("Assets/Shaders/default_F_shader.glfs");
 		texture_path = std::string("Assets/Textures/test_texture.png");
 	}
-
-	~QuadRenderComponent() {}
+	~FloorRenderComponent() {}
 
 private:
-
 };
 
-#endif // !_QUADRENDERCOMPONENT_H
+#endif

@@ -4,6 +4,7 @@
 #define _RENDER_H
 
 #include "System.h"
+#include "RenderStorage.h"
 
 #include <SDL.h>
 #include <gl\GL.h>
@@ -14,44 +15,56 @@
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
 
-typedef std::unordered_map<std::string, Model*> ModelsStorage;
-typedef std::unordered_map<std::string, Shader*> ShaderStorage;
-typedef std::unordered_map<std::string, Texture*> TextureStorage;
+static const int DEFAULT_WIDTH = 1280;
+static const int DEFAULT_HEIGHT = 720;
 
 class Render : public System
 {
 public:
-	Render(SDL_Window * sdl_window, const int width, const int height);
+	Render(TaskManager & tm, SceneManager & sm);
 	~Render();
 
-	bool Load(void* content);
+	bool Load();
+
 	void Close(void* content);
 
-	void InitUpdate(CameraComponent * c_cp, const Transform * tran);
-	bool UpdateLoop(void * ptr);
-	void ComponentUpdate(GLfloat * project_value,
-		RenderComponent * & rc,
-		const Transform * transform);
-	void FinalUpdate();
+	JOB_RETURN Update(void * ptr);
 
-	bool init_render_component(void * ptr);
-
-	bool LoadModel(void * ptr);
-
-	bool LoadShader(void * ptr);
-
-	bool LoadTexture(void * ptr);
-
-	bool BindModel(void * ptr);
-
-	bool BindTexture(void * ptr);
-
-	bool BindShader(void * ptr);
-
-	bool init_SDL(SDL_GLContext context);
-	bool init_GL();
+	void SwapBuffers() { SDL_GL_SwapWindow(sdl_window); }
 
 private:
+
+	void InitUpdate();
+
+	void ComponentUpdate(RenderComponent * rc, Transform * trans);
+
+	JOB_RETURN InitRenderComp(void * ptr);
+
+	bool InitSDL();
+
+	bool InitGL();
+
+	JOB_RETURN GiveThreadedContext(void * ptr);
+
+	JOB_RETURN LoadModel(void * ptr);
+	JOB_RETURN LoadShader(void * ptr);
+	JOB_RETURN LoadTexture(void * ptr);
+
+	JOB_RETURN BindModel(void * ptr);
+	JOB_RETURN BindTexture(void * ptr);
+	JOB_RETURN BindShader(void * ptr);
+
+	glm::mat4 projection_look_matrix;
+	glm::mat4 projection_matrix;
+	glm::mat4 look_matrix;
+
+	GLfloat _fov = 60.0f;
+	GLfloat _near = 0.1f, _far = 1000.0f;
+	int SCREEN_WIDTH = DEFAULT_WIDTH;
+	int SCREEN_HEIGHT = DEFAULT_HEIGHT;
+
+	SDL_GLContext sdl_gl_context;
+
 	SDL_Window * sdl_window;
 
 	GLfloat * project_value_ptr;
@@ -60,9 +73,9 @@ private:
 
 	GLfloat Y_rotation = 0.0f;
 
-	ModelsStorage _models;
-	ShaderStorage _shaders;
-	TextureStorage _textures;
+	Storage<Model> * _models;
+	Storage<Shader> * _shaders;
+	Storage<Texture> * _textures;
 };
 
 #endif // !_RENDER_H
