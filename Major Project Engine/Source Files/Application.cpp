@@ -27,7 +27,7 @@ Application::~Application()
 
 bool Application::InitApp(const std::size_t & num_of_threads)
 {
-	Timer::Instance().Start();
+	//Timer::Instance().Start();
 	n_threads = num_of_threads;
 	m_task = new TaskManager(num_of_threads);
 	m_thread = new ThreadManager(m_task->GetJobList(), num_of_threads);
@@ -64,7 +64,7 @@ bool Application::LoadApp()
 		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 	}
 
-	float time_lock = 1000.f / (float)mode.refresh_rate;
+	float time_lock = 1000.f / (float)1;
 	Timer::Instance().SetTimeLock(time_lock);
 	m_task->SetTimeLock(time_lock);
 
@@ -101,7 +101,13 @@ void Application::StartNewFrame()
 		}
 	}
 
+	m_thread->PrintJobs();
+	
+
 	Timer::Instance().WaitTime();
+	system("cls");
+
+	m_thread->NewFrame();
 }
 
 bool Application::CloseApp()
@@ -116,7 +122,7 @@ bool Application::GameLoop()
 	{
 	case INITIALIZING:
 		if (!Initialized)
-			game_running = this->InitApp(6);
+			game_running = this->InitApp(4);
 		break;
 	case LOADING:
 		if (!LoadedApp)
@@ -124,9 +130,6 @@ bool Application::GameLoop()
 		break;
 	case PLAYING:
 	{
-		//
-		//input->Update(m_scene);
-
 		SDL_Event sdl_event;
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{
@@ -147,10 +150,11 @@ bool Application::GameLoop()
 			}
 		}
 		
-		m_task->RegisterJob(new Job(bind_function(&Render::Update, renderer), "Render_Update", nullptr, Job::JOB_RENDER_UPDATE), true);
+		m_task->RegisterJob(new Job(bind_function(&Render::Update, renderer), "Render_Update", &m_scene->GetComponents(SceneManager::RENDER), Job::JOB_RENDER_UPDATE), true);
 		
-		m_task->RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", &m_scene->GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_UPDATE));
+		m_task->RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", &m_scene->GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_UPDATE), true);
 
+		m_task->RegisterJob(new Job(bind_function(&Input::Update, input), "Input_Update", &m_scene->GetComponents(SceneManager::CONTROLLER), Job::JOB_INPUT_UPDATE), false);
 		break;
 	}
 	case PAUSED:

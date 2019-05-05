@@ -117,8 +117,19 @@ void ThreadManager::PrintJobs()
 {
 	int total = 0;
 	for (const auto & t : threads)
-		total += t->PrintStats();
+		if (t != nullptr)
+			total += t->PrintLogger(t_framestart);
+
 	printf("Total count is: %u\n", total);
+}
+
+void ThreadManager::NewFrame()
+{
+	for (const auto & t : threads)
+		if (t != nullptr)
+			t->ClearLogger();
+		
+	t_framestart = std::chrono::high_resolution_clock::now();
 }
 
 void ThreadManager::StopThreads()

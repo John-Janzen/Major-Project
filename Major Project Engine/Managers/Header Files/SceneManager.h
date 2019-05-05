@@ -19,6 +19,7 @@ public:
 		TRANSFORM,
 		PHYSICS,
 		RENDER,
+		CONTROLLER,
 		COUNT
 	};
 
@@ -57,6 +58,9 @@ public:
 					break;
 				case PHYSICS:
 					assert(dynamic_cast<PhysicsComponent*>(comp));
+					break;
+				case CONTROLLER:
+					assert(dynamic_cast<PlayerControllerComponent*>(comp));
 					break;
 				default:
 					break;

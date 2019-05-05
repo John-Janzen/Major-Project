@@ -8,6 +8,7 @@
 Thread::Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type)
 	: job_list(queue), _name(name), t_type(type)
 {
+	//Logger = ThreadLogger();
 	_thread = std::make_unique<std::thread>(&Thread::Execution, this, tm);
 }
 
@@ -38,21 +39,25 @@ void Thread::Execution(ThreadManager * const tm)
 
 		if (!_running) break;
 
+		auto & data = Logger.Instatiate(current_job->j_type, current_job->job_name);
+
 		switch ((*current_job)())
 		{
 		case JOB_COMPLETED:
 			count++;
 
 			delete(current_job);
-
 			current_job = nullptr;
+
+			data.t_end = std::chrono::high_resolution_clock::now();
 			tm->NotifyDone();
 			break;
 		case JOB_RETRY:
 			tm->RetryJob(current_job);
 
 			current_job = nullptr;
-			//tm->NotifyDone();
+
+			data.t_end = std::chrono::high_resolution_clock::now();
 			break;
 		case JOB_ISSUE:
 			printf("ISSUE FOUND WITH JOB: %s", current_job->job_name.c_str());

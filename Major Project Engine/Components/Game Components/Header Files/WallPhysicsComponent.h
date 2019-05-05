@@ -1,22 +1,19 @@
 #pragma once
 #include "PhysicsComponent.h"
-class FloorPhysicsComponent :
+class WallPhysicsComponent :
 	public PhysicsComponent
 {
 public:
-	FloorPhysicsComponent(const std::uint16_t & id);
-	~FloorPhysicsComponent();
-
-private:
-
+	WallPhysicsComponent(const std::uint16_t & id);
+	~WallPhysicsComponent();
 };
 
-inline FloorPhysicsComponent::FloorPhysicsComponent(const std::uint16_t & id)
-	: PhysicsComponent(id)
 
+
+inline WallPhysicsComponent::WallPhysicsComponent(const std::uint16_t & id)
+	: PhysicsComponent(id)
 {
-	//shape = new btStaticPlaneShape(btVector3(0.f, 1.f, 0.f), 0.f);
-	shape = new btBoxShape(btVector3(50.f, 0.1f, 50.f));
+	shape = new btBoxShape(btVector3(50.f, 1.f, 50.f));
 	mass = btScalar(0.f);
 	local_inertia = btVector3(0.f, 0.f, 0.f);
 
@@ -29,7 +26,9 @@ inline FloorPhysicsComponent::FloorPhysicsComponent(const std::uint16_t & id)
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, m_state, shape, local_inertia);
 	SetRigidBody(new btRigidBody(rbInfo));
 	rigid_body->setFriction(btScalar(5.0f));
-
 }
 
-inline FloorPhysicsComponent::~FloorPhysicsComponent() {}
+
+inline WallPhysicsComponent::~WallPhysicsComponent()
+{
+}

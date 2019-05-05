@@ -22,7 +22,7 @@ public:
 
 	JOB_RETURN Update(void * ptr);
 
-	void PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, btTransform & transform);
+	void PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, Transform * transform);
 
 	void ChangeInput();
 private:

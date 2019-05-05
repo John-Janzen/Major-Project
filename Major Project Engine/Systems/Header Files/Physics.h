@@ -13,7 +13,7 @@ public:
 	Physics(TaskManager & tm, SceneManager & sm);
 	~Physics();
 
-	JOB_RETURN PreUpdate(void * ptr) { dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime()); return JOB_COMPLETED; };
+	JOB_RETURN PreUpdate(void * ptr);
 	JOB_RETURN Update(void * ptr);
 
 	bool Load();

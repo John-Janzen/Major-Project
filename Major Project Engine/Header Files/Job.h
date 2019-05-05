@@ -71,7 +71,7 @@ public:
 		JOB_PHYSICS_UPDATE,
 		JOB_PHYSICS_COMPONENT,
 
-		JOB_INPUT_DEFAULT = JOB_STRIDE * JOB_PHYSICS,
+		JOB_INPUT_DEFAULT = JOB_STRIDE * JOB_INPUT,
 		JOB_INPUT_LOAD,
 		JOB_INPUT_UPDATE,
 
@@ -86,6 +86,67 @@ public:
 
 		JOB_HEAD_END
 	};
+
+	/*void TransferJobID(const Job::JOB_ID & id)
+	{
+		switch (id)
+		{
+
+		case JOB_LOAD_MODEL:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_LOAD_TEXTURE:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_MODEL_CHECKER:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_TEXTURE_CHECKER:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_SHADER_CHECKER:
+			std::cout << "Load Model\n";
+			break;
+
+		case JOB_PHYSICS_LOAD:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_PHYSICS_PREUPDATE:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_PHYSICS_UPDATE:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_PHYSICS_COMPONENT:
+			std::cout << "Load Model\n";
+			break;
+
+		case JOB_INPUT_LOAD:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_INPUT_UPDATE:
+			std::cout << "Load Model\n";
+			break;
+
+		case JOB_RENDER_LOAD:
+			std::cout << "Load Model\n";
+			break;
+		case JOB_RENDER_UPDATE:
+			break;
+		case JOB_BIND_MODEL:
+			break;
+		case JOB_BIND_TEXTURE:
+			break;
+		case JOB_BIND_SHADER:
+			break;
+		case JOB_LOAD_SHADER:
+			break;
+		case JOB_SWAP_BUFFERS:
+			break;
+		default:
+			break;
+		}
+	}*/
 
 
 	Job(JobFunction function, const std::string name, void* data = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT, Job * parent = nullptr)
@@ -124,11 +185,12 @@ public:
 		return lhs->_scale < rhs->_scale;
 	}
 
-	void AddParent(Job * job)
+	void AddParent(Job * & job)
 	{
 		_parent_jobs[parent_count] = job;
 		parent_count++;
 		job->_awaiting++;
+		job->reason_waiting = true;
 	}
 
 	// NAME
@@ -143,6 +205,7 @@ public:
 	std::atomic_int _awaiting = 0;
 	std::atomic_uint parent_count = 0;
 	std::array<Job*, MAX_PARENTS> _parent_jobs = { nullptr };
+	bool reason_waiting = false;
 	
 	// JOB FUNCTIONALITY
 	JobFunction _func;

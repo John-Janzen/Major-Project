@@ -23,7 +23,7 @@ public:
 
 	void Close()
 	{
-		std::lock_guard<std::mutex> lock(_mutex);
+		//std::lock_guard<std::mutex> lock(_mutex);
 		open = false;
 		_cv.notify_all();
 	}

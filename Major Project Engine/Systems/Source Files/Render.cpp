@@ -52,7 +52,10 @@ bool Render::Load()
 	projection_matrix = glm::perspective(glm::radians(_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, _near, _far);
 	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	btScalar transform[16];
-	btTransform(btQuaternion(btScalar(0.f), btScalar(0.4f), btScalar(0.f)), btVector3(btScalar(0.f), btScalar(0.f), btScalar(-40.f))).getOpenGLMatrix(transform);
+	btTransform camera_tranform = btTransform().getIdentity();
+	camera_tranform.setRotation(btQuaternion(0.f, 1.f, 0.f));
+	camera_tranform.setOrigin(btVector3(btScalar(0.f), btScalar(-5.f), btScalar(-75.f)));
+	camera_tranform.getOpenGLMatrix(transform);
 
 	projection_look_matrix = projection_matrix * (look_matrix *	getGLMMatrix4(transform));
 
@@ -110,7 +113,7 @@ JOB_RETURN Render::Update(void * ptr)
 	this->InitUpdate();
 
 	//Timer::Instance().Start();
-	for (auto render_it : m_scene.GetComponents(SceneManager::RENDER))
+	for (auto render_it : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
 		assert(dynamic_cast<RenderComponent*>(render_it));
 		{
@@ -142,7 +145,6 @@ JOB_RETURN Render::InitRenderComp(void * ptr)
 			m_task.RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render, Job::JOB_LOAD_SHADER));
 		}
 	}
-
 	return JOB_COMPLETED;
 }
 
@@ -218,7 +220,7 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 JOB_RETURN Render::LoadModel(void * ptr)
 {
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	Job * bind_model_job;
+	Job * bind_model_job, * check_job;
 
 	switch(_models->HasItem(rc->GetModelPath(), rc->GetModelAdd()))
 	{
@@ -231,8 +233,9 @@ JOB_RETURN Render::LoadModel(void * ptr)
 		break;
 	case LOAD::WAIT_LOAD:
 		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL);
-		m_task.RegisterJob(new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker", nullptr, Job::JOB_MODEL_CHECKER), bind_model_job);
+		check_job = new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker", nullptr, Job::JOB_MODEL_CHECKER);
 		m_task.RegisterJob(bind_model_job, true);
+		m_task.RegisterJob(check_job, false, bind_model_job);
 		return JOB_COMPLETED;
 		break;
 	case LOAD::DONE_LOAD:
@@ -248,7 +251,7 @@ JOB_RETURN Render::LoadModel(void * ptr)
 JOB_RETURN Render::LoadShader(void * ptr)
 {
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	Job * bind_shader_job;
+	Job * bind_shader_job, * check_job;
 
 	switch (_shaders->HasItem(rc->GetShaderPath(), rc->GetShaderAdd()))
 	{
@@ -261,8 +264,9 @@ JOB_RETURN Render::LoadShader(void * ptr)
 		break;
 	case WAIT_LOAD:
 		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER);
-		m_task.RegisterJob(new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker", nullptr, Job::JOB_SHADER_CHECKER), bind_shader_job);
+		check_job = new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker", nullptr, Job::JOB_SHADER_CHECKER);
 		m_task.RegisterJob(bind_shader_job, true);
+		m_task.RegisterJob(check_job, false, bind_shader_job);
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:
@@ -276,7 +280,7 @@ JOB_RETURN Render::LoadShader(void * ptr)
 JOB_RETURN Render::LoadTexture(void * ptr)
 {
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	Job * bind_texture_job;
+	Job * bind_texture_job, * check_job;
 
 	switch (_textures->HasItem(rc->GetTexturePath(), rc->GetTextureAdd()))
 	{
@@ -289,8 +293,9 @@ JOB_RETURN Render::LoadTexture(void * ptr)
 		break;
 	case WAIT_LOAD:
 		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE);
-		m_task.RegisterJob(new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker", nullptr, Job::JOB_TEXTURE_CHECKER), bind_texture_job);
+		check_job = new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker", nullptr, Job::JOB_TEXTURE_CHECKER);
 		m_task.RegisterJob(bind_texture_job, true);
+		m_task.RegisterJob(check_job, false, bind_texture_job);
 		return JOB_COMPLETED;
 		break;
 	case DONE_LOAD:

@@ -125,7 +125,7 @@ int TaskManager::ManageJobs()
 	std::list<Job*>::iterator job_it = waiting_jobs.begin();
 	while (job_it != waiting_jobs.end())
 	{
-		if ((*job_it)->_awaiting == 0)
+		if ((*job_it)->_awaiting == 0 && (*job_it)->reason_waiting)
 		{
 			task_queue.Emplace((*job_it));
 			job_it = waiting_jobs.erase(job_it);

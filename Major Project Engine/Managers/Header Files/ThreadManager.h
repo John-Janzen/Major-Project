@@ -53,6 +53,8 @@ public:
 	*/
 	void PrintJobs();
 
+	void NewFrame();
+
 	/*
 	Stops the threads by calling there stop
 	function. Had to make this because a there
@@ -85,6 +87,8 @@ private:
 	SharedQueue<Job*> & task_queue;
 	std::size_t num_of_threads;
 	std::mutex finished_job;
+
+	std::chrono::high_resolution_clock::time_point t_framestart;
 	
 	int count = 0;
 };

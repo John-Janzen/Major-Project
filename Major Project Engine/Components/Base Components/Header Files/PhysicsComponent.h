@@ -6,6 +6,7 @@
 #include "BaseComponent.h"
 
 #include <btBulletCollisionCommon.h>
+#include <btBulletDynamicsCommon.h>
 
 class PhysicsComponent :
 	public BaseComponent
@@ -15,6 +16,7 @@ public:
 	~PhysicsComponent();
 
 	btCollisionShape * GetCollisionShape() { return shape; }
+	btMotionState * GetMotionState() { return m_state; }
 	btScalar GetMass() const { return mass; }
 	btVector3 GetLocalInertia() const { return local_inertia; }
 
@@ -23,6 +25,7 @@ public:
 
 protected:
 	btCollisionShape * shape;
+	btMotionState * m_state;
 	btScalar mass;
 	btVector3 local_inertia;
 

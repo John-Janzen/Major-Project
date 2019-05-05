@@ -55,6 +55,7 @@
     <ClInclude Include="Header Files\Scheduler.h" />
     <ClInclude Include="Managers\Header Files\SceneManager.h" />
     <ClInclude Include="Header Files\SharedQueue.h" />
+    <ClInclude Include="Components\Game Components\Header Files\MultiPhysicsComponent.h" />
     <ClInclude Include="Systems\Header Files\Physics.h" />
     <ClInclude Include="Systems\Header Files\Input.h" />
     <ClInclude Include="Game Objects\Header Files\Player.h" />
@@ -78,6 +79,7 @@
     <ClInclude Include="Systems\Header Files\TestSystem.h" />
     <ClInclude Include="Managers\Header Files\TaskManager.h" />
     <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
+    <ClInclude Include="Components\Game Components\Header Files\WallPhysicsComponent.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

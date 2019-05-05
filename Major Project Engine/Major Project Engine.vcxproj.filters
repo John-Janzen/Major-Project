@@ -188,5 +188,11 @@
     <ClInclude Include="Components\Game Components\Header Files\FloorRenderComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Components\Game Components\Header Files\MultiPhysicsComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\Game Components\Header Files\WallPhysicsComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
