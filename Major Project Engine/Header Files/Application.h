@@ -42,6 +42,8 @@ private:
 
 	void StartNewFrame();
 
+	void RenderDebug();
+
 	Render * renderer = nullptr;
 	Input * input = nullptr;
 	TestSystem * test_system = nullptr;
@@ -61,6 +63,9 @@ protected:
 		PLAYING,
 		PAUSED,
 		DELOAD,
+		DEBUG_LOAD,
+		DEBUG_RUN,
+		DEBUG_CLOSE,
 		EXITING
 	};
 
@@ -68,6 +73,8 @@ protected:
 	GAME_STATE _state;
 
 	Scene * current_scene = nullptr;
+	SDL_Window * debug_window = nullptr;
+	SDL_Renderer * debug_renderer = nullptr;
 
 	GLfloat frame_rate;
 	std::uint16_t n_threads;

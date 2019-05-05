@@ -118,6 +118,7 @@ bool Application::CloseApp()
 
 bool Application::GameLoop()
 {
+	SDL_Event sdl_event;
 	switch (_state)
 	{
 	case INITIALIZING:
@@ -130,7 +131,6 @@ bool Application::GameLoop()
 		break;
 	case PLAYING:
 	{
-		SDL_Event sdl_event;
 		while (SDL_PollEvent(&sdl_event))			// Polls events for SDL (Mouse, Keyboard, window, etc.)
 		{
 			switch (sdl_event.type)
@@ -145,6 +145,21 @@ bool Application::GameLoop()
 					break;
 				}
 				break;
+			case SDL_KEYDOWN:
+			{
+				switch (sdl_event.key.keysym.scancode)
+				{
+				case SDL_SCANCODE_ESCAPE:
+					_state = EXITING;
+					break;
+				default:
+					break;
+				case SDL_SCANCODE_T:
+					_state = DEBUG_LOAD;
+					break;
+				}
+			}
+				break;
 			default:
 				break;
 			}
@@ -157,6 +172,52 @@ bool Application::GameLoop()
 		m_task->RegisterJob(new Job(bind_function(&Input::Update, input), "Input_Update", &m_scene->GetComponents(SceneManager::CONTROLLER), Job::JOB_INPUT_UPDATE), false);
 		break;
 	}
+	case DEBUG_LOAD:
+		if (!debug_window && !debug_renderer)
+			SDL_CreateWindowAndRenderer(900, 600, 0, &debug_window, &debug_renderer);
+
+		_state = DEBUG_RUN;
+		break;
+
+	case DEBUG_RUN:
+
+		while (SDL_PollEvent(&sdl_event))
+		{
+			switch (sdl_event.type)
+			{
+			case SDL_WINDOWEVENT:
+				if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
+				{
+					_state = DEBUG_CLOSE;
+					break;
+				}
+				break;
+			case SDL_KEYDOWN:
+			{
+				switch (sdl_event.key.keysym.scancode)
+				{
+				case SDL_SCANCODE_T:
+					_state = DEBUG_CLOSE;
+					break;
+				default:
+					break;
+				}
+			}
+			}
+		}
+
+		this->RenderDebug();
+
+		break;
+	case DEBUG_CLOSE:
+
+		SDL_DestroyWindow(debug_window);
+		SDL_DestroyRenderer(debug_renderer);
+
+		debug_window = nullptr;
+		debug_renderer = nullptr;
+		_state = PLAYING;
+		break;
 	case PAUSED:
 		break;
 	case DELOAD:
@@ -184,4 +245,13 @@ bool Application::LoadScene(const SCENE_SELECTION type)
 		break;
 	}
 	return true;
+}
+
+
+void Application::RenderDebug()
+{
+	SDL_SetRenderDrawColor(debug_renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
+	SDL_RenderClear(debug_renderer);
+
+
 }
