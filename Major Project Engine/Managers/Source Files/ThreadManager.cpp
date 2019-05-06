@@ -101,9 +101,9 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 				t_queues[count]->Emplace(temp);
 				task_queue.Pop();
 
-				//if (count == 0) render_thread.notify_one();
+				if (count == 0) render_thread.notify_one();
 
-				if (count >= num_of_threads - 1) count = 1;
+				if (count >= num_of_threads - 1) count = 0;
 				else count++;
 
 				any_thread.notify_one();

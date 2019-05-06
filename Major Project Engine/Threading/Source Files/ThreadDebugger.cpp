@@ -42,29 +42,40 @@ void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> thread
 {
 	SDL_SetRenderDrawColor(debug_renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(debug_renderer);
-
 	SDL_Rect rect;
-	int count = 0;
-	for (auto & thread : threads)
+	Color color;
+	if (current_frame.empty())
 	{
-		if (thread == nullptr) continue;
-		rect = SDL_Rect();
-		for (auto & data : thread->AquireData())
+		int count = 0;
+		for (auto & thread : threads)
 		{
-			ColorByID(data.t_id);
-			CalculateRect(data, object_time, rect);
-			
-			rect.y = count * heightOfLines;
-			rect.h = heightOfLines;
-			SDL_RenderFillRect(debug_renderer, &rect);
-
-			if (rect.w > 10)
+			if (thread == nullptr) continue;
+			rect = SDL_Rect();
+			for (auto & data : thread->AquireData())
 			{
-				SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-				SDL_RenderDrawRect(debug_renderer, &rect);
+				ColorByID(data.t_id, color);
+				CalculateRect(data, object_time, rect);
+
+				rect.y = count * heightOfLines;
+				rect.h = heightOfLines;
+				current_frame.emplace_back(std::make_pair(rect, color));
 			}
+			count++;
 		}
-		count++;
+	}
+
+	for (auto & pair : current_frame)
+	{
+		rect = pair.first;
+		color = pair.second;
+		SDL_SetRenderDrawColor(debug_renderer, color.r, color.g, color.b, SDL_ALPHA_OPAQUE);
+		SDL_RenderFillRect(debug_renderer, &rect);
+
+		if (rect.w > 2)
+		{
+			SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+			SDL_RenderDrawRect(debug_renderer, &rect);
+		}
 	}
 
 	SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -82,31 +93,30 @@ void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> thread
 	SDL_RenderPresent(debug_renderer);
 }
 
-void ThreadDebugger::ColorByID(const Job::JOB_ID & id)
+void ThreadDebugger::ColorByID(const Job::JOB_ID & id, Color & color)
 {
-	int r, g, b;
 	switch (id / JOB_STRIDE)
 	{
 	case Job::JOB_RENDER:
-		r = 255;
-		g = b = id % JOB_STRIDE;
+		color.r = 255;
+		color.g = color.b = ((id % JOB_STRIDE) / (float)(Job::JOB_RENDER_COUNT - Job::JOB_RENDER_DEFAULT)) * 255;
 		break;
 	case Job::JOB_INPUT:
-		r = b = id % JOB_STRIDE;
-		g = 255;
+		color.r = color.b = ((id % JOB_STRIDE) / (float)(Job::JOB_INPUT_COUNT - Job::JOB_INPUT_DEFAULT)) * 255;
+		color.g = 255;
 		break;
 	case Job::JOB_PHYSICS:
-		r = g = id % JOB_STRIDE;
-		b = 255;
+		color.r = color.g = ((id % JOB_STRIDE) / (float)(Job::JOB_PHYSICS_COUNT - Job::JOB_PHYSICS_DEFAULT)) * 255;
+		color.b = 255;
 		break;
 	case Job::JOB_MISC:
-		r = b = 255;
-		g = id % JOB_STRIDE;
+		color.r = color.b = 255;
+		color.g = ((id % JOB_STRIDE) / (Job::JOB_DEFAULT_COUNT - Job::JOB_DEFAULT)) * 255;
 		break;
 	default:
 		break;
 	}
-	SDL_SetRenderDrawColor(debug_renderer, r, g, b, SDL_ALPHA_OPAQUE);
+	color.a = SDL_ALPHA_OPAQUE;
 }
 
 void ThreadDebugger::CalculateRect(const Thread::ThreadData & data, const Thread::ctp & object_time,  SDL_Rect & rect)

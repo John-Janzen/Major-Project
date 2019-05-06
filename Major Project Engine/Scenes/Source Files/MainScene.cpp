@@ -13,7 +13,7 @@ bool MainScene::Load(SceneManager & sm)
 	//this->LoadQuad(sm);
 	this->LoadFloor(sm);
 	this->LoadWalls(sm);
-	this->LoadPlayer(sm);
+	//this->LoadPlayer(sm);
 	for (int i = 0; i < NUM_MULTI_OBJECTS; i++)
 	{
 		for (int j = 0; j < NUM_MULTI_OBJECTS; j++)

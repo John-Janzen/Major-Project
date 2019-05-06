@@ -173,7 +173,7 @@ bool Render::InitSDL()
 		return false;
 	}
 
-	m_task.RegisterJob(new Job(bind_function(&Render::GiveThreadedContext, this), "Threaded_Context"));
+	m_task.RegisterJob(new Job(bind_function(&Render::GiveThreadedContext, this), "Threaded_Context", nullptr, Job::JOB_RENDER_DEFAULT));
 	return true;
 }
 

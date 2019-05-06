@@ -4,6 +4,7 @@
 #define _THREADDEBUGGER_H
 
 #include <SDL.h>
+#include <map>
 
 #include "Thread.h"
 
@@ -17,7 +18,6 @@ public:
 
 	void RenderDebug(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time);
 
-	void ColorByID(const Job::JOB_ID & id);
 
 	void ShowDebug()
 	{
@@ -27,11 +27,19 @@ public:
 	void HideDebug()
 	{
 		SDL_HideWindow(debug_window);
+		current_frame.clear();
 	}
 
 private:
 
+	struct Color
+	{
+		Uint8 r, g, b, a;
+	};
+
 	void CalculateRect(const Thread::ThreadData & data, const Thread::ctp & object_time, SDL_Rect & rect);
+
+	void ColorByID(const Job::JOB_ID & id, Color & color);
 
 	SDL_Window * debug_window;
 	SDL_Renderer * debug_renderer;
@@ -45,6 +53,8 @@ private:
 	int widthOfLines, heightOfLines;
 
 	SDL_Rect m_borders[2];
+
+	std::vector<std::pair<SDL_Rect, Color>> current_frame;
 };
 
 #endif // !_THREADDEBUGGER_H
