@@ -80,6 +80,8 @@ public:
 	void ShowDebugger() { t_debug.ShowDebug(); }
 	void RenderDebugger() { t_debug.RenderDebug(threads, t_framestart); }
 	void HideDebugger() { t_debug.HideDebug(); }
+	Uint32 GetDebugWindowID() { return t_debug.GetWindowID(); }
+	void CheckDebugMouseLoc(const SDL_MouseMotionEvent & mme) { t_debug.CheckMouseLocation(mme); }
 	//void GetRefreshDebug(const float & rate) {}
 
 private:

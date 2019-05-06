@@ -11,8 +11,7 @@ bool Input::Load()
 
 	{
 		m_task.dictionary.emplace(Job::JOB_INPUT_UPDATE, std::vector<Job::JOB_ID>());
-		m_task.dictionary[Job::JOB_INPUT_UPDATE].emplace_back(Job::JOB_PHYSICS_UPDATE);
-		m_task.dictionary[Job::JOB_INPUT_UPDATE].emplace_back(Job::JOB_RENDER_UPDATE);
+		m_task.dictionary[Job::JOB_INPUT_UPDATE].emplace_back(Job::JOB_PHYSICS_PREUPDATE);
 	}
 
 	return true;

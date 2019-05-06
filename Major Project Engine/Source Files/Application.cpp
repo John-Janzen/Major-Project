@@ -167,7 +167,7 @@ bool Application::GameLoop()
 		
 		m_task->RegisterJob(new Job(bind_function(&Render::Update, renderer), "Render_Update", &m_scene->GetComponents(SceneManager::RENDER), Job::JOB_RENDER_UPDATE), true);
 		
-		m_task->RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", &m_scene->GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_UPDATE), true);
+		m_task->RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", &m_scene->GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_UPDATE), false);
 
 		m_task->RegisterJob(new Job(bind_function(&Input::Update, input), "Input_Update", &m_scene->GetComponents(SceneManager::CONTROLLER), Job::JOB_INPUT_UPDATE), false);
 		break;
@@ -181,26 +181,32 @@ bool Application::GameLoop()
 
 		while (SDL_PollEvent(&sdl_event))
 		{
-			switch (sdl_event.type)
+			if (sdl_event.window.windowID == m_thread->GetDebugWindowID())
 			{
-			case SDL_WINDOWEVENT:
-				if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
+				switch (sdl_event.type)
 				{
-					_state = DEBUG_CLOSE;
+				case SDL_WINDOWEVENT:
+					if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
+					{
+						_state = DEBUG_CLOSE;
+						break;
+					}
 					break;
-				}
-				break;
-			case SDL_KEYDOWN:
-			{
-				switch (sdl_event.key.keysym.scancode)
+				case SDL_MOUSEBUTTONDOWN:
+					m_thread->CheckDebugMouseLoc(sdl_event.motion);
+					break;
+				case SDL_KEYDOWN:
 				{
-				case SDL_SCANCODE_T:
-					_state = DEBUG_CLOSE;
-					break;
-				default:
-					break;
+					switch (sdl_event.key.keysym.scancode)
+					{
+					case SDL_SCANCODE_T:
+						_state = DEBUG_CLOSE;
+						break;
+					default:
+						break;
+					}
 				}
-			}
+				}
 			}
 		}
 
