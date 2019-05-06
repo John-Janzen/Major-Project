@@ -3,7 +3,7 @@
 #ifndef _THREADMANAGER_H
 #define _THREADMANAGER_H
 
-#include "Thread.h"
+#include "ThreadDebugger.h"
 #include "SharedQueue.h"
 
 #include <queue>
@@ -21,8 +21,6 @@ use most of these functions.
 class ThreadManager
 {
 public:
-
-	static const std::size_t MAX_THREADS = 8;
 
 	explicit ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size);
 
@@ -77,9 +75,19 @@ public:
 
 	const std::size_t GetNumThreads() const { return num_of_threads; }
 
+	/// DEBUGGING SECTION
+	void LoadDebugger(const float & rate, const std::size_t & count) { t_debug.LoadDebug(rate, num_of_threads); }
+	void ShowDebugger() { t_debug.ShowDebug(); }
+	void RenderDebugger() { t_debug.RenderDebug(threads); }
+	void HideDebugger() { t_debug.HideDebug(); }
+	//void GetRefreshDebug(const float & rate) {}
+
 private:
-	std::array<Thread*, MAX_THREADS> threads = { nullptr };
-	std::array<BlockingQueue<Job*>*, MAX_THREADS> t_queues = { nullptr };
+
+	ThreadDebugger t_debug;
+
+	std::array<Thread*, Thread::MAX_THREADS> threads = { nullptr };
+	std::array<BlockingQueue<Job*>*, Thread::MAX_THREADS> t_queues = { nullptr };
 	std::size_t rthread_num;
 
 	std::condition_variable any_thread, render_thread;

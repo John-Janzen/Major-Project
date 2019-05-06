@@ -200,7 +200,7 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 	}
 	else
 	{
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_2D);
@@ -212,7 +212,9 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 			printf("Error initializing GLEW! %s", glewGetErrorString(glewError));
 			return JOB_ISSUE;
 		}
-		//SDL_GL_SwapWindow(sdl_window);
+		/*glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(255, 255, 255, 255);
+		SDL_GL_SwapWindow(sdl_window);*/
 	}
 	return JOB_COMPLETED;
 }

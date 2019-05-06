@@ -25,6 +25,7 @@ class ThreadManager;
 class Thread
 {
 public:
+	static const std::size_t MAX_THREADS = 8;
 
 	enum THREAD_TYPE
 	{
@@ -60,6 +61,8 @@ public:
 		Logger.ClearData();
 	}
 
+
+
 private:
 
 	class ThreadLogger
@@ -72,10 +75,7 @@ private:
 	public:
 
 		ThreadLogger() {};
-		~ThreadLogger() 
-		{
-			std::cout << "Destructor called";
-		};
+		~ThreadLogger() {};
 
 		struct ThreadData
 		{
@@ -83,7 +83,6 @@ private:
 			std::string t_name;
 			ctp t_start, t_end;
 		};
-
 
 		ThreadData & Instatiate(const Job::JOB_ID & id, const std::string & name)
 		{
@@ -122,9 +121,9 @@ private:
 	private:
 		std::vector<ThreadData> t_data;
 
-	};
+	} Logger;
 
-	ThreadLogger Logger;
+	//ThreadLogger Logger;
 	THREAD_TYPE t_type;
 
 	bool _running = true;

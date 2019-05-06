@@ -64,25 +64,28 @@ bool Application::LoadApp()
 		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 	}
 
-	float time_lock = 1000.f / (float)1;
+	float time_lock = 1000.f / (float)mode.refresh_rate;
+
+	refresh_rate = time_lock;
 	Timer::Instance().SetTimeLock(time_lock);
 	m_task->SetTimeLock(time_lock);
 
 	check &= physics->Load();
 	check &= input->Load();
+	
+	m_thread->LoadDebugger(time_lock, n_threads);
 	LoadedApp = true;
+
 	return check;
 }
 
 void Application::StartNewFrame()
 {
-	//Timer::Instance().Start();
 	while (m_thread->HasJobs() || m_task->HasJobs())
 	{
 		int num = m_task->ManageJobs();
 		m_thread->AllocateJobs(num);
 	}
-	//Timer::Instance().Stop();
 
 	if (m_thread->jobs_to_finish == 0)
 	{
@@ -100,12 +103,8 @@ void Application::StartNewFrame()
 			break;
 		}
 	}
-
-	m_thread->PrintJobs();
 	
-
 	Timer::Instance().WaitTime();
-	system("cls");
 
 	m_thread->NewFrame();
 }
@@ -173,9 +172,7 @@ bool Application::GameLoop()
 		break;
 	}
 	case DEBUG_LOAD:
-		if (!debug_window && !debug_renderer)
-			SDL_CreateWindowAndRenderer(900, 600, 0, &debug_window, &debug_renderer);
-
+		m_thread->ShowDebugger();
 		_state = DEBUG_RUN;
 		break;
 
@@ -206,16 +203,11 @@ bool Application::GameLoop()
 			}
 		}
 
-		this->RenderDebug();
+		m_thread->RenderDebugger();
 
 		break;
 	case DEBUG_CLOSE:
-
-		SDL_DestroyWindow(debug_window);
-		SDL_DestroyRenderer(debug_renderer);
-
-		debug_window = nullptr;
-		debug_renderer = nullptr;
+		m_thread->HideDebugger();
 		_state = PLAYING;
 		break;
 	case PAUSED:
@@ -245,13 +237,4 @@ bool Application::LoadScene(const SCENE_SELECTION type)
 		break;
 	}
 	return true;
-}
-
-
-void Application::RenderDebug()
-{
-	SDL_SetRenderDrawColor(debug_renderer, 0, 0, 255, SDL_ALPHA_OPAQUE);
-	SDL_RenderClear(debug_renderer);
-
-
 }

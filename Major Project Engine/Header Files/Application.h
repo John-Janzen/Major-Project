@@ -6,6 +6,7 @@
 #include "SceneManager.h"
 #include "TaskManager.h"
 #include "ThreadManager.h"
+#include "ThreadDebugger.h"
 
 #include "Render.h"
 #include "Input.h"
@@ -19,8 +20,6 @@
 #include <vector>
 #include <ctime>
 #include <chrono>
-
-
 
 class Application
 {
@@ -41,8 +40,6 @@ private:
 	bool LoadApp();
 
 	void StartNewFrame();
-
-	void RenderDebug();
 
 	Render * renderer = nullptr;
 	Input * input = nullptr;
@@ -72,12 +69,12 @@ protected:
 	bool game_running = true;
 	GAME_STATE _state;
 
+	float refresh_rate = 1000 / 60;
+
 	Scene * current_scene = nullptr;
-	SDL_Window * debug_window = nullptr;
-	SDL_Renderer * debug_renderer = nullptr;
 
 	GLfloat frame_rate;
-	std::uint16_t n_threads;
+	std::size_t n_threads;
 
 	bool LoadedApp = false, Initialized = false;
 };
