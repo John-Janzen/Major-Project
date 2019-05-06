@@ -25,6 +25,9 @@ class ThreadManager;
 class Thread
 {
 public:
+	typedef std::chrono::high_resolution_clock hr;
+	typedef hr::time_point ctp;
+
 	static const std::size_t MAX_THREADS = 8;
 
 	enum THREAD_TYPE
@@ -33,6 +36,13 @@ public:
 		ANY_THREAD,
 		RENDER_THREAD,
 		IO_THREAD
+	};
+
+	struct ThreadData
+	{
+		Job::JOB_ID t_id;
+		std::string t_name;
+		ctp t_start, t_end;
 	};
 
 	Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type = ANY_THREAD);
@@ -61,28 +71,21 @@ public:
 		Logger.ClearData();
 	}
 
-
+	const std::vector<ThreadData> & AquireData()
+	{
+		return Logger.GetData();
+	}
 
 private:
 
 	class ThreadLogger
 	{
-	protected:
-
-		typedef std::chrono::high_resolution_clock hr;
-		typedef hr::time_point ctp;
-
 	public:
 
 		ThreadLogger() {};
 		~ThreadLogger() {};
 
-		struct ThreadData
-		{
-			Job::JOB_ID t_id;
-			std::string t_name;
-			ctp t_start, t_end;
-		};
+	
 
 		ThreadData & Instatiate(const Job::JOB_ID & id, const std::string & name)
 		{
@@ -117,6 +120,7 @@ private:
 			t_data.clear();
 		}
 
+		const std::vector<ThreadData> & GetData() { return t_data; }
 
 	private:
 		std::vector<ThreadData> t_data;

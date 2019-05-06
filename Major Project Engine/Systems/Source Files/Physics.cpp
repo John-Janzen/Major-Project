@@ -76,7 +76,7 @@ JOB_RETURN Physics::PreUpdate(void * ptr)
 JOB_RETURN Physics::Update(void * ptr)
 {	
 	std::vector<BaseComponent*> * PVector = static_cast<std::vector<BaseComponent*>*>(ptr);
-	const int Breakdown = 8;
+	const int Breakdown = 10;
 
 	int num = PVector->size() / Breakdown;
 	int remainder = PVector->size() % Breakdown;

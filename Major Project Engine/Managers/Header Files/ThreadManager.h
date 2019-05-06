@@ -78,7 +78,7 @@ public:
 	/// DEBUGGING SECTION
 	void LoadDebugger(const float & rate, const std::size_t & count) { t_debug.LoadDebug(rate, num_of_threads); }
 	void ShowDebugger() { t_debug.ShowDebug(); }
-	void RenderDebugger() { t_debug.RenderDebug(threads); }
+	void RenderDebugger() { t_debug.RenderDebug(threads, t_framestart); }
 	void HideDebugger() { t_debug.HideDebug(); }
 	//void GetRefreshDebug(const float & rate) {}
 

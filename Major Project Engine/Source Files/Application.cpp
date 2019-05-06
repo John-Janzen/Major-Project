@@ -106,7 +106,8 @@ void Application::StartNewFrame()
 	
 	Timer::Instance().WaitTime();
 
-	m_thread->NewFrame();
+	if (_state != DEBUG_LOAD && _state != DEBUG_CLOSE && _state != DEBUG_RUN)
+		m_thread->NewFrame();
 }
 
 bool Application::CloseApp()

@@ -35,20 +35,36 @@ void ThreadDebugger::LoadDebug(const float & rate, const std::size_t & count)
 	n_threads = count;
 	refresh_rate = rate;
 	widthOfLines = (int)(default_width / refresh_rate);
-	heightOfLines = default_height / (n_threads + 1);
+	heightOfLines = default_height / n_threads;
 }
 
-void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> threads)
+void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time)
 {
 	SDL_SetRenderDrawColor(debug_renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(debug_renderer);
 
+	SDL_Rect rect;
+	int count = 0;
 	for (auto & thread : threads)
 	{
 		if (thread == nullptr) continue;
-		
-		
+		rect = SDL_Rect();
+		for (auto & data : thread->AquireData())
+		{
+			ColorByID(data.t_id);
+			CalculateRect(data, object_time, rect);
+			
+			rect.y = count * heightOfLines;
+			rect.h = heightOfLines;
+			SDL_RenderFillRect(debug_renderer, &rect);
 
+			if (rect.w > 10)
+			{
+				SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+				SDL_RenderDrawRect(debug_renderer, &rect);
+			}
+		}
+		count++;
 	}
 
 	SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -62,7 +78,6 @@ void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> thread
 	{
 		SDL_RenderDrawLine(debug_renderer, 0, i * heightOfLines, default_width, i * heightOfLines);
 	}
-
 
 	SDL_RenderPresent(debug_renderer);
 }
@@ -92,4 +107,25 @@ void ThreadDebugger::ColorByID(const Job::JOB_ID & id)
 		break;
 	}
 	SDL_SetRenderDrawColor(debug_renderer, r, g, b, SDL_ALPHA_OPAQUE);
+}
+
+void ThreadDebugger::CalculateRect(const Thread::ThreadData & data, const Thread::ctp & object_time,  SDL_Rect & rect)
+{
+	Thread::ctp start = data.t_start;
+	Thread::ctp end = data.t_end;
+
+	auto t = std::chrono::duration_cast<std::chrono::microseconds>(start - object_time);
+	auto t2 = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+	auto locX = t.count() / (refresh_rate * 1000);
+	auto sizeX = t2.count() / (refresh_rate * 1000);
+
+	auto num1 = locX * default_width;
+	auto num2 = sizeX * default_width;
+
+	rect.x = (int)std::ceilf(num1);
+	rect.w = (int)std::ceilf(num2);
+
+	//auto dakfnaegn = "asdasdawd";
+
 }

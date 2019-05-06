@@ -15,7 +15,7 @@ public:
 
 	void LoadDebug(const float & rate, const std::size_t & count);
 
-	void RenderDebug(std::array<Thread*, Thread::MAX_THREADS> threads);
+	void RenderDebug(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time);
 
 	void ColorByID(const Job::JOB_ID & id);
 
@@ -30,6 +30,9 @@ public:
 	}
 
 private:
+
+	void CalculateRect(const Thread::ThreadData & data, const Thread::ctp & object_time, SDL_Rect & rect);
+
 	SDL_Window * debug_window;
 	SDL_Renderer * debug_renderer;
 
