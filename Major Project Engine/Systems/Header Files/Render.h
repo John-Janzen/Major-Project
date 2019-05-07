@@ -46,9 +46,14 @@ private:
 
 	JOB_RETURN GiveThreadedContext(void * ptr);
 
-	JOB_RETURN LoadModel(void * ptr);
-	JOB_RETURN LoadShader(void * ptr);
-	JOB_RETURN LoadTexture(void * ptr);
+	void LoadModel(RenderComponent * rc);
+	JOB_RETURN ModelFileImport(void * ptr);
+
+	void LoadShader(RenderComponent * rc);
+	JOB_RETURN ShaderFileImport(void * ptr);
+
+	void LoadTexture(RenderComponent * rc);
+	JOB_RETURN TextureFileImport(void * ptr);
 
 	JOB_RETURN BindModel(void * ptr);
 	JOB_RETURN BindTexture(void * ptr);

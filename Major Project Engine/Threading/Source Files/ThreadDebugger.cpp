@@ -8,6 +8,19 @@ ThreadDebugger::ThreadDebugger()
 	m_borders[0] = { 0, 0, default_width, border_width };
 	m_borders[1] = { 0, 0, border_width, default_height };
 	m_text[0] = { 300, 0, 250, 50 };
+
+	if (SDL_CreateWindowAndRenderer(default_width, default_height, SDL_WINDOW_HIDDEN, &debug_window, &debug_renderer) == -1)
+		printf("Error creating debug window");
+	SDL_SetWindowTitle(debug_window, "Thread Debugger");
+
+	if (TTF_Init() < 0)
+	{
+		printf("Error loading TTF library");
+	}
+	else
+	{
+		sans_font = TTF_OpenFont("Assets/Text/OpenSans.ttf", 24);
+	}
 }
 
 ThreadDebugger::~ThreadDebugger() 
@@ -22,23 +35,10 @@ ThreadDebugger::~ThreadDebugger()
 
 void ThreadDebugger::LoadDebug(const float & rate, const std::size_t & count)
 {
-	if (SDL_CreateWindowAndRenderer(default_width, default_height, SDL_WINDOW_ALWAYS_ON_TOP | SDL_WINDOW_HIDDEN, &debug_window, &debug_renderer) == -1)
-		printf("Error creating debug window");
-	SDL_SetWindowTitle(debug_window, "Thread Debugger");
-
 	n_threads = count;
 	refresh_rate = rate;
 	widthOfLines = (int)(windowX / refresh_rate);
 	heightOfLines = (int)(windowY / n_threads);
-
-	if (TTF_Init() < 0)
-	{
-		printf("Error loading TTF library");
-	}
-	else 
-	{
-		sans_font = TTF_OpenFont("Assets/Text/OpenSans.ttf", 24);
-	}
 }
 
 void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time)
@@ -50,6 +50,7 @@ void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> thread
 	DataPoints dp_job;
 	if (current_frame.empty())
 	{
+		job_label = "No Job Selected";
 		int count = 0;
 		for (auto & thread : threads)
 		{
@@ -69,6 +70,19 @@ void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> thread
 		}
 	}
 
+	SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	SDL_RenderDrawRects(debug_renderer, m_borders, 2);
+
+	for (int i = 0; i < refresh_rate; i++)
+	{
+		SDL_RenderDrawLine(debug_renderer, i * widthOfLines + border_width, border_width, i * widthOfLines + border_width, default_height);
+	}
+
+	for (int i = 0; i < n_threads + 1; i++)
+	{
+		SDL_RenderDrawLine(debug_renderer, border_width, i * heightOfLines + border_width, default_width, i * heightOfLines + border_width);
+	}
+
 	for (auto & pair : current_frame)
 	{
 		rect = pair.first;
@@ -81,19 +95,6 @@ void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> thread
 			SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 			SDL_RenderDrawRect(debug_renderer, &rect);
 		}
-	}
-
-	SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-	SDL_RenderDrawRects(debug_renderer, m_borders, 2);
-
-	for (int i = 0; i < refresh_rate; i++)
-	{
-		SDL_RenderDrawLine(debug_renderer, i * widthOfLines + border_width, border_width, i * widthOfLines + border_width, default_height);
-	}
-
-	for (int i = 0; i < n_threads + 1; i++)
-	{
-		SDL_RenderDrawLine(debug_renderer, border_width, i * heightOfLines + border_width, default_width, i * heightOfLines + border_width);
 	}
 
 	text_surface = TTF_RenderText_Solid(sans_font, job_label.c_str(), SDL_Color{ 0, 0, 0 });
@@ -154,7 +155,7 @@ void ThreadDebugger::CalculateRect(const Thread::ThreadData & data, const Thread
 {
 	rect.x = (int)std::ceilf((std::chrono::duration_cast<std::chrono::microseconds>(data.t_start - object_time).count() / (refresh_rate * 1000)) * (windowX)) + border_width;
 	rect.w = (int)std::ceilf((std::chrono::duration_cast<std::chrono::microseconds>(data.t_end - data.t_start).count() / (refresh_rate * 1000)) * (windowX));
-	if (rect.w <= 2)
-		rect.w = 5;
+	//if (rect.w <= 2)
+		//rect.w = 5;
 	rect.h = heightOfLines;
 }

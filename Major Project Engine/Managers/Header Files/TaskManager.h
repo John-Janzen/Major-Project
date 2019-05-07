@@ -30,8 +30,6 @@ public:
 
 	void RegisterJob(Job * && job, bool wait = false, Job * parent_job = nullptr);
 
-	void RetryJob(Job * & job);
-
 	int ManageJobs();
 
 	SharedQueue<Job*> & GetJobList() { return task_queue; }

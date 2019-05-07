@@ -33,14 +33,14 @@ public:
 	GLuint & GetVertexArray() { return vert_arr_obj; }
 	//GLuint & GetElementBuffer() { return elem_buff_obj; }
 
-	const GLint & GetProjectionMatrixLoc() const { return r_project_mat4_loc; }
+	/*const GLint & GetProjectionMatrixLoc() const { return r_project_mat4_loc; }
 	void SetProjectionMatrixLoc(const GLint & matrix_loc) { r_project_mat4_loc = matrix_loc; }
 
 	const GLint & GetModelMatrixLoc() const { return r_model_mat4_loc; }
 	void SetModelMatrixLoc(const GLint & matrix_loc) { r_model_mat4_loc = matrix_loc; }
 
 	const GLint & GetColorShaderLoc() const { return r_color_vec4_loc; }
-	void SetColorShaderLoc(const GLint & matrix_loc) { r_color_vec4_loc = matrix_loc; }
+	void SetColorShaderLoc(const GLint & matrix_loc) { r_color_vec4_loc = matrix_loc; }*/
 
 	const glm::vec4 & GetColor() const { return _color; }
 	void SetColor(const glm::vec4 & v4_color) { _color = v4_color; }
@@ -52,13 +52,6 @@ public:
 	const std::string GetTexturePath() const { return texture_path; }
 
 	const std::string GetShaderPath() const { return std::string(vertex_shader_path + fragment_shader_path); }
-
-	GLint r_text_adj_w;
-	GLint r_text_adj_h;
-
-	GLint r_text_avail;
-	GLint r_text_color;
-	GLint r_text_unit;
 
 	GLuint vert_arr_obj = 0;
 
@@ -73,11 +66,6 @@ private:
 	Model * current_model;
 	Shader * current_shader;
 	Texture * current_texture;
-
-
-	GLint r_project_mat4_loc;
-	GLint r_model_mat4_loc;
-	GLint r_color_vec4_loc;
 
 	glm::vec4 _color = glm::vec4(1.0f);
 };

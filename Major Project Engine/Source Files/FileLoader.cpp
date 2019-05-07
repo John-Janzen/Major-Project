@@ -1,6 +1,6 @@
 #include "FileLoader.h"
 
-std::mutex io_lock, devIL_lock;
+std::mutex devIL_lock;
 
 bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Shader * & shader)
 {
@@ -40,9 +40,9 @@ bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Sh
 
 std::string OpenFileRead(const std::string & path)
 {
-	std::unique_lock<std::mutex> u_lock(io_lock);
-	std::ifstream File(path.c_str());
 	std::string data;
+	//std::lock_guard<std::mutex> u_lock(io_lock);
+	std::ifstream File(path.c_str());
 	if (File.is_open())
 	{
 		data.assign(std::istreambuf_iterator<char>(File), std::istreambuf_iterator<char>());
@@ -180,7 +180,7 @@ bool LoadOBJModelFile(const std::string path, Model * & model)
 
 bool LoadTextureFile(const std::string path, Texture * & texture)
 {
-	std::unique_lock<std::mutex> lk(devIL_lock);
+	std::lock_guard<std::mutex> lk(devIL_lock);
 	ilInit();
 	iluInit();
 
@@ -233,7 +233,7 @@ bool LoadTextureFile(const std::string path, Texture * & texture)
 		printf("Error occured: %s\n", iluErrorString(ilError));
 		return false;
 	}
-	return true;
+	return false;
 }
 
 GLuint PowerOfTwo(GLuint num)

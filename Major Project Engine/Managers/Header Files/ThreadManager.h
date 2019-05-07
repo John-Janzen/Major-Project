@@ -82,7 +82,6 @@ public:
 	void HideDebugger() { t_debug.HideDebug(); }
 	Uint32 GetDebugWindowID() { return t_debug.GetWindowID(); }
 	void CheckDebugMouseLoc(const SDL_MouseMotionEvent & mme) { t_debug.CheckMouseLocation(mme); }
-	//void GetRefreshDebug(const float & rate) {}
 
 private:
 
@@ -100,7 +99,7 @@ private:
 
 	std::chrono::high_resolution_clock::time_point t_framestart;
 	
-	int count = 0;
+	int count = 1;
 };
 
 #endif // !_THREADMANAGER_H

@@ -27,6 +27,25 @@ Application::~Application()
 
 bool Application::InitApp(const std::size_t & num_of_threads)
 {
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+	{
+		printf("Issue Initing Everything %s\n", SDL_GetError());
+		return false;
+	}
+
+	int display_index = 0, mode_index = 0;
+	SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0 };
+
+	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0)
+	{
+		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+	}
+
+	refresh_rate = 1000.f / (float)mode.refresh_rate;
+
+	Timer::Instance().SetTimeLock(refresh_rate);
+	m_task->SetTimeLock(refresh_rate);
+
 	//Timer::Instance().Start();
 	n_threads = num_of_threads;
 	m_task = new TaskManager(num_of_threads);
@@ -44,44 +63,24 @@ bool Application::InitApp(const std::size_t & num_of_threads)
 
 bool Application::LoadApp()
 {
+	Timer::Instance().Start();
 	bool check = true;
 
 	check &= this->LoadScene(MAIN_SCENE);
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-	{
-		printf("Issue Initing Everything %s\n", SDL_GetError());
-		return false;
-	}
-
 	check &= renderer->Load();
-
-	int display_index = 0, mode_index = 0;
-	SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0 };
-
-	if (SDL_GetDisplayMode(display_index, mode_index, &mode) != 0) 
-	{
-		SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
-	}
-
-	float time_lock = 1000.f / (float)mode.refresh_rate;
-
-	refresh_rate = time_lock;
-	Timer::Instance().SetTimeLock(time_lock);
-	m_task->SetTimeLock(time_lock);
-
 	check &= physics->Load();
 	check &= input->Load();
 	
-	m_thread->LoadDebugger(time_lock, n_threads);
-	LoadedApp = true;
+	m_thread->LoadDebugger(refresh_rate, n_threads);
 
+	LoadedApp = true;
 	return check;
 }
 
 void Application::StartNewFrame()
 {
-	while (m_thread->HasJobs() || m_task->HasJobs())
+	while ((m_thread->HasJobs() || m_task->HasJobs()))
 	{
 		int num = m_task->ManageJobs();
 		m_thread->AllocateJobs(num);
@@ -95,7 +94,7 @@ void Application::StartNewFrame()
 			_state = LOADING;
 			break;
 		case LOADING:
-			_state = PLAYING;
+			_state = DEBUG_LOAD;
 			break;
 		case PLAYING:
 			break;
@@ -123,11 +122,19 @@ bool Application::GameLoop()
 	{
 	case INITIALIZING:
 		if (!Initialized)
-			game_running = this->InitApp(4);
+		{
+			std::cout << "Init ";
+			game_running = this->InitApp(5);
+			//Timer::Instance().Stop();
+		}
 		break;
 	case LOADING:
 		if (!LoadedApp)
+		{
+			std::cout << "Loading ";
 			game_running = this->LoadApp();
+			Timer::Instance().Stop();
+		}
 		break;
 	case PLAYING:
 	{

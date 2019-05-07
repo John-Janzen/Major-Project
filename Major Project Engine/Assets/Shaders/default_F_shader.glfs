@@ -2,7 +2,6 @@
 
 uniform vec4 tex_color;
 uniform sampler2D tex_unit;
-uniform bool tex_available;
 
 in vec2 out_tex_coord;
 in vec4 vs_fs_color;
@@ -10,12 +9,5 @@ out vec4 color;
 
 void main()
 {
-	if (tex_available)
-	{
-		color = texture(tex_unit, out_tex_coord) * vs_fs_color;
-	}
-	else
-	{
-		color = vs_fs_color;
-	}
+	color = texture(tex_unit, out_tex_coord) * vs_fs_color;
 }

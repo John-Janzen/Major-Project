@@ -200,5 +200,8 @@
     <ClInclude Include="Threading\Header Files\ThreadDebugger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Components\Game Components\Header Files\MultiRenderComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

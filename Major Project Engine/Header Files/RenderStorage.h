@@ -65,6 +65,18 @@ struct Shader
 	std::string _name;
 	GLuint _shaderID_Vert, _shaderID_Frag;
 	GLuint shade_prog = 0;
+
+	// Any data required in shader is to be put here
+	GLint r_project_mat4_loc;
+	GLint r_model_mat4_loc;
+	GLint r_color_vec4_loc;
+
+	GLint r_text_adj_w;
+	GLint r_text_adj_h;
+
+	GLint r_text_avail;
+	GLint r_text_color;
+	GLint r_text_unit;
 };
 
 enum LOAD {
@@ -147,7 +159,7 @@ private:
 
 	static const uint16_t MAX_ITEMS = 16;
 	size_t num_items = 0;
-	T * _objects[MAX_ITEMS] = { nullptr };
+	std::array<T*, MAX_ITEMS> _objects = { nullptr };
 	std::mutex saftey_lock;
 };
 

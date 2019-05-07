@@ -85,15 +85,14 @@ private:
 		ThreadLogger() {};
 		~ThreadLogger() {};
 
-	
-
 		ThreadData & Instatiate(const Job::JOB_ID & id, const std::string & name)
 		{
-			auto loc = t_data.emplace(t_data.end(), ThreadData());
-			(*loc).t_start = hr::now();
-			(*loc).t_id = id;
-			(*loc).t_name = name;
-			return *loc;
+			std::lock_guard<std::mutex> lk(t_data_lock);
+			auto & loc = *t_data.emplace(t_data.end(), ThreadData());
+			loc.t_start = hr::now();
+			loc.t_id = id;
+			loc.t_name = name;
+			return loc;
 		}
 
 		void PrintData(const std::string name, const ctp & obj_time)
@@ -117,6 +116,7 @@ private:
 
 		void ClearData()
 		{
+			std::lock_guard<std::mutex> lk(t_data_lock);
 			t_data.clear();
 		}
 
@@ -124,6 +124,7 @@ private:
 
 	private:
 		std::vector<ThreadData> t_data;
+		std::mutex t_data_lock;
 
 	} Logger;
 

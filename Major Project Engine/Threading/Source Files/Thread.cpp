@@ -56,7 +56,6 @@ void Thread::Execution(ThreadManager * const tm)
 			tm->RetryJob(current_job);
 
 			current_job = nullptr;
-
 			data.t_end = std::chrono::high_resolution_clock::now();
 			break;
 		case JOB_ISSUE:
@@ -75,10 +74,7 @@ void Thread::Execution(ThreadManager * const tm)
 */
 void Thread::Stop()
 {
-	//while (current_job != nullptr);
 	_running = false;
 	_thread->join();
 	_thread.reset();
-	//current_job = new Job();
-	//this->Notify();
 }

@@ -4,10 +4,7 @@ TaskManager::TaskManager(const std::size_t & thread_size) {}
 
 TaskManager::~TaskManager() {}
 
-void TaskManager::SetTimeLock(const float & time_lock)
-{
-	//_scheduler->SetTimeLock(time_lock);
-}
+void TaskManager::SetTimeLock(const float & time_lock) {}
 
 void TaskManager::Close()
 {
@@ -20,7 +17,6 @@ void TaskManager::Close()
 			job_it = waiting_jobs.erase(job_it);
 		}
 	}
-	//if (_scheduler != nullptr) delete _scheduler;
 }
 
 bool TaskManager::HasJobs()
@@ -32,7 +28,6 @@ bool TaskManager::HasJobs()
 void TaskManager::RegisterJob(JobFunction function, const std::string name, void* content, const Job::JOB_ID type)
 {
 	Job * job = new Job(function, name, content, type);
-	//_scheduler->CheckForJob(job);
 	task_queue.Emplace(job);
 	{
 		std::lock_guard<std::mutex> lock(jobs_lock);
@@ -43,7 +38,6 @@ void TaskManager::RegisterJob(JobFunction function, const std::string name, void
 
 void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 {
-	//_scheduler->CheckForJob(job);
 	if (parent_job != nullptr)
 		job->AddParent(parent_job);
 
@@ -79,7 +73,6 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 
 void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
 {
-	//_scheduler->CheckForJob(job);
 	if (parent_job != nullptr)
 		job->AddParent(parent_job);
 
@@ -112,33 +105,28 @@ void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
 	}
 }
 
-void TaskManager::RetryJob(Job * & job)
-{
-	//_scheduler->CheckForJob(job);
-	task_queue.Emplace(job);
-}
-
 int TaskManager::ManageJobs()
 {
-	std::lock_guard<std::mutex> lk(list_lock);
-
-	std::list<Job*>::iterator job_it = waiting_jobs.begin();
-	while (job_it != waiting_jobs.end())
-	{
-		if ((*job_it)->_awaiting == 0 && (*job_it)->reason_waiting)
-		{
-			task_queue.Emplace((*job_it));
-			job_it = waiting_jobs.erase(job_it);
-			{
-				std::lock_guard<std::mutex> lock(jobs_lock);
-				num_of_jobs++;
-			}
-			continue;
-		}
-		job_it++;
-	}
-	//_scheduler->SortJobs(job_list, _threadpool->GetQueue());
 	int temp;
+	{
+		std::lock_guard<std::mutex> lk(list_lock);
+
+		std::list<Job*>::iterator job_it = waiting_jobs.begin();
+		while (job_it != waiting_jobs.end())
+		{
+			if ((*job_it)->_awaiting == 0 && (*job_it)->reason_waiting)
+			{
+				task_queue.Emplace((*job_it));
+				job_it = waiting_jobs.erase(job_it);
+				{
+					std::lock_guard<std::mutex> lock(jobs_lock);
+					num_of_jobs++;
+				}
+				continue;
+			}
+			job_it++;
+		}
+	}
 	{
 		std::lock_guard<std::mutex> lock(jobs_lock);
 		temp = num_of_jobs;

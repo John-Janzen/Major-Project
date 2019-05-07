@@ -9,11 +9,11 @@ bool MainScene::Load(SceneManager & sm)
 {	
 	//m_entities->CreateEntity<Quad>("Quad")->Load(m_components);
 	//this->LoadCamera();
-	std::cout << "Number of objects being created: " << NUM_MULTI_OBJECTS * NUM_MULTI_OBJECTS * NUM_MULTI_OBJECTS << std::endl;
+	std::cout << "Number of Multi-Objects being created: " << NUM_MULTI_OBJECTS * NUM_MULTI_OBJECTS * NUM_MULTI_OBJECTS << std::endl;
 	//this->LoadQuad(sm);
 	this->LoadFloor(sm);
 	this->LoadWalls(sm);
-	//this->LoadPlayer(sm);
+	this->LoadPlayer(sm);
 	for (int i = 0; i < NUM_MULTI_OBJECTS; i++)
 	{
 		for (int j = 0; j < NUM_MULTI_OBJECTS; j++)
@@ -55,10 +55,10 @@ bool MainScene::LoadWalls(SceneManager & sm)
 	sm.AddComponent(SceneManager::PHYSICS, new WallPhysicsComponent(n_wall->GetID()));
 	sm.AddComponent(SceneManager::RENDER, new FloorRenderComponent(n_wall->GetID()));
 
-	Entity * & s_wall = sm.CreateEntity("Wall_south");
+	/*Entity * & s_wall = sm.CreateEntity("Wall_south");
 	sm.AddComponent(SceneManager::TRANSFORM, new Transform(s_wall->GetID(), btQuaternion(0.f, 1.57f, 0.f), btVector3(btScalar(0.f), btScalar(25.f), btScalar(-50.f))));
 	sm.AddComponent(SceneManager::PHYSICS, new WallPhysicsComponent(s_wall->GetID()));
-	sm.AddComponent(SceneManager::RENDER, new FloorRenderComponent(s_wall->GetID()));
+	sm.AddComponent(SceneManager::RENDER, new FloorRenderComponent(s_wall->GetID()));*/
 	return true;
 }
 
@@ -98,7 +98,7 @@ bool MainScene::LoadMultiObject(SceneManager & sm, const float x, const float y,
 	Entity * & m_object = sm.CreateEntity(std::string("MultiObject"));
 	sm.AddComponent(SceneManager::TRANSFORM, new Transform(m_object->GetID(), btQuaternion(btScalar(0.f), btScalar(0.f), btScalar(1.f)), btVector3(x, y + 1 + ((NUM_MULTI_OBJECTS - 1) * 1.5), z)));
 	sm.AddComponent(SceneManager::PHYSICS, new MultiPhysicsComponent(m_object->GetID()));
-	sm.AddComponent(SceneManager::RENDER, new PlayerRenderComponent(m_object->GetID()));
+	sm.AddComponent(SceneManager::RENDER, new MultiRenderComponent(m_object->GetID()));
 	return true;
 }
 

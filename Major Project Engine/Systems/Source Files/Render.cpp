@@ -16,6 +16,15 @@ Render::Render(TaskManager & tm, SceneManager & sm)
 	_shaders = new Storage<Shader>();
 	_textures = new Storage<Texture>();
 
+	if (!InitSDL())
+	{
+		printf("SDL Initialization failed, see function Load()");
+	}
+	if (!InitGL())
+	{
+		printf("GL Initialization failed, see function Load()");
+	}
+
 	// Jobs that need to wait on other jobs go here
 	/*{
 		m_task.dictionary.emplace(Job::JOB_RENDER_UPDATE, std::vector<Job::JOB_ID>());
@@ -38,16 +47,6 @@ Render::~Render()
 
 bool Render::Load()
 {
-	if (!InitSDL())
-	{
-		printf("SDL Initialization failed, see function Load()");
-		return false;
-	}
-	if (!InitGL())
-	{
-		printf("GL Initialization failed, see function Load()");
-		return false;
-	}
 
 	projection_matrix = glm::perspective(glm::radians(_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, _near, _far);
 	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -75,31 +74,34 @@ void Render::InitUpdate()
 void Render::ComponentUpdate(RenderComponent * rc, Transform * trans)
 {
 	Model * model_ptr = rc->GetModel();
+	Shader * shader_ptr = rc->GetShader();
+	Texture * texture_ptr = rc->GetTexture();
+
 	glBindVertexArray(rc->GetVertexArray());
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
 
-	glUseProgram(rc->GetShader()->shade_prog);
+	glUseProgram(shader_ptr->shade_prog);
 
 	if (rc->GetTexture() != nullptr && rc->GetTexture()->TextureID != 0)
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, rc->GetTexture()->TextureID);
-		glUniform4f(rc->GetColorShaderLoc(), rc->GetColor().x, rc->GetColor().y, rc->GetColor().z, rc->GetColor().w);
+		glUniform4f(shader_ptr->r_color_vec4_loc, rc->GetColor().x, rc->GetColor().y, rc->GetColor().z, rc->GetColor().w);
 	}
 	else
 	{
 		glm::vec4 _color = glm::vec4(1.0f, 0.411f, 0.705f, 1.0f);
-		glUniform4f(rc->GetColorShaderLoc(), _color.x, _color.y, _color.z, _color.w);
+		glUniform4f(shader_ptr->r_color_vec4_loc, _color.x, _color.y, _color.z, _color.w);
 	}
 
-	glUniform1i(rc->r_text_unit, 0);
-	glUniform4f(rc->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
+	glUniform1i(shader_ptr->r_text_unit, 0);
+	glUniform4f(shader_ptr->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
 
 	btScalar matrix[16];
 	trans->_transform.getOpenGLMatrix(matrix);
 
-	glUniformMatrix4fv(rc->GetProjectionMatrixLoc(), 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
-	glUniformMatrix4fv(rc->GetModelMatrixLoc(), 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
+	glUniformMatrix4fv(shader_ptr->r_project_mat4_loc, 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
+	glUniformMatrix4fv(shader_ptr->r_model_mat4_loc, 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
 	glDrawElements(GL_TRIANGLES, model_ptr->ISize, GL_UNSIGNED_INT, NULL);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -128,23 +130,27 @@ JOB_RETURN Render::Update(void * ptr)
 
 JOB_RETURN Render::InitRenderComp(void * ptr)
 {
-	//ComponentManager * m_components = static_cast<ComponentManager*>(ptr);
-
+	//Timer::Instance().Start();
 	for (auto & render : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
 		assert(dynamic_cast<RenderComponent*>(render));
 		auto obj = static_cast<RenderComponent*>(render);
 		{
 			// Loading model job
-			m_task.RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render, Job::JOB_LOAD_MODEL));
+			//m_task.RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render, Job::JOB_LOAD_MODEL));
 
-			// Loading texture job
-			m_task.RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render, Job::JOB_LOAD_TEXTURE));
+			//// Loading texture job
+			//m_task.RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render, Job::JOB_LOAD_TEXTURE));
 
-			// Loading shader job
-			m_task.RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render, Job::JOB_LOAD_SHADER));
+			//// Loading shader job
+			//m_task.RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render, Job::JOB_LOAD_SHADER));
+
+			this->LoadModel(obj);
+			this->LoadShader(obj);
+			this->LoadTexture(obj);
 		}
 	}
+	//Timer::Instance().Stop();
 	return JOB_COMPLETED;
 }
 
@@ -200,7 +206,7 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 	}
 	else
 	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_TEXTURE_2D);
@@ -212,98 +218,86 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 			printf("Error initializing GLEW! %s", glewGetErrorString(glewError));
 			return JOB_ISSUE;
 		}
-		/*glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(255, 255, 255, 255);
-		SDL_GL_SwapWindow(sdl_window);*/
 	}
 	return JOB_COMPLETED;
 }
 
-JOB_RETURN Render::LoadModel(void * ptr)
+void Render::LoadModel(RenderComponent * rc)
 {
-	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	Job * bind_model_job, * check_job;
 
 	switch(_models->HasItem(rc->GetModelPath(), rc->GetModelAdd()))
 	{
 	case LOAD::CURRENT_LOAD:
-		if (LoadOBJModelFile(rc->GetModelPath(), rc->GetModelAdd()))
-		{
-			m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
-			return JOB_COMPLETED;
-		}
+		m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", rc, Job::JOB_LOAD_MODEL));
 		break;
 	case LOAD::WAIT_LOAD:
 		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL);
 		check_job = new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker", nullptr, Job::JOB_MODEL_CHECKER);
 		m_task.RegisterJob(bind_model_job, true);
 		m_task.RegisterJob(check_job, false, bind_model_job);
-		return JOB_COMPLETED;
 		break;
 	case LOAD::DONE_LOAD:
 		m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
-		return JOB_COMPLETED;
 		break;
 	default:
 		break;
 	}
-	return JOB_ISSUE;
 }
 
-JOB_RETURN Render::LoadShader(void * ptr)
+JOB_RETURN Render::ModelFileImport(void * ptr)
 {
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	Job * bind_shader_job, * check_job;
-
-	switch (_shaders->HasItem(rc->GetShaderPath(), rc->GetShaderAdd()))
+	if (LoadOBJModelFile(rc->GetModelPath(), rc->GetModelAdd()))
 	{
-	case CURRENT_LOAD:
-		if (LoadShaderFile(rc->GetVShaderPath(), rc->GetFShaderPath(), rc->GetShaderAdd()))
-		{
-			m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER));
-			return JOB_COMPLETED;
-		}
-		break;
-	case WAIT_LOAD:
-		bind_shader_job = new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER);
-		check_job = new Job(bind_function(&Shader::CheckDoneLoad, rc->GetShader()), "Shader_Checker", nullptr, Job::JOB_SHADER_CHECKER);
-		m_task.RegisterJob(bind_shader_job, true);
-		m_task.RegisterJob(check_job, false, bind_shader_job);
+		m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
 		return JOB_COMPLETED;
-		break;
-	case DONE_LOAD:
-		m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER));
-		return JOB_COMPLETED;
-		break;
 	}
 	return JOB_ISSUE;
 }
 
-JOB_RETURN Render::LoadTexture(void * ptr)
+void Render::LoadShader(RenderComponent * rc)
+{
+	switch (_shaders->HasItem(rc->GetShaderPath(), rc->GetShaderAdd()))
+	{
+	case CURRENT_LOAD:
+		m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", rc, Job::JOB_LOAD_SHADER));
+		break;
+	default:
+		break;
+	}
+}
+
+JOB_RETURN Render::ShaderFileImport(void * ptr)
 {
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
-	Job * bind_texture_job, * check_job;
+	if (LoadShaderFile(rc->GetVShaderPath(), rc->GetFShaderPath(), rc->GetShaderAdd()))
+	{
+		m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER));
+		return JOB_COMPLETED;
+	}
+	return JOB_ISSUE;
+}
 
+void Render::LoadTexture(RenderComponent * rc)
+{
 	switch (_textures->HasItem(rc->GetTexturePath(), rc->GetTextureAdd()))
 	{
 	case CURRENT_LOAD:
-		if (LoadTextureFile(rc->GetTexturePath(), rc->GetTextureAdd()))
-		{
-			m_task.RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE));
-			return JOB_COMPLETED;
-		}
+		m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", rc, Job::JOB_LOAD_SHADER));
 		break;
-	case WAIT_LOAD:
-		bind_texture_job = new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE);
-		check_job = new Job(bind_function(&Texture::CheckDoneLoad, rc->GetTexture()), "Texture_Checker", nullptr, Job::JOB_TEXTURE_CHECKER);
-		m_task.RegisterJob(bind_texture_job, true);
-		m_task.RegisterJob(check_job, false, bind_texture_job);
-		return JOB_COMPLETED;
+	default:
 		break;
-	case DONE_LOAD:
+	}
+}
+
+JOB_RETURN Render::TextureFileImport(void * ptr)
+{
+	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
+	if (LoadTextureFile(rc->GetTexturePath(), rc->GetTextureAdd()))
+	{
 		m_task.RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE));
 		return JOB_COMPLETED;
-		break;
 	}
 	return JOB_ISSUE;
 }
@@ -321,17 +315,18 @@ JOB_RETURN Render::BindModel(void * ptr)
 		if (rc_cp->GetModel()->elem_buff_obj == 0)
 		{
 			glGenBuffers(1, &model_ptr->elem_buff_obj);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+				(sizeof(GLuint) * model_ptr->ISize),
+				model_ptr->_indices,
+				GL_STATIC_DRAW);
 		}
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-			(sizeof(GLuint) * model_ptr->ISize),
-			model_ptr->_indices,
-			GL_STATIC_DRAW);
-
+		
 		if (model_ptr->vert_buff_obj == 0)
 		{
 			glGenBuffers(1, &model_ptr->vert_buff_obj);
 		}
+
 		glBindBuffer(GL_ARRAY_BUFFER, model_ptr->vert_buff_obj);
 		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * model_ptr->VSize),
 			model_ptr->_vertices,
@@ -350,7 +345,6 @@ JOB_RETURN Render::BindModel(void * ptr)
 		return JOB_ISSUE;
 	}
 
-	
 	return JOB_COMPLETED;
 }
 
@@ -360,10 +354,7 @@ JOB_RETURN Render::BindTexture(void * ptr)
 	if (rc_cp->GetTexture() != nullptr)
 	{
 		glActiveTexture(GL_TEXTURE0);
-		if (rc_cp->GetTexture()->TextureID == 0)
-		{
-			glGenTextures(1, &rc_cp->GetTexture()->TextureID);
-		}
+		glGenTextures(1, &rc_cp->GetTexture()->TextureID);
 		glBindTexture(GL_TEXTURE_2D, rc_cp->GetTexture()->TextureID);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 			rc_cp->GetTexture()->texWidth,
@@ -384,61 +375,42 @@ JOB_RETURN Render::BindTexture(void * ptr)
 		printf("Object skipped no available texture\n");
 		return JOB_ISSUE;
 	}
-
-	
 	return JOB_COMPLETED;
 }
 
 JOB_RETURN Render::BindShader(void * ptr)
 {
 	RenderComponent * rc_cp = static_cast<RenderComponent*>(ptr);
+	Shader & shader = *rc_cp->GetShaderAdd();
 	if (rc_cp->GetShader() != nullptr)
 	{
-		const GLuint * program;
-		if (rc_cp->GetShader()->shade_prog == 0)
-		{
-			program = &(rc_cp->GetShader()->shade_prog = glCreateProgram());
-			glAttachShader(*program, rc_cp->GetShader()->_shaderID_Vert);
-			glAttachShader(*program, rc_cp->GetShader()->_shaderID_Frag);
-			glLinkProgram(*program);
-			GLint programSuccess = GL_FALSE;
-			glGetProgramiv(*program, GL_LINK_STATUS, &programSuccess);
-			if (programSuccess != GL_TRUE)
-			{
-				printf("Error linking program %d!\n", glGetError());
-				return JOB_ISSUE;
-			}
-		}
-		program = &rc_cp->GetShader()->shade_prog;
-		glUseProgram(*program);
+		const GLuint program = (shader.shade_prog = glCreateProgram());
+		glAttachShader(program, shader._shaderID_Vert);
+		glAttachShader(program, shader._shaderID_Frag);
+		glLinkProgram(program);
+		GLint programSuccess = GL_FALSE;
 
-		rc_cp->SetModelMatrixLoc(glGetUniformLocation(*program, "model_matrix"));
-		rc_cp->SetProjectionMatrixLoc(glGetUniformLocation(*program, "projection_matrix"));
-		rc_cp->SetColorShaderLoc(glGetUniformLocation(*program, "color_vec"));
-
-		rc_cp->r_text_adj_w = glGetUniformLocation(*program, "texture_width_adj");
-		rc_cp->r_text_adj_h = glGetUniformLocation(*program, "texture_height_adj");
-
-		if (rc_cp->GetTexture() != nullptr && rc_cp->GetTexture()->TextureID != 0)
+		glGetProgramiv(program, GL_LINK_STATUS, &programSuccess);
+		if (programSuccess != GL_TRUE)
 		{
-			glUniform1i(glGetUniformLocation(*program, "tex_available"), 1);
-			glUniform1f(rc_cp->r_text_adj_w, rc_cp->GetTexture()->imgWidth / (GLfloat)rc_cp->GetTexture()->texWidth);
-			glUniform1f(rc_cp->r_text_adj_h, rc_cp->GetTexture()->imgHeight / (GLfloat)rc_cp->GetTexture()->texHeight);
-		}
-		else
-		{
-			glUniform1i(glGetUniformLocation(*program, "tex_available"), 0);
+			printf("Error linking program %d!\n", glGetError());
+			return JOB_ISSUE;
 		}
 
-		rc_cp->r_text_color = glGetUniformLocation(*program, "tex_color");
-		rc_cp->r_text_unit = glGetUniformLocation(*program, "tex_unit");
+		glUseProgram(program);
+
+		shader.r_model_mat4_loc = glGetUniformLocation(program, "model_matrix");
+		shader.r_project_mat4_loc = glGetUniformLocation(program, "projection_matrix");
+		shader.r_color_vec4_loc = glGetUniformLocation(program, "color_vec");
+
+		shader.r_text_color = glGetUniformLocation(program, "tex_color");
+		shader.r_text_unit = glGetUniformLocation(program, "tex_unit");
 	}
 	else
 	{
 		printf("Object skipped no available shaders\n");
 		return JOB_ISSUE;
 	}
-
 	
 	return JOB_COMPLETED;
 }

@@ -71,8 +71,7 @@ bool ThreadManager::HasJobs()
 	}
 	check |= !task_queue.Empty();
 
-	check |= (jobs_to_finish != 0);
-
+	check |= jobs_to_finish != 0;
 	return check; 
 }
 

@@ -43,7 +43,7 @@ struct Job
 {
 public:
 
-	static const int MAX_PARENTS = 10;
+	static const int MAX_PARENTS = 24;
 
 	/*
 	* List of Job Types that the threads will

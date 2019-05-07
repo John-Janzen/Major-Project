@@ -10,5 +10,6 @@
 #include "FloorRenderComponent.h"
 #include "MultiPhysicsComponent.h"
 #include "WallPhysicsComponent.h"
+#include "MultiRenderComponent.h"
 
 #endif // !_GAMECOMPONENTS_H
