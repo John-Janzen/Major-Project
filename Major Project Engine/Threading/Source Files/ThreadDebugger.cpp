@@ -155,7 +155,7 @@ void ThreadDebugger::CalculateRect(const Thread::ThreadData & data, const Thread
 {
 	rect.x = (int)std::ceilf((std::chrono::duration_cast<std::chrono::microseconds>(data.t_start - object_time).count() / (refresh_rate * 1000)) * (windowX)) + border_width;
 	rect.w = (int)std::ceilf((std::chrono::duration_cast<std::chrono::microseconds>(data.t_end - data.t_start).count() / (refresh_rate * 1000)) * (windowX));
-	//if (rect.w <= 2)
-		//rect.w = 5;
+	if (rect.w <= 2)
+		rect.w = 5;
 	rect.h = heightOfLines;
 }

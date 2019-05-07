@@ -58,7 +58,7 @@ bool Render::Load()
 
 	projection_look_matrix = projection_matrix * (look_matrix *	getGLMMatrix4(transform));
 
-	m_task.RegisterJob(new Job(bind_function(&Render::InitRenderComp, this), "Init_Render_Objects", &m_scene.GetComponents(SceneManager::RENDER), Job::JOB_RENDER_LOAD));
+	m_task.RegisterJob(new Job(bind_function(&Render::LoadComponents, this), "Render_Component_Loader", &m_scene.GetComponents(SceneManager::RENDER), Job::JOB_RENDER_LOAD));
 	return true;
 }
 
@@ -114,7 +114,6 @@ JOB_RETURN Render::Update(void * ptr)
 {
 	this->InitUpdate();
 
-	//Timer::Instance().Start();
 	for (auto render_it : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
 		assert(dynamic_cast<RenderComponent*>(render_it));
@@ -122,35 +121,22 @@ JOB_RETURN Render::Update(void * ptr)
 			ComponentUpdate(static_cast<RenderComponent*>(render_it), static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, render_it->_id)));
 		}
 	}
-	//Timer::Instance().Stop();
-
 	this->SwapBuffers();
 	return JOB_COMPLETED;
 }
 
-JOB_RETURN Render::InitRenderComp(void * ptr)
+JOB_RETURN Render::LoadComponents(void * ptr)
 {
-	//Timer::Instance().Start();
 	for (auto & render : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
 		assert(dynamic_cast<RenderComponent*>(render));
 		auto obj = static_cast<RenderComponent*>(render);
 		{
-			// Loading model job
-			//m_task.RegisterJob(new Job(bind_function(&Render::LoadModel, this), "Load_Model", render, Job::JOB_LOAD_MODEL));
-
-			//// Loading texture job
-			//m_task.RegisterJob(new Job(bind_function(&Render::LoadTexture, this), "Load_Texture", render, Job::JOB_LOAD_TEXTURE));
-
-			//// Loading shader job
-			//m_task.RegisterJob(new Job(bind_function(&Render::LoadShader, this), "Load_Shader", render, Job::JOB_LOAD_SHADER));
-
 			this->LoadModel(obj);
 			this->LoadShader(obj);
 			this->LoadTexture(obj);
 		}
 	}
-	//Timer::Instance().Stop();
 	return JOB_COMPLETED;
 }
 
@@ -224,21 +210,11 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 
 void Render::LoadModel(RenderComponent * rc)
 {
-	Job * bind_model_job, * check_job;
-
+	//Job * bind_model_job, * check_job;
 	switch(_models->HasItem(rc->GetModelPath(), rc->GetModelAdd()))
 	{
 	case LOAD::CURRENT_LOAD:
 		m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", rc, Job::JOB_LOAD_MODEL));
-		break;
-	case LOAD::WAIT_LOAD:
-		bind_model_job = new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL);
-		check_job = new Job(bind_function(&Model::CheckDoneLoad, rc->GetModel()), "Model_Checker", nullptr, Job::JOB_MODEL_CHECKER);
-		m_task.RegisterJob(bind_model_job, true);
-		m_task.RegisterJob(check_job, false, bind_model_job);
-		break;
-	case LOAD::DONE_LOAD:
-		m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
 		break;
 	default:
 		break;
@@ -284,7 +260,7 @@ void Render::LoadTexture(RenderComponent * rc)
 	switch (_textures->HasItem(rc->GetTexturePath(), rc->GetTextureAdd()))
 	{
 	case CURRENT_LOAD:
-		m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", rc, Job::JOB_LOAD_SHADER));
+		m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", rc, Job::JOB_LOAD_TEXTURE));
 		break;
 	default:
 		break;
@@ -309,35 +285,37 @@ JOB_RETURN Render::BindModel(void * ptr)
 	{
 		Model * model_ptr = rc_cp->GetModel();
 
-		glGenVertexArrays(1, &rc_cp->GetVertexArray());
-		glBindVertexArray(rc_cp->GetVertexArray());
+		glGenBuffers(1, &model_ptr->elem_buff_obj);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			(sizeof(GLuint) * model_ptr->ISize),
+			model_ptr->_indices,
+			GL_STATIC_DRAW);
 
-		if (rc_cp->GetModel()->elem_buff_obj == 0)
-		{
-			glGenBuffers(1, &model_ptr->elem_buff_obj);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-				(sizeof(GLuint) * model_ptr->ISize),
-				model_ptr->_indices,
-				GL_STATIC_DRAW);
-		}
-		
-		if (model_ptr->vert_buff_obj == 0)
-		{
-			glGenBuffers(1, &model_ptr->vert_buff_obj);
-		}
-
+		glGenBuffers(1, &model_ptr->vert_buff_obj);
 		glBindBuffer(GL_ARRAY_BUFFER, model_ptr->vert_buff_obj);
 		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * model_ptr->VSize),
 			model_ptr->_vertices,
 			GL_STATIC_DRAW);
+		for (auto & rc_cp : m_scene.GetComponents(SceneManager::RENDER))
+		{
+			assert(dynamic_cast<RenderComponent*>(rc_cp));
+			auto render = static_cast<RenderComponent*>(rc_cp);
+			if (render->GetModel() == model_ptr)
+			{
+				glGenVertexArrays(1, &render->GetVertexArray());
+				glBindVertexArray(render->GetVertexArray());
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(5 * sizeof(GL_FLOAT)));
-		glEnableVertexAttribArray(2);
+				glBindBuffer(GL_ARRAY_BUFFER, render->GetModel()->vert_buff_obj);
+
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
+				glEnableVertexAttribArray(0);
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
+				glEnableVertexAttribArray(1);
+				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(5 * sizeof(GL_FLOAT)));
+				glEnableVertexAttribArray(2);
+			}
+		}
 	}
 	else
 	{

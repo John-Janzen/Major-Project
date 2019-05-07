@@ -13,10 +13,12 @@ public:
 	Physics(TaskManager & tm, SceneManager & sm);
 	~Physics();
 
+	bool Load();
+
 	JOB_RETURN PreUpdate(void * ptr);
 	JOB_RETURN Update(void * ptr);
 
-	bool Load();
+	JOB_RETURN LoadComponents(void * ptr);
 	void Close(void * content);
 
 private:

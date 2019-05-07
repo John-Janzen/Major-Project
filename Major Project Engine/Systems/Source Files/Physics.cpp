@@ -55,6 +55,12 @@ Physics::~Physics()
 	collisionShapes.clear();
 }
 
+bool Physics::Load()
+{
+	m_task.RegisterJob(new Job(bind_function(&Physics::LoadComponents, this), "Physics_Component_Loader", &m_scene.GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_LOAD));
+	return true;
+}
+
 JOB_RETURN Physics::PreUpdate(void * ptr)
 {
 	for (auto & physics : m_scene.GetComponents(SceneManager::PHYSICS))
@@ -134,12 +140,9 @@ JOB_RETURN Physics::ComponentUpdate(void * ptr)
 	return JOB_COMPLETED;
 }
 
-bool Physics::Load()
+JOB_RETURN Physics::LoadComponents(void * ptr)
 {
-	//std::vector<BaseComponent*> * objects = static_cast<std::vector<BaseComponent*>*>(content);
-	//ComponentManager * comp_ptr = scene->GetCompManager();
-
-	for (const auto & physics : m_scene.GetComponents(SceneManager::PHYSICS))
+	for (const auto & physics : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
 		assert(dynamic_cast<PhysicsComponent*>(physics));
 		auto obj = static_cast<PhysicsComponent*>(physics);
@@ -153,7 +156,7 @@ bool Physics::Load()
 			}
 		}
 	}
-	return true;
+	return JOB_COMPLETED;
 }
 
 void Physics::Close(void* content)

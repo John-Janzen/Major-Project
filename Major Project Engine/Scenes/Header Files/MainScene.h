@@ -13,7 +13,7 @@ public:
 	bool Load(SceneManager & sm);
 	bool Unload();
 
-	static const int NUM_MULTI_OBJECTS = 3;
+	static const int NUM_MULTI_OBJECTS = 8;
 
 private:
 

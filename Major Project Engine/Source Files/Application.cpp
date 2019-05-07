@@ -57,6 +57,8 @@ bool Application::InitApp(const std::size_t & num_of_threads)
 	physics = new Physics(*m_task, *m_scene);
 	test_system = new TestSystem(*m_task, *m_scene);
 
+	this->LoadScene(MAIN_SCENE);
+
 	Initialized = true;
 	return true;
 }
@@ -66,14 +68,12 @@ bool Application::LoadApp()
 	Timer::Instance().Start();
 	bool check = true;
 
-	check &= this->LoadScene(MAIN_SCENE);
-
 	check &= renderer->Load();
 	check &= physics->Load();
 	check &= input->Load();
-	
-	m_thread->LoadDebugger(refresh_rate, n_threads);
 
+	//m_thread->LoadDebugger(refresh_rate, n_threads);
+	
 	LoadedApp = true;
 	return check;
 }
@@ -94,7 +94,8 @@ void Application::StartNewFrame()
 			_state = LOADING;
 			break;
 		case LOADING:
-			_state = DEBUG_LOAD;
+			_state = PLAYING;
+			Timer::Instance().Stop();
 			break;
 		case PLAYING:
 			break;
@@ -124,7 +125,7 @@ bool Application::GameLoop()
 		if (!Initialized)
 		{
 			std::cout << "Init ";
-			game_running = this->InitApp(5);
+			game_running = this->InitApp(4);
 			//Timer::Instance().Stop();
 		}
 		break;
@@ -133,7 +134,6 @@ bool Application::GameLoop()
 		{
 			std::cout << "Loading ";
 			game_running = this->LoadApp();
-			Timer::Instance().Stop();
 		}
 		break;
 	case PLAYING:

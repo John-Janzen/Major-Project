@@ -38,7 +38,7 @@ private:
 
 	void ComponentUpdate(RenderComponent * rc, Transform * trans);
 
-	JOB_RETURN InitRenderComp(void * ptr);
+	JOB_RETURN LoadComponents(void * ptr);
 
 	bool InitSDL();
 
