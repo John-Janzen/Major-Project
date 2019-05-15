@@ -5,6 +5,7 @@
 
 #include <SDL.h>
 #include <map>
+#include <list>
 #include <SDL_ttf.h>
 
 #include "Thread.h"
@@ -78,7 +79,7 @@ private:
 	SDL_Rect m_borders[2];
 	SDL_Rect m_text[1];
 
-	std::vector<std::pair<SDL_Rect, DataPoints>> current_frame;
+	std::list<std::pair<SDL_Rect, DataPoints>> current_frame;
 };
 
 #endif // !_THREADDEBUGGER_H

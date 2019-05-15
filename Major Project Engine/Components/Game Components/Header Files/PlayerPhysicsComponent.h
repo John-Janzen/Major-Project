@@ -11,6 +11,7 @@ class PlayerPhysicsComponent
 public:
 	PlayerPhysicsComponent(const std::uint16_t & id);
 	~PlayerPhysicsComponent();
+	void LoadExtraData();
 
 private:
 
@@ -28,16 +29,15 @@ inline PlayerPhysicsComponent::PlayerPhysicsComponent(const std::uint16_t & id)
 	if (dynamic)
 		shape->calculateLocalInertia(mass, local_inertia);
 
-	m_state = new btDefaultMotionState();
-
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, m_state, shape, local_inertia);
-	SetRigidBody(new btRigidBody(rbInfo));
-
-	rigid_body->setCollisionFlags(rigid_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT); 
-	rigid_body->setActivationState(DISABLE_DEACTIVATION);
 	//m_state = nullptr;
 }
 
 inline PlayerPhysicsComponent::~PlayerPhysicsComponent() {}
+
+inline void PlayerPhysicsComponent::LoadExtraData()
+{
+	rigid_body->setCollisionFlags(rigid_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+	rigid_body->setActivationState(DISABLE_DEACTIVATION);
+}
 
 #endif // !_PLAYER_PHYSICSCOMPONENT_H

@@ -96,7 +96,7 @@ bool MainScene::LoadMultiObject(SceneManager & sm, const float x, const float y,
 {
 	//Entity * m_object = m_entities->CreateEntity<MultiObject>(std::string("MultObject#" + static_cast<int>(x + y + z)));
 	Entity * & m_object = sm.CreateEntity(std::string("MultiObject"));
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(m_object->GetID(), btQuaternion(btScalar(0.f), btScalar(0.f), btScalar(1.f)), btVector3(x, y + 1 + ((NUM_MULTI_OBJECTS - 1) * 1.5), z)));
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(m_object->GetID(), btQuaternion(btScalar(0.f), btScalar(0.f), btScalar(1.f)), btVector3(x, y + 1 + ((NUM_MULTI_OBJECTS - 1) * 1.5f), z)));
 	sm.AddComponent(SceneManager::PHYSICS, new MultiPhysicsComponent(m_object->GetID()));
 	sm.AddComponent(SceneManager::RENDER, new MultiRenderComponent(m_object->GetID()));
 	return true;

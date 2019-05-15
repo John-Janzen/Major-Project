@@ -6,9 +6,8 @@ class WallPhysicsComponent :
 public:
 	WallPhysicsComponent(const std::uint16_t & id);
 	~WallPhysicsComponent();
+	void LoadExtraData();
 };
-
-
 
 inline WallPhysicsComponent::WallPhysicsComponent(const std::uint16_t & id)
 	: PhysicsComponent(id)
@@ -20,15 +19,11 @@ inline WallPhysicsComponent::WallPhysicsComponent(const std::uint16_t & id)
 	bool dynamic = (mass != 0.f);
 	if (dynamic)
 		shape->calculateLocalInertia(mass, local_inertia);
-
-	m_state = new btDefaultMotionState();
-
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, m_state, shape, local_inertia);
-	SetRigidBody(new btRigidBody(rbInfo));
-	rigid_body->setFriction(btScalar(5.0f));
 }
 
+inline WallPhysicsComponent::~WallPhysicsComponent() {}
 
-inline WallPhysicsComponent::~WallPhysicsComponent()
+inline void WallPhysicsComponent::LoadExtraData()
 {
+	rigid_body->setFriction(btScalar(5.0f));
 }

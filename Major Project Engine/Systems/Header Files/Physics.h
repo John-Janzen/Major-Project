@@ -10,10 +10,11 @@ class Physics :
 	public System
 {
 public:
-	Physics(TaskManager & tm, SceneManager & sm);
+	Physics(TaskManager & tm, SceneManager & sm, EventHandler & eh);
 	~Physics();
 
 	bool Load();
+	void HandleEvent(const EventType & e, void * data);
 
 	JOB_RETURN PreUpdate(void * ptr);
 	JOB_RETURN Update(void * ptr);

@@ -14,7 +14,7 @@
 class TaskManager
 {
 public:
-	TaskManager(const std::size_t & thread_size);
+	TaskManager(const std::size_t & n_threads);
 
 	~TaskManager();
 

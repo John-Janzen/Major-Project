@@ -1,7 +1,7 @@
 #include "TestSystem.h"
 
-TestSystem::TestSystem(TaskManager & tm, SceneManager & sm)
-	: System(tm, sm)
+TestSystem::TestSystem(TaskManager & tm, SceneManager & sm, EventHandler & eh)
+	: System(tm, sm, eh)
 {}
 
 TestSystem::~TestSystem() 
@@ -36,6 +36,10 @@ bool TestSystem::Load()
 void TestSystem::Close(void* content)
 {
 
+}
+
+void TestSystem::HandleEvent(const EventType & e, void * data)
+{
 }
 
 bool TestSystem::Process(void* content)

@@ -9,21 +9,12 @@ glm::mat4 getGLMMatrix4(const btScalar * matrix)
 		matrix[12], matrix[13], matrix[14], matrix[15]);
 }
 
-Render::Render(TaskManager & tm, SceneManager & sm)
-	: System(tm, sm)
+Render::Render(TaskManager & tm, SceneManager & sm, EventHandler & eh)
+	: System(tm, sm, eh)
 {
 	_models = new Storage<Model>();
 	_shaders = new Storage<Shader>();
 	_textures = new Storage<Texture>();
-
-	if (!InitSDL())
-	{
-		printf("SDL Initialization failed, see function Load()");
-	}
-	if (!InitGL())
-	{
-		printf("GL Initialization failed, see function Load()");
-	}
 
 	// Jobs that need to wait on other jobs go here
 	/*{
@@ -31,6 +22,30 @@ Render::Render(TaskManager & tm, SceneManager & sm)
 		m_task.dictionary[Job::JOB_RENDER_UPDATE].emplace_back(Job::JOB_PHYSICS_UPDATE);
 		m_task.dictionary[Job::JOB_RENDER_UPDATE].emplace_back(Job::JOB_PHYSICS_COMPONENT);
 	}*/
+}
+
+bool Render::InitSystem(SDL_Window * window)
+{
+	if (window == NULL)
+	{
+		printf("Error creating window");
+		return false;
+	}
+
+	sdl_window = window;
+	SDL_GetWindowSize(window, &SCREEN_WIDTH, &SCREEN_HEIGHT);
+
+	if (!InitSDL())
+	{
+		printf("SDL Initialization failed, see function Load()");
+		return false;
+	}
+	if (!InitGL())
+	{
+		printf("GL Initialization failed, see function Load()");
+		return false;
+	}
+	return true;
 }
 
 Render::~Render() 
@@ -65,13 +80,18 @@ bool Render::Load()
 
 void Render::Close(void* content) {}
 
+void Render::HandleEvent(const EventType & e, void * data)
+{
+
+}
+
 void Render::InitUpdate()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-void Render::ComponentUpdate(RenderComponent * rc, Transform * trans)
+void Render::ComponentUpdate(RenderComponent * rc, const Transform & trans)
 {
 	Model * model_ptr = rc->GetModel();
 	Shader * shader_ptr = rc->GetShader();
@@ -98,7 +118,7 @@ void Render::ComponentUpdate(RenderComponent * rc, Transform * trans)
 	glUniform4f(shader_ptr->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
 
 	btScalar matrix[16];
-	trans->_transform.getOpenGLMatrix(matrix);
+	trans._transform.getOpenGLMatrix(matrix);
 
 	glUniformMatrix4fv(shader_ptr->r_project_mat4_loc, 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
 	glUniformMatrix4fv(shader_ptr->r_model_mat4_loc, 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
@@ -114,11 +134,11 @@ JOB_RETURN Render::Update(void * ptr)
 {
 	this->InitUpdate();
 
-	for (auto render_it : *static_cast<std::vector<BaseComponent*>*>(ptr))
+	for (auto & it : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
-		assert(dynamic_cast<RenderComponent*>(render_it));
+		assert(dynamic_cast<RenderComponent*>(it));
 		{
-			ComponentUpdate(static_cast<RenderComponent*>(render_it), static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, render_it->_id)));
+			this->ComponentUpdate(static_cast<RenderComponent*>(it), *static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, it->_id)));
 		}
 	}
 	this->SwapBuffers();
@@ -132,9 +152,14 @@ JOB_RETURN Render::LoadComponents(void * ptr)
 		assert(dynamic_cast<RenderComponent*>(render));
 		auto obj = static_cast<RenderComponent*>(render);
 		{
-			this->LoadModel(obj);
-			this->LoadShader(obj);
-			this->LoadTexture(obj);
+			if (!_models->HasItem(obj->GetModelPath(), obj->GetModelAdd()))
+				m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", render, Job::JOB_LOAD_MODEL));
+
+			if (!_shaders->HasItem(obj->GetShaderPath(), obj->GetShaderAdd()))
+				m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", render, Job::JOB_LOAD_SHADER));
+
+			if (!_textures->HasItem(obj->GetTexturePath(), obj->GetTextureAdd()))
+				m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", render, Job::JOB_LOAD_TEXTURE));
 		}
 	}
 	return JOB_COMPLETED;
@@ -147,21 +172,6 @@ bool Render::InitSDL()
 	if (!(subsystem_init & SDL_INIT_VIDEO))
 	{
 		printf("SDL INIT VIDEO failed! SDL_ERROR: %s\n", SDL_GetError());
-		return false;
-	}
-
-	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-
-	sdl_window = SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL);
-	if (sdl_window == NULL)
-	{
-		printf("Error creating window");
 		return false;
 	}
 
@@ -208,21 +218,11 @@ JOB_RETURN Render::GiveThreadedContext(void * ptr)
 	return JOB_COMPLETED;
 }
 
-void Render::LoadModel(RenderComponent * rc)
-{
-	//Job * bind_model_job, * check_job;
-	switch(_models->HasItem(rc->GetModelPath(), rc->GetModelAdd()))
-	{
-	case LOAD::CURRENT_LOAD:
-		m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", rc, Job::JOB_LOAD_MODEL));
-		break;
-	default:
-		break;
-	}
-}
+//std::mutex temp;
 
 JOB_RETURN Render::ModelFileImport(void * ptr)
 {
+	//std::lock_guard<std::mutex> lock(temp);
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	if (LoadOBJModelFile(rc->GetModelPath(), rc->GetModelAdd()))
 	{
@@ -230,18 +230,6 @@ JOB_RETURN Render::ModelFileImport(void * ptr)
 		return JOB_COMPLETED;
 	}
 	return JOB_ISSUE;
-}
-
-void Render::LoadShader(RenderComponent * rc)
-{
-	switch (_shaders->HasItem(rc->GetShaderPath(), rc->GetShaderAdd()))
-	{
-	case CURRENT_LOAD:
-		m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", rc, Job::JOB_LOAD_SHADER));
-		break;
-	default:
-		break;
-	}
 }
 
 JOB_RETURN Render::ShaderFileImport(void * ptr)
@@ -253,18 +241,6 @@ JOB_RETURN Render::ShaderFileImport(void * ptr)
 		return JOB_COMPLETED;
 	}
 	return JOB_ISSUE;
-}
-
-void Render::LoadTexture(RenderComponent * rc)
-{
-	switch (_textures->HasItem(rc->GetTexturePath(), rc->GetTextureAdd()))
-	{
-	case CURRENT_LOAD:
-		m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", rc, Job::JOB_LOAD_TEXTURE));
-		break;
-	default:
-		break;
-	}
 }
 
 JOB_RETURN Render::TextureFileImport(void * ptr)

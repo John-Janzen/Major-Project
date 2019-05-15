@@ -14,19 +14,22 @@
 #include <gtc\matrix_transform.hpp>
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
-
-static const int DEFAULT_WIDTH = 1280;
-static const int DEFAULT_HEIGHT = 720;
+#include <LinearMath\btTransform.h>
 
 class Render : public System
 {
 public:
-	Render(TaskManager & tm, SceneManager & sm);
+	Render(TaskManager & tm, SceneManager & sm, EventHandler & eh);
+	
 	~Render();
+
+	bool InitSystem(SDL_Window * window);
 
 	bool Load();
 
 	void Close(void* content);
+
+	void HandleEvent(const EventType & e, void * data);
 
 	JOB_RETURN Update(void * ptr);
 
@@ -36,7 +39,7 @@ private:
 
 	void InitUpdate();
 
-	void ComponentUpdate(RenderComponent * rc, Transform * trans);
+	void ComponentUpdate(RenderComponent * rc, const Transform & trans);
 
 	JOB_RETURN LoadComponents(void * ptr);
 
@@ -46,13 +49,8 @@ private:
 
 	JOB_RETURN GiveThreadedContext(void * ptr);
 
-	void LoadModel(RenderComponent * rc);
 	JOB_RETURN ModelFileImport(void * ptr);
-
-	void LoadShader(RenderComponent * rc);
 	JOB_RETURN ShaderFileImport(void * ptr);
-
-	void LoadTexture(RenderComponent * rc);
 	JOB_RETURN TextureFileImport(void * ptr);
 
 	JOB_RETURN BindModel(void * ptr);
@@ -65,8 +63,8 @@ private:
 
 	GLfloat _fov = 60.0f;
 	GLfloat _near = 0.1f, _far = 1000.0f;
-	int SCREEN_WIDTH = DEFAULT_WIDTH;
-	int SCREEN_HEIGHT = DEFAULT_HEIGHT;
+	int SCREEN_WIDTH;
+	int SCREEN_HEIGHT;
 
 	SDL_GLContext sdl_gl_context;
 

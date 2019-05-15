@@ -1,6 +1,6 @@
 #include "Input.h"
 
-Input::Input(TaskManager & tm, SceneManager & sm) : System(tm, sm) {}
+Input::Input(TaskManager & tm, SceneManager & sm, EventHandler & eh) : System(tm, sm, eh) {}
 
 Input::~Input() {}
 
@@ -20,6 +20,46 @@ bool Input::Load()
 void Input::Close(void* content)
 {
 
+}
+
+void Input::HandleEvent(const EventType & e, void * data)
+{
+}
+
+JOB_RETURN Input::WindowControls(void * ptr)
+{
+	SDL_Event * sdl_event = static_cast<SDL_Event*>(ptr);			// Polls events for SDL (Mouse, Keyboard, window, etc.)
+	switch (sdl_event->type)
+	{
+	case SDL_QUIT:
+		h_event.SendEvent(EventType::GAME_CLOSED);
+		break;
+	case SDL_WINDOWEVENT:
+		if (sdl_event->window.event == SDL_WINDOWEVENT_CLOSE)
+		{
+			h_event.SendEvent(EventType::GAME_CLOSED);
+			break;
+		}
+		break;
+	case SDL_KEYDOWN:
+	{
+		switch (sdl_event->key.keysym.scancode)
+		{
+		case SDL_SCANCODE_ESCAPE:
+			h_event.SendEvent(EventType::GAME_CLOSED);
+			break;
+		case SDL_SCANCODE_T:
+			h_event.SendEvent(EventType::OPEN_DEBUGGER);
+			break;
+		default:
+			break;
+		}
+	}
+	default:
+		break;
+	}
+	delete sdl_event;
+	return JOB_COMPLETED;
 }
 
 JOB_RETURN Input::Update (void * ptr)

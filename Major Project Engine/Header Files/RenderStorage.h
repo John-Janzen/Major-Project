@@ -79,12 +79,6 @@ struct Shader
 	GLint r_text_unit;
 };
 
-enum LOAD {
-	CURRENT_LOAD,
-	WAIT_LOAD,
-	DONE_LOAD
-};
-
 template <class T>
 class Storage
 {
@@ -103,10 +97,10 @@ public:
 		}
 	}
 
-	void AddItem(T * model)
+	void AddItem(T * && model)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
-		_objects[num_items] = model;
+		_objects[num_items] = std::move(model);
 		num_items++;
 	}
 
@@ -135,7 +129,7 @@ public:
 		return false;
 	}
 
-	LOAD HasItem(const std::string & name, T * & model)
+	bool HasItem(const std::string & name, T * & model)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
 		for (auto mod : _objects)
@@ -143,16 +137,13 @@ public:
 			if (mod != nullptr && name.compare(mod->_name) == 0)
 			{
 				model = mod;
-				if (mod->CheckDoneLoad(nullptr) == JOB_COMPLETED)
-					return DONE_LOAD;
-				else
-					return WAIT_LOAD;
+				return true;
 			}
 		}
 		_objects[num_items] = new T(name);
 		model = _objects[num_items];
 		num_items++;
-		return CURRENT_LOAD;
+		return false;
 	}
 
 private:

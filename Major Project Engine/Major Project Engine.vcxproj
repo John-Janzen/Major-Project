@@ -40,6 +40,7 @@
   <ItemGroup>
     <ClInclude Include="Components\Game Components\Header Files\FloorPhysicsComponent.h" />
     <ClInclude Include="Components\Game Components\Header Files\FloorRenderComponent.h" />
+    <ClInclude Include="Header Files\EventHandler.h" />
     <ClInclude Include="Game Objects\Header Files\Floor.h" />
     <ClInclude Include="Game Objects\Header Files\Camera.h" />
     <ClInclude Include="Components\Base Components\Header Files\CameraComponent.h" />

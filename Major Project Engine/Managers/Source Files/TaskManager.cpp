@@ -1,6 +1,6 @@
 #include "TaskManager.h"
 
-TaskManager::TaskManager(const std::size_t & thread_size) {}
+TaskManager::TaskManager(const std::size_t & n_threads) {}
 
 TaskManager::~TaskManager() {}
 

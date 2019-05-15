@@ -1,17 +1,13 @@
 #include "ThreadDebugger.h"
 
-const int ThreadDebugger::default_height = 600;
 const int ThreadDebugger::default_width = 900;
+const int ThreadDebugger::default_height = 600;
 
 ThreadDebugger::ThreadDebugger()
 {
 	m_borders[0] = { 0, 0, default_width, border_width };
 	m_borders[1] = { 0, 0, border_width, default_height };
 	m_text[0] = { 300, 0, 250, 50 };
-
-	if (SDL_CreateWindowAndRenderer(default_width, default_height, SDL_WINDOW_HIDDEN, &debug_window, &debug_renderer) == -1)
-		printf("Error creating debug window");
-	SDL_SetWindowTitle(debug_window, "Thread Debugger");
 
 	if (TTF_Init() < 0)
 	{
@@ -35,6 +31,12 @@ ThreadDebugger::~ThreadDebugger()
 
 void ThreadDebugger::LoadDebug(const float & rate, const std::size_t & count)
 {
+
+	if (SDL_CreateWindowAndRenderer(default_width, default_height, SDL_WINDOW_HIDDEN, &debug_window, &debug_renderer) == -1)
+		printf("Error creating debug window");
+
+	SDL_SetWindowTitle(debug_window, "Thread Debugger");
+
 	n_threads = count;
 	refresh_rate = rate;
 	widthOfLines = (int)(windowX / refresh_rate);

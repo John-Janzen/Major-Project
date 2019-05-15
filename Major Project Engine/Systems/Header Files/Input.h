@@ -14,11 +14,15 @@ class Input :
 public:
 
 	float player_speed = 10;
-	Input(TaskManager & tm, SceneManager & sm);
+	Input(TaskManager & tm, SceneManager & sm, EventHandler & eh);
 	~Input();
 
 	bool Load();
 	void Close(void* content);
+
+	void HandleEvent(const EventType & e, void * data);
+
+	JOB_RETURN WindowControls(void * ptr);
 
 	JOB_RETURN Update(void * ptr);
 

@@ -22,7 +22,7 @@ class ThreadManager
 {
 public:
 
-	explicit ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size);
+	ThreadManager(const std::size_t & n_threads, SharedQueue<Job*>& queue);
 
 	/*
 	Deletes the threads and job list.
@@ -76,7 +76,7 @@ public:
 	const std::size_t GetNumThreads() const { return num_of_threads; }
 
 	/// DEBUGGING SECTION
-	void LoadDebugger(const float & rate, const std::size_t & count) { t_debug.LoadDebug(rate, num_of_threads); }
+	void LoadDebugger(const float & rate, const std::size_t & count) { t_debug.LoadDebug(rate, count); }
 	void ShowDebugger() { t_debug.ShowDebug(); }
 	void RenderDebugger() { t_debug.RenderDebug(threads, t_framestart); }
 	void HideDebugger() { t_debug.HideDebug(); }

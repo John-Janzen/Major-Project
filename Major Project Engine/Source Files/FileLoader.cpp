@@ -1,8 +1,8 @@
 #include "FileLoader.h"
 
-std::mutex devIL_lock;
+std::mutex io_lock, devIL_lock;
 
-bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Shader * & shader)
+bool LoadShaderFile(const std::string & vert_path, const std::string & frag_path, Shader * & shader)
 {
 	GLuint vertexID = 0, fragID = 0;
 	std::string vertString = OpenFileRead(vert_path);
@@ -25,7 +25,7 @@ bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Sh
 	if (vertexID == 0 || fragID == 0)
 		return false;
 	
-	printf("Shader Loaded: %s & %s\n", vert_path.c_str(), frag_path.c_str());
+	//printf("Shader Loaded: %s & %s\n", vert_path.c_str(), frag_path.c_str());
 	if (shader != nullptr)
 	{
 		shader->_shaderID_Vert = vertexID;
@@ -41,7 +41,7 @@ bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Sh
 std::string OpenFileRead(const std::string & path)
 {
 	std::string data;
-	//std::lock_guard<std::mutex> u_lock(io_lock);
+	std::lock_guard<std::mutex> u_lock(io_lock);
 	std::ifstream File(path.c_str());
 	if (File.is_open())
 	{
@@ -56,7 +56,7 @@ std::string OpenFileRead(const std::string & path)
 	return data;
 }
 
-const GLuint CompileShader(const std::string shader, const GLenum type)
+const GLuint CompileShader(const std::string & shader, const GLenum type)
 {
 	GLuint compile = glCreateShader(type);
 
@@ -76,8 +76,9 @@ const GLuint CompileShader(const std::string shader, const GLenum type)
 	return compile;
 }
 
-bool LoadOBJModelFile(const std::string path, Model * & model)
+bool LoadOBJModelFile(const std::string & path, Model * & model)
 {
+	
 	std::vector<GLuint> indices;
 	std::vector<GLfloat> finalData;
 	
@@ -178,7 +179,7 @@ bool LoadOBJModelFile(const std::string path, Model * & model)
 	return false;
 }
 
-bool LoadTextureFile(const std::string path, Texture * & texture)
+bool LoadTextureFile(const std::string & path, Texture * & texture)
 {
 	std::lock_guard<std::mutex> lk(devIL_lock);
 	ilInit();
@@ -209,7 +210,7 @@ bool LoadTextureFile(const std::string path, Texture * & texture)
 			ILubyte* data = ilGetData();
 			memcpy(_data, data, size);
 			
-			printf("Texure Loaded: %s\n", path.c_str());
+			//printf("Texure Loaded: %s\n", path.c_str());
 			if (texture != nullptr)
 			{
 				texture->imgHeight = imgHeight;

@@ -1,22 +1,10 @@
 #include "ThreadManager.h"
 
-ThreadManager::~ThreadManager()
-{
-	for (std::size_t i = 0; i < num_of_threads; i++)
-	{
-		delete(threads[i]);
-	}
 
-	for (int i = 0; i < task_queue.Size(); i++)
-	{
-		delete task_queue.Front();
-		task_queue.Pop();
-	}
-}
-
-ThreadManager::ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size)
-	: task_queue(queue), num_of_threads(size)
+ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*>& queue)
+	: task_queue(queue) 
 {
+	num_of_threads = size;
 	std::string name;
 	for (std::size_t i = 0; i < size; i++)
 	{
@@ -46,6 +34,20 @@ ThreadManager::ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size
 			break;
 		}
 		threads[i] = new Thread(this, *t_queues[i], name, type);
+	}
+}
+
+ThreadManager::~ThreadManager()
+{
+	for (std::size_t i = 0; i < num_of_threads; i++)
+	{
+		delete(threads[i]);
+	}
+
+	for (int i = 0; i < task_queue.Size(); i++)
+	{
+		delete task_queue.Front();
+		task_queue.Pop();
 	}
 }
 
@@ -100,9 +102,9 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 				t_queues[count]->Emplace(temp);
 				task_queue.Pop();
 
-				if (count == 0) render_thread.notify_one();
+				//if (count == 1) render_thread.notify_one();
 
-				if (count >= num_of_threads - 1) count = 0;
+				if (count >= num_of_threads - 1) count = 1;
 				else count++;
 
 				any_thread.notify_one();

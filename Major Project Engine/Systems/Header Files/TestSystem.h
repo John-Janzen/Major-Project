@@ -4,7 +4,6 @@
 #define _TESTSYSTEM_H
 
 #include "System.h"
-#include "Content.h"
 #include "ThreadManager.h"
 
 #include <vector>
@@ -15,11 +14,13 @@ class TestSystem :
 	public System
 {
 public:
-	TestSystem(TaskManager & tm, SceneManager & sm);
+	TestSystem(TaskManager & tm, SceneManager & sm, EventHandler & eh);
 	~TestSystem();
 
 	bool Load();
 	void Close(void* content);
+
+	void HandleEvent(const EventType & e, void * data);
 
 	JOB_RETURN Update(void * ptr) { return JOB_COMPLETED; }
 

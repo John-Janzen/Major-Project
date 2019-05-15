@@ -6,6 +6,7 @@ class MultiPhysicsComponent :
 public:
 	MultiPhysicsComponent(const std::uint16_t & id);
 	~MultiPhysicsComponent();
+	void LoadExtraData() {}
 };
 
 
@@ -22,11 +23,6 @@ inline MultiPhysicsComponent::MultiPhysicsComponent(const std::uint16_t & id)
 	if (dynamic)
 		shape->calculateLocalInertia(mass, local_inertia);
 
-	m_state = new btDefaultMotionState();
-
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, m_state, shape, local_inertia);
-	SetRigidBody(new btRigidBody(rbInfo));
-	//m_state = nullptr;
 }
 
 

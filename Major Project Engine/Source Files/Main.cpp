@@ -24,9 +24,9 @@ Initializes and runs everything in the engine.
 int main(int argc, char * args[])
 {
 
-	Application * game = new Application();
+	Application * game = new Application(4);
 	
-	while (game->GameLoop());
+	while (game->RunApplication());
 
 	delete game;
 	return 0;

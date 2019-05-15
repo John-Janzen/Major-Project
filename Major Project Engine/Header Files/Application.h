@@ -6,14 +6,11 @@
 #include "SceneManager.h"
 #include "TaskManager.h"
 #include "ThreadManager.h"
-#include "ThreadDebugger.h"
 
 #include "Render.h"
 #include "Input.h"
 #include "Physics.h"
 #include "TestSystem.h"
-
-#include "SceneHeaders.h"
 
 #include "Timer.h"
 
@@ -21,34 +18,53 @@
 #include <ctime>
 #include <chrono>
 
-class Application
+static const Uint16 DEFAULT_WIDTH = 1280;
+static const Uint16 DEFAULT_HEIGHT = 720;
+
+class Application : public EventListener
 {
 public:
-	Application();
+	Application(const std::size_t & num_of_threads);
 	~Application();
 
-	bool GameLoop();
+	bool RunApplication();
 
 	bool LoadScene(const SCENE_SELECTION type);
 	
 	bool CloseApp();
 
+	void HandleEvent(const EventType & e, void * data);
+
 private:
 
-	bool InitApp(const std::size_t & num_of_threads);
+	bool InitApp();
 
 	bool LoadApp();
 
-	void StartNewFrame();
+	JOB_RETURN GameLoop(void * ptr);
+
+	SDL_Window * CreateWindow(const std::size_t & width, const std::size_t & height)
+	{
+		SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+
+		return SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
+	}
 
 	Render * renderer = nullptr;
 	Input * input = nullptr;
 	TestSystem * test_system = nullptr;
 	Physics * physics = nullptr;
 
-	ThreadManager * m_thread = nullptr;
-	TaskManager * m_task = nullptr;
-	SceneManager * m_scene = nullptr;
+	EventHandler h_event;
+	TaskManager m_task;
+	ThreadManager m_thread;
+	SceneManager m_scene;
 
 protected:
 

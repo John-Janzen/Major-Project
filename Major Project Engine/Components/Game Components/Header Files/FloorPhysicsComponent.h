@@ -6,7 +6,7 @@ class FloorPhysicsComponent :
 public:
 	FloorPhysicsComponent(const std::uint16_t & id);
 	~FloorPhysicsComponent();
-
+	void LoadExtraData();
 private:
 
 };
@@ -23,13 +23,11 @@ inline FloorPhysicsComponent::FloorPhysicsComponent(const std::uint16_t & id)
 	bool dynamic = (mass != 0.f);
 	if (dynamic)
 		shape->calculateLocalInertia(mass, local_inertia);
-
-	m_state = new btDefaultMotionState();
-
-	btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, m_state, shape, local_inertia);
-	SetRigidBody(new btRigidBody(rbInfo));
-	rigid_body->setFriction(btScalar(5.0f));
-
 }
 
 inline FloorPhysicsComponent::~FloorPhysicsComponent() {}
+
+inline void FloorPhysicsComponent::LoadExtraData()
+{
+	rigid_body->setFriction(btScalar(5.0f));
+}
