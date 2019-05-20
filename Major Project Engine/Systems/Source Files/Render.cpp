@@ -69,8 +69,8 @@ bool Render::Load()
 	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	btScalar transform[16];
 	btTransform camera_tranform = btTransform().getIdentity();
-	camera_tranform.setRotation(btQuaternion(0.f, 1.f, 0.f));
-	camera_tranform.setOrigin(btVector3(btScalar(0.f), btScalar(-5.f), btScalar(-75.f)));
+	//camera_tranform.setRotation(btQuaternion(0.f, 0.f, 0.f));
+	camera_tranform.setOrigin(btVector3(btScalar(0.f), btScalar(-5.f), btScalar(-25.f)));
 	camera_tranform.getOpenGLMatrix(transform);
 
 	projection_look_matrix = projection_matrix * (look_matrix *	getGLMMatrix4(transform));

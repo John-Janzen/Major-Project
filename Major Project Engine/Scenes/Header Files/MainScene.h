@@ -4,6 +4,9 @@
 #define _MAINSCENE_H
 
 #include "Scene.h"
+
+#include <iostream>
+
 class MainScene :
 	public Scene
 {

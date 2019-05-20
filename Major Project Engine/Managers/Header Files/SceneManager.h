@@ -38,13 +38,13 @@ public:
 		case LEFT_MOUSE_BUTTON:
 		{
 			Entity * & project = this->CreateEntity("Projectile");
-			this->AddComponent(SceneManager::TRANSFORM, new Transform(project->GetID(), btVector3(0.f, 10.f, 0.f)));
+			this->AddComponent(SceneManager::TRANSFORM, new Transform(project->_id, btVector3(0.f, 10.f, 0.f)));
 
-			this->AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->GetID()));
-			EventHandler::Instance().SendEvent(EventType::RENDER_NEW_OBJECT, this->FindComponent(SceneManager::RENDER, project->GetID()));
+			this->AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->_id));
+			EventHandler::Instance().SendEvent(EventType::RENDER_NEW_OBJECT, this->FindComponent(SceneManager::RENDER, project->_id));
 
-			this->AddComponent(SceneManager::PHYSICS, new MultiPhysicsComponent(project->GetID()));
-			EventHandler::Instance().SendEvent(EventType::PHYSICS_NEW_OBJECT, this->FindComponent(SceneManager::PHYSICS, project->GetID()));
+			this->AddComponent(SceneManager::PHYSICS, new SpherePhysicsComponent(project->_id));
+			EventHandler::Instance().SendEvent(EventType::PHYSICS_NEW_OBJECT, this->FindComponent(SceneManager::PHYSICS, project->_id));
 		}
 			break;
 		default:

@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Components\Base Components\Source Files\PhysicsComponent.cpp" />
+    <ClCompile Include="Game Objects\Components\Base Components\Source Files\PhysicsComponent.cpp" />
     <ClCompile Include="Managers\Source Files\SceneManager.cpp" />
     <ClCompile Include="Source Files\Application.cpp" />
     <ClCompile Include="Source Files\Scheduler.cpp" />
@@ -28,7 +28,7 @@
     <ClCompile Include="Systems\Source Files\Input.cpp" />
     <ClCompile Include="Scenes\Source Files\MainScene.cpp" />
     <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
-    <ClCompile Include="Components\Base Components\Source Files\RenderComponent.cpp" />
+    <ClCompile Include="Game Objects\Components\Base Components\Source Files\RenderComponent.cpp" />
     <ClCompile Include="Systems\Source Files\Render.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Threading\Source Files\ThreadDebugger.cpp" />
@@ -38,53 +38,43 @@
     <ClCompile Include="Managers\Source Files\TaskManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Components\Game Components\Header Files\FloorPhysicsComponent.h" />
-    <ClInclude Include="Components\Game Components\Header Files\FloorRenderComponent.h" />
+    <ClInclude Include="Game Objects\Components\Game Components\Header Files\FloorComponents.h" />
     <ClInclude Include="Header Files\EventHandler.h" />
-    <ClInclude Include="Game Objects\Header Files\Floor.h" />
-    <ClInclude Include="Game Objects\Header Files\Camera.h" />
-    <ClInclude Include="Components\Base Components\Header Files\CameraComponent.h" />
-    <ClInclude Include="Components\Base Components\Header Files\ComponentHeaders.h" />
-    <ClInclude Include="Components\Game Components\Header Files\GameComponents.h" />
-    <ClInclude Include="Game Objects\Header Files\GameHeaders.h" />
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\CameraComponent.h" />
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\ComponentHeaders.h" />
+    <ClInclude Include="Game Objects\Components\Game Components\Header Files\GameComponents.h" />
     <ClInclude Include="Header Files\FileLoader.h" />
-    <ClInclude Include="Components\Base Components\Header Files\PlayerControllerComponent.h" />
-    <ClInclude Include="Components\Game Components\Header Files\PlayerRenderComponent.h" />
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\PlayerControllerComponent.h" />
     <ClInclude Include="Header Files\RenderStorage.h" />
-    <ClInclude Include="Components\Base Components\Header Files\PhysicsComponent.h" />
-    <ClInclude Include="Components\Game Components\Header Files\PlayerPhysicsComponent.h" />
-    <ClInclude Include="Game Objects\Header Files\MultiObject.h" />
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\PhysicsComponent.h" />
     <ClInclude Include="Header Files\Scheduler.h" />
     <ClInclude Include="Managers\Header Files\SceneManager.h" />
     <ClInclude Include="Header Files\SharedQueue.h" />
-    <ClInclude Include="Components\Game Components\Header Files\MultiPhysicsComponent.h" />
-    <ClInclude Include="Components\Game Components\Header Files\MultiRenderComponent.h" />
-    <ClInclude Include="Components\Game Components\Header Files\SphereRenderComponent.h" />
+    <ClInclude Include="Game Objects\Components\Game Components\Header Files\MultiObjComponents.h" />
+    <ClInclude Include="Game Objects\Components\Game Components\Header Files\PlayerComponents.h" />
+    <ClInclude Include="Game Objects\Components\Game Components\Header Files\SphereComponents.h" />
     <ClInclude Include="Systems\Header Files\Physics.h" />
     <ClInclude Include="Systems\Header Files\Input.h" />
-    <ClInclude Include="Game Objects\Header Files\Player.h" />
     <ClInclude Include="Scenes\Header Files\MainScene.h" />
     <ClInclude Include="Header Files\Application.h" />
-    <ClInclude Include="Components\Base Components\Header Files\BaseComponent.h" />
-    <ClInclude Include="Game Objects\Header Files\Entity.h" />
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\BaseComponent.h" />
+    <ClInclude Include="Game Objects\Entity.h" />
     <ClInclude Include="Header Files\BlockingQueue.h" />
-    <ClInclude Include="Header Files\Content.h" />
     <ClInclude Include="Threading\Header Files\ThreadDebugger.h" />
     <ClInclude Include="Threading\Header Files\Thread.h" />
     <ClInclude Include="Managers\Header Files\ThreadManager.h" />
     <ClInclude Include="Threading\Header Files\Job.h" />
     <ClInclude Include="Systems\Header Files\System.h" />
     <ClInclude Include="Systems\Header Files\Render.h" />
-    <ClInclude Include="Components\Base Components\Header Files\RenderComponent.h" />
-    <ClInclude Include="Components\Game Components\Header Files\QuadRenderComponent.h" />
-    <ClInclude Include="Game Objects\Header Files\Quad.h" />
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\RenderComponent.h" />
+    <ClInclude Include="Game Objects\Components\Game Components\Header Files\QuadRenderComponent.h" />
     <ClInclude Include="Scenes\Header Files\Scene.h" />
     <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
     <ClInclude Include="Header Files\Timer.h" />
     <ClInclude Include="Systems\Header Files\TestSystem.h" />
     <ClInclude Include="Managers\Header Files\TaskManager.h" />
-    <ClInclude Include="Components\Base Components\Header Files\Transform.h" />
-    <ClInclude Include="Components\Game Components\Header Files\WallPhysicsComponent.h" />
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\Transform.h" />
+    <ClInclude Include="Game Objects\Components\Game Components\Header Files\WallPhysicsComponent.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -165,7 +155,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)Libraries\SDL2_ttf-2.0.14\include;$(ProjectDir)Threading\Header Files;$(ProjectDir)Input\Header Files;$(ProjectDir)Scenes\Header Files;$(ProjectDir)Game Objects\Header Files;$(ProjectDir)Components\Game Components\Header Files;$(ProjectDir)Components\Base Components\Header Files;$(ProjectDir)Systems\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Game Objects\Components\Game Components\Header Files;$(ProjectDir)Game Objects\Components\Base Components\Header Files;$(ProjectDir)Libraries\SDL2_ttf-2.0.14\include;$(ProjectDir)Threading\Header Files;$(ProjectDir)Input\Header Files;$(ProjectDir)Scenes\Header Files;$(ProjectDir)Game Objects;$(ProjectDir)Systems\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

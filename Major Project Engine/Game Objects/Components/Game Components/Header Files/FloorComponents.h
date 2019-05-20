@@ -1,13 +1,32 @@
 #pragma once
+
+#ifndef _FLOORCOMPONENTS_H
+#define _FLOORCOMPONENTS_H
+
 #include "PhysicsComponent.h"
-class FloorPhysicsComponent :
+#include "RenderComponent.h"
+
+struct FloorPhysicsComponent :
 	public PhysicsComponent
 {
-public:
 	FloorPhysicsComponent(const std::uint16_t & id);
-	~FloorPhysicsComponent();
+	~FloorPhysicsComponent() {}
 	void LoadExtraData();
-private:
+};
+
+struct FloorRenderComponent :
+	public RenderComponent
+{
+	FloorRenderComponent(const std::uint16_t & id)
+		: RenderComponent(id)
+	{
+		model_path = std::string("Assets/Models/grid.obj");
+		vertex_shader_path = std::string("Assets/Shaders/default_V_shader.glvs");
+		fragment_shader_path = std::string("Assets/Shaders/default_F_shader.glfs");
+		texture_path = std::string("Assets/Textures/test_texture.png");
+	}
+
+	~FloorRenderComponent() {}
 
 };
 
@@ -25,9 +44,9 @@ inline FloorPhysicsComponent::FloorPhysicsComponent(const std::uint16_t & id)
 		shape->calculateLocalInertia(mass, local_inertia);
 }
 
-inline FloorPhysicsComponent::~FloorPhysicsComponent() {}
-
 inline void FloorPhysicsComponent::LoadExtraData()
 {
 	rigid_body->setFriction(btScalar(5.0f));
 }
+
+#endif // !_FLOORCOMPONENTS_H

@@ -3,11 +3,9 @@
 #ifndef _SCENE_H
 #define _SCENE_H
 
-#include "GameHeaders.h"
+#include "Entity.h"
 #include "GameComponents.h"
 #include "ComponentHeaders.h"
-
-#include "iostream"
 
 enum SCENE_SELECTION
 {
