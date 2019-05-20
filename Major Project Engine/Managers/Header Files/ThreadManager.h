@@ -65,6 +65,11 @@ public:
 		task_queue.Emplace(job);
 	}
 
+	void MainThreadJob(Job * && job)
+	{
+		task_queue.Emplace(job);
+	}
+
 	void NotifyDone()
 	{
 		std::lock_guard<std::mutex> lock(finished_job);
@@ -89,9 +94,9 @@ private:
 
 	std::array<Thread*, Thread::MAX_THREADS> threads = { nullptr };
 	std::array<BlockingQueue<Job*>*, Thread::MAX_THREADS> t_queues = { nullptr };
-	std::size_t rthread_num;
+	std::size_t rt_loc, mt_loc;
 
-	std::condition_variable any_thread, render_thread;
+	std::condition_variable cv_any, cv_render, cv_main;
 
 	SharedQueue<Job*> & task_queue;
 	std::size_t num_of_threads;

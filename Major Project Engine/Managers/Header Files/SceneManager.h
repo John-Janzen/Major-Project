@@ -7,8 +7,9 @@
 #include <vector>
 
 #include "SceneHeaders.h"
+#include "EventHandler.h"
 
-class SceneManager
+class SceneManager : public EventListener
 {
 public:
 
@@ -23,8 +24,33 @@ public:
 		COUNT
 	};
 
-	SceneManager();
+	SceneManager()
+	{
+		EventHandler::Instance().SubscribeEvent(LEFT_MOUSE_BUTTON, this);
+	}
+
 	~SceneManager();
+
+	void HandleEvent(const EventType & e, void * data)
+	{
+		switch (e)
+		{
+		case LEFT_MOUSE_BUTTON:
+		{
+			Entity * & project = this->CreateEntity("Projectile");
+			this->AddComponent(SceneManager::TRANSFORM, new Transform(project->GetID(), btVector3(0.f, 10.f, 0.f)));
+
+			this->AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->GetID()));
+			EventHandler::Instance().SendEvent(EventType::RENDER_NEW_OBJECT, this->FindComponent(SceneManager::RENDER, project->GetID()));
+
+			this->AddComponent(SceneManager::PHYSICS, new MultiPhysicsComponent(project->GetID()));
+			EventHandler::Instance().SendEvent(EventType::PHYSICS_NEW_OBJECT, this->FindComponent(SceneManager::PHYSICS, project->GetID()));
+		}
+			break;
+		default:
+			break;
+		}
+	}
 
 	void LoadScene(Scene * && scene)
 	{
@@ -82,6 +108,7 @@ private:
 	static int id_count;
 
 	Scene * p_scene;
+	
 	
 	std::uint16_t count_ent = 0;
 	std::array<std::vector<BaseComponent*>, COUNT> _components;

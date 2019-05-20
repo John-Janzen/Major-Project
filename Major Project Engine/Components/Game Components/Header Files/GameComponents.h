@@ -11,5 +11,6 @@
 #include "MultiPhysicsComponent.h"
 #include "WallPhysicsComponent.h"
 #include "MultiRenderComponent.h"
+#include "SphereRenderComponent.h"
 
 #endif // !_GAMECOMPONENTS_H

@@ -206,5 +206,8 @@
     <ClInclude Include="Header Files\EventHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Components\Game Components\Header Files\SphereRenderComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

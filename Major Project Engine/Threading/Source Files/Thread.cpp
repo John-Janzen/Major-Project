@@ -16,10 +16,7 @@ Thread::Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std:
 * Destructor that elimates all data pertaining
 * to the thread class.
 */
-Thread::~Thread() 
-{
-	
-}
+Thread::~Thread() {}
 
 /*
 * Each thread will run this function continously for the duration of
@@ -50,6 +47,7 @@ void Thread::Execution(ThreadManager * const tm)
 			current_job = nullptr;
 
 			data.t_end = std::chrono::high_resolution_clock::now();
+
 			tm->NotifyDone();
 			break;
 		case JOB_RETRY:

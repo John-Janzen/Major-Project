@@ -14,7 +14,7 @@
 class System : public EventListener
 {
 public:
-	System(TaskManager & tm, SceneManager & sm, EventHandler & eh);
+	System(TaskManager & tm, SceneManager & sm);
 	virtual ~System() = 0;
 
 	virtual JOB_RETURN Update(void * ptr) = 0;
@@ -25,12 +25,10 @@ public:
 protected:
 	TaskManager & m_task;
 	SceneManager & m_scene;
-
-	EventHandler & h_event;
 };
 
-inline System::System(TaskManager & tm, SceneManager & sm, EventHandler & eh)
-	: m_task(tm), m_scene(sm), h_event(eh)
+inline System::System(TaskManager & tm, SceneManager & sm)
+	: m_task(tm), m_scene(sm)
 {}
 
 inline System::~System() {}

@@ -43,7 +43,7 @@ struct Job
 {
 public:
 
-	static const int MAX_PARENTS = 24;
+	static const int MAX_PARENTS = 32;
 
 	/*
 	* List of Job Types that the threads will
@@ -53,13 +53,18 @@ public:
 	enum JOB_ID
 	{
 		JOB_NULL = 0x000,
+		JOB_MAIN,
 		JOB_MISC,
 		JOB_PHYSICS,
 		JOB_INPUT,
 		JOB_RENDER,
 
-		JOB_DEFAULT = JOB_STRIDE * JOB_MISC,
+		JOB_MAIN_DEFAULT = JOB_STRIDE * JOB_MAIN,
 		JOB_APPLICATION_UPDATE,
+		JOB_TILL_NEXT_FRAME,
+		JOB_MAIN_COUNT,
+
+		JOB_DEFAULT = JOB_STRIDE * JOB_MISC,
 		JOB_LOAD_MODEL,
 		JOB_LOAD_TEXTURE,
 		JOB_MODEL_CHECKER,
@@ -69,6 +74,7 @@ public:
 
 		JOB_PHYSICS_DEFAULT = JOB_STRIDE * JOB_PHYSICS,
 		JOB_PHYSICS_LOAD,
+		JOB_PHYSICS_LOAD_SINGLE,
 		JOB_PHYSICS_PREUPDATE,
 		JOB_PHYSICS_UPDATE,
 		JOB_PHYSICS_COMPONENT,
@@ -81,7 +87,7 @@ public:
 
 		JOB_RENDER_DEFAULT = JOB_STRIDE * JOB_RENDER,
 		JOB_RENDER_LOAD,
-		JOB_READ_WINDOW_INPUT,
+		JOB_RENDER_LOAD_SINGLE,
 		JOB_RENDER_UPDATE,
 		JOB_BIND_MODEL,
 		JOB_BIND_TEXTURE,
@@ -92,68 +98,6 @@ public:
 
 		JOB_HEAD_END
 	};
-
-	/*void TransferJobID(const Job::JOB_ID & id)
-	{
-		switch (id)
-		{
-
-		case JOB_LOAD_MODEL:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_LOAD_TEXTURE:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_MODEL_CHECKER:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_TEXTURE_CHECKER:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_SHADER_CHECKER:
-			std::cout << "Load Model\n";
-			break;
-
-		case JOB_PHYSICS_LOAD:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_PHYSICS_PREUPDATE:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_PHYSICS_UPDATE:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_PHYSICS_COMPONENT:
-			std::cout << "Load Model\n";
-			break;
-
-		case JOB_INPUT_LOAD:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_INPUT_UPDATE:
-			std::cout << "Load Model\n";
-			break;
-
-		case JOB_RENDER_LOAD:
-			std::cout << "Load Model\n";
-			break;
-		case JOB_RENDER_UPDATE:
-			break;
-		case JOB_BIND_MODEL:
-			break;
-		case JOB_BIND_TEXTURE:
-			break;
-		case JOB_BIND_SHADER:
-			break;
-		case JOB_LOAD_SHADER:
-			break;
-		case JOB_SWAP_BUFFERS:
-			break;
-		default:
-			break;
-		}
-	}*/
-
 
 	Job(JobFunction function, const std::string name, void* data = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT, Job * parent = nullptr)
 		: _func(function), job_name(name), _content(data), j_type(type) 
@@ -216,7 +160,6 @@ public:
 	// JOB FUNCTIONALITY
 	JobFunction _func;
 	void* _content;
-
 };
 
 #endif // !_JOB_H

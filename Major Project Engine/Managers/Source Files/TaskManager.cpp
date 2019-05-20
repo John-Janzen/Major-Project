@@ -27,8 +27,7 @@ bool TaskManager::HasJobs()
 
 void TaskManager::RegisterJob(JobFunction function, const std::string name, void* content, const Job::JOB_ID type)
 {
-	Job * job = new Job(function, name, content, type);
-	task_queue.Emplace(job);
+	task_queue.Emplace(new Job(function, name, content, type));
 	{
 		std::lock_guard<std::mutex> lock(jobs_lock);
 		num_of_jobs++;

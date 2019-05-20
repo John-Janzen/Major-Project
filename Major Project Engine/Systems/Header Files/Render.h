@@ -19,7 +19,7 @@
 class Render : public System
 {
 public:
-	Render(TaskManager & tm, SceneManager & sm, EventHandler & eh);
+	Render(TaskManager & tm, SceneManager & sm);
 	
 	~Render();
 
@@ -33,6 +33,8 @@ public:
 
 	JOB_RETURN Update(void * ptr);
 
+
+
 	void SwapBuffers() { SDL_GL_SwapWindow(sdl_window); }
 
 private:
@@ -40,6 +42,8 @@ private:
 	void InitUpdate();
 
 	void ComponentUpdate(RenderComponent * rc, const Transform & trans);
+
+	JOB_RETURN LoadSingleComponent(void * ptr);
 
 	JOB_RETURN LoadComponents(void * ptr);
 
@@ -54,6 +58,7 @@ private:
 	JOB_RETURN TextureFileImport(void * ptr);
 
 	JOB_RETURN BindModel(void * ptr);
+	void GenerateVAO(RenderComponent * const render);
 	JOB_RETURN BindTexture(void * ptr);
 	JOB_RETURN BindShader(void * ptr);
 

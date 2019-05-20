@@ -34,8 +34,8 @@ public:
 	{
 		NULL_THREAD,
 		ANY_THREAD,
-		RENDER_THREAD,
-		IO_THREAD
+		MAIN_THREAD,
+		RENDER_THREAD
 	};
 
 	struct ThreadData
@@ -46,6 +46,7 @@ public:
 	};
 
 	Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type = ANY_THREAD);
+
 	~Thread();
 
 	void Execution(ThreadManager * const tm);

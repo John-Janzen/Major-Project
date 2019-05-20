@@ -1,7 +1,7 @@
 #include "Physics.h"
 
-Physics::Physics(TaskManager & tm, SceneManager & sm, EventHandler & eh)
-	: System(tm, sm, eh)
+Physics::Physics(TaskManager & tm, SceneManager & sm)
+	: System(tm, sm)
 {
 	collisionConfiguration = new btDefaultCollisionConfiguration();
 	dispatcher = new btCollisionDispatcher(collisionConfiguration);
@@ -12,12 +12,15 @@ Physics::Physics(TaskManager & tm, SceneManager & sm, EventHandler & eh)
 	dynamicWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 	dynamicWorld->setGravity(btVector3(0, -9.8, 0));
 
+	EventHandler::Instance().SubscribeEvent(EventType::PHYSICS_NEW_OBJECT, this);
+
 	// Jobs that need to wait on other jobs go here
 	{
 		m_task.dictionary.emplace(Job::JOB_PHYSICS_UPDATE, std::vector<Job::JOB_ID>());
 		m_task.dictionary[Job::JOB_PHYSICS_UPDATE].emplace_back(Job::JOB_RENDER_UPDATE);
-		/*m_task.dictionary.emplace(Job::JOB_PHYSICS_PREUPDATE, std::vector<Job::JOB_ID>());
-		m_task.dictionary[Job::JOB_PHYSICS_PREUPDATE].emplace_back(Job::JOB_RENDER_UPDATE);*/
+
+		m_task.dictionary.emplace(Job::JOB_PHYSICS_LOAD_SINGLE, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_PHYSICS_LOAD_SINGLE].emplace_back(Job::JOB_PHYSICS_UPDATE);
 
 		m_task.dictionary.emplace(Job::JOB_PHYSICS_PREUPDATE, std::vector<Job::JOB_ID>());
 		m_task.dictionary[Job::JOB_PHYSICS_PREUPDATE].emplace_back(Job::JOB_PHYSICS_COMPONENT);
@@ -63,8 +66,16 @@ bool Physics::Load()
 	return true;
 }
 
-void Physics::HandleEvent(const EventType & e, void * data)
+void Physics::HandleEvent(const EventType & e, void * data) 
 {
+	switch (e)
+	{
+	case EventType::PHYSICS_NEW_OBJECT:
+		m_task.RegisterJob(new Job(bind_function(&Physics::LoadSingleComponent, this), "Physics_Load_Single", data, Job::JOB_PHYSICS_LOAD_SINGLE));
+		break;
+	default:
+		break;
+	}
 }
 
 JOB_RETURN Physics::PreUpdate(void * ptr)
@@ -77,14 +88,18 @@ JOB_RETURN Physics::PreUpdate(void * ptr)
 			obj->GetRigidBody()->activate(true);
 		}
 	}
-	dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime(), 0, 0);
+	{
+		std::lock_guard<std::mutex> lock(dworld_lock);
+		dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime(), 0, 0);
+	}
+
 	return JOB_COMPLETED;
 }
 
 JOB_RETURN Physics::Update(void * ptr)
 {	
 	std::vector<BaseComponent*> * PVector = static_cast<std::vector<BaseComponent*>*>(ptr);
-	const int Breakdown = 8;
+	const int Breakdown = 10;
 
 	int num = PVector->size() / Breakdown;
 	int remainder = PVector->size() % Breakdown;
@@ -116,7 +131,7 @@ JOB_RETURN Physics::Update(void * ptr)
 			Job::JOB_PHYSICS_COMPONENT), true);
 	}
 
-	m_task.RegisterJob(new Job(bind_function(&Physics::PreUpdate, this), "Physics_Pre_Update", &m_scene.GetComponents(SceneManager::CONTROLLER), Job::JOB_PHYSICS_PREUPDATE), false);
+	m_task.RegisterJob(new Job(bind_function(&Physics::PreUpdate, this), "Physics_Step_Simulation", &m_scene.GetComponents(SceneManager::CONTROLLER), Job::JOB_PHYSICS_PREUPDATE), false);
 	return JOB_COMPLETED;
 }
 
@@ -143,6 +158,25 @@ JOB_RETURN Physics::ComponentUpdate(void * ptr)
 	return JOB_COMPLETED;
 }
 
+JOB_RETURN Physics::LoadSingleComponent(void * ptr)
+{
+	auto obj = static_cast<PhysicsComponent*>(ptr);
+	{
+		auto & trans = *static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, obj->_id));
+		{
+			collisionShapes.push_back(obj->GetCollisionShape());
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(obj->GetMass(), new btDefaultMotionState(trans._transform), obj->GetCollisionShape(), obj->GetLocalInertia());
+			obj->SetRigidBody(new btRigidBody(rbInfo));
+			obj->LoadExtraData();
+			{
+				std::lock_guard<std::mutex> lock(dworld_lock);
+				dynamicWorld->addRigidBody(obj->GetRigidBody());
+			}
+		}
+	}
+	return JOB_COMPLETED;
+}
+
 JOB_RETURN Physics::LoadComponents(void * ptr)
 {
 	for (const auto & physics : *static_cast<std::vector<BaseComponent*>*>(ptr))
@@ -163,7 +197,4 @@ JOB_RETURN Physics::LoadComponents(void * ptr)
 	return JOB_COMPLETED;
 }
 
-void Physics::Close(void* content)
-{
-
-}
+void Physics::Close(void* content) {}

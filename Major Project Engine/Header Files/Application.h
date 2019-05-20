@@ -17,6 +17,7 @@
 #include <vector>
 #include <ctime>
 #include <chrono>
+#include <condition_variable>
 
 static const Uint16 DEFAULT_WIDTH = 1280;
 static const Uint16 DEFAULT_HEIGHT = 720;
@@ -43,6 +44,8 @@ private:
 
 	JOB_RETURN GameLoop(void * ptr);
 
+	JOB_RETURN WaitTillNextFrame(void * ptr);
+
 	SDL_Window * CreateWindow(const std::size_t & width, const std::size_t & height)
 	{
 		SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
@@ -61,7 +64,6 @@ private:
 	TestSystem * test_system = nullptr;
 	Physics * physics = nullptr;
 
-	EventHandler h_event;
 	TaskManager m_task;
 	ThreadManager m_thread;
 	SceneManager m_scene;
@@ -91,6 +93,11 @@ protected:
 
 	GLfloat frame_rate;
 	std::size_t n_threads;
+
+	std::unique_ptr<std::thread> main_thread;
+	std::condition_variable start_frame;
+	std::mutex start;
+	bool can_start = false;
 
 	bool LoadedApp = false, Initialized = false;
 };

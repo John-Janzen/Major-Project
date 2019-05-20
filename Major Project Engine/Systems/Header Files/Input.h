@@ -14,7 +14,7 @@ class Input :
 public:
 
 	float player_speed = 10;
-	Input(TaskManager & tm, SceneManager & sm, EventHandler & eh);
+	Input(TaskManager & tm, SceneManager & sm);
 	~Input();
 
 	bool Load();
@@ -30,7 +30,7 @@ public:
 
 	void ChangeInput();
 private:
-
+	bool buttonHeld = false;
 };
 
 #endif // !_INPUT_H

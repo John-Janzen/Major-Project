@@ -14,7 +14,7 @@ class TestSystem :
 	public System
 {
 public:
-	TestSystem(TaskManager & tm, SceneManager & sm, EventHandler & eh);
+	TestSystem(TaskManager & tm, SceneManager & sm);
 	~TestSystem();
 
 	bool Load();

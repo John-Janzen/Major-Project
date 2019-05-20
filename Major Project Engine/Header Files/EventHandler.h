@@ -13,8 +13,11 @@ enum EventType
 	NULL_TYPE,
 	GAME_CLOSED,
 	OPEN_DEBUGGER,
-	FIND_TRANSFORM,
-	GET_COMPONENT_LIST
+	RENDER_FINISHED,
+	STATE_CHANGE,
+	LEFT_MOUSE_BUTTON,
+	RENDER_NEW_OBJECT,
+	PHYSICS_NEW_OBJECT
 };
 
 class EventListener
@@ -40,8 +43,14 @@ private:
 class EventHandler
 {
 public:
-	EventHandler() {}
+	
 	~EventHandler() {}
+
+	static EventHandler & Instance()
+	{
+		static EventHandler inst;
+		return inst;
+	}
 
 	void SendEvent(const EventType & e, void * data = nullptr)
 	{
@@ -72,6 +81,8 @@ public:
 	}
 
 private:
+	EventHandler() {}
+
 	typedef std::list<EventListener*> * Listeners;
 	std::map<EventType, Listeners> event_map;
 };

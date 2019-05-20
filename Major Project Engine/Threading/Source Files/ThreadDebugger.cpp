@@ -114,6 +114,10 @@ void ThreadDebugger::ColorByID(const Job::JOB_ID & id, DataPoints::Color & color
 {
 	switch (id / JOB_STRIDE)
 	{
+	case Job::JOB_MAIN:
+		color.r = color.g = 255;
+		color.b = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(Job::JOB_MAIN_COUNT - Job::JOB_MAIN_DEFAULT)) * 255);
+		break;
 	case Job::JOB_RENDER:
 		color.r = 255;
 		color.g = color.b = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(Job::JOB_RENDER_COUNT - Job::JOB_RENDER_DEFAULT)) * 255);

@@ -1,7 +1,7 @@
 #include "TestSystem.h"
 
-TestSystem::TestSystem(TaskManager & tm, SceneManager & sm, EventHandler & eh)
-	: System(tm, sm, eh)
+TestSystem::TestSystem(TaskManager & tm, SceneManager & sm)
+	: System(tm, sm)
 {}
 
 TestSystem::~TestSystem() 

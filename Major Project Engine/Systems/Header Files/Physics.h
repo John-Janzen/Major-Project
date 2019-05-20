@@ -5,12 +5,13 @@
 #include <btBulletDynamicsCommon.h>
 #include <stdio.h>
 #include <exception>
+#include <mutex>
 
 class Physics :
 	public System
 {
 public:
-	Physics(TaskManager & tm, SceneManager & sm, EventHandler & eh);
+	Physics(TaskManager & tm, SceneManager & sm);
 	~Physics();
 
 	bool Load();
@@ -24,7 +25,10 @@ public:
 
 private:
 
+	std::mutex dworld_lock;
 	JOB_RETURN ComponentUpdate(void * ptr);
+
+	JOB_RETURN LoadSingleComponent(void * ptr);
 
 	btDefaultCollisionConfiguration * collisionConfiguration;
 	btCollisionDispatcher * dispatcher;

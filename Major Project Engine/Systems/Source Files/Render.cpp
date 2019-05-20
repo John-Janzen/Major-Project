@@ -9,19 +9,21 @@ glm::mat4 getGLMMatrix4(const btScalar * matrix)
 		matrix[12], matrix[13], matrix[14], matrix[15]);
 }
 
-Render::Render(TaskManager & tm, SceneManager & sm, EventHandler & eh)
-	: System(tm, sm, eh)
+Render::Render(TaskManager & tm, SceneManager & sm)
+	: System(tm, sm)
 {
 	_models = new Storage<Model>();
 	_shaders = new Storage<Shader>();
 	_textures = new Storage<Texture>();
 
+	EventHandler::Instance().SubscribeEvent(EventType::RENDER_NEW_OBJECT, this);
+
 	// Jobs that need to wait on other jobs go here
-	/*{
-		m_task.dictionary.emplace(Job::JOB_RENDER_UPDATE, std::vector<Job::JOB_ID>());
-		m_task.dictionary[Job::JOB_RENDER_UPDATE].emplace_back(Job::JOB_PHYSICS_UPDATE);
-		m_task.dictionary[Job::JOB_RENDER_UPDATE].emplace_back(Job::JOB_PHYSICS_COMPONENT);
-	}*/
+	{
+		m_task.dictionary.emplace(Job::JOB_RENDER_LOAD_SINGLE, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_RENDER_LOAD_SINGLE].emplace_back(Job::JOB_RENDER_UPDATE);
+		//m_task.dictionary[Job::JOB_RENDER_UPDATE].emplace_back(Job::JOB_PHYSICS_COMPONENT);
+	}
 }
 
 bool Render::InitSystem(SDL_Window * window)
@@ -77,12 +79,19 @@ bool Render::Load()
 	return true;
 }
 
-
 void Render::Close(void* content) {}
 
 void Render::HandleEvent(const EventType & e, void * data)
 {
-
+	switch (e)
+	{
+	case EventType::RENDER_NEW_OBJECT:
+		m_task.RegisterJob(new Job(bind_function(&Render::LoadSingleComponent, this), "Load_Single_Render", data, Job::JOB_RENDER_LOAD_SINGLE), false);
+		//EventHandler::Instance().SendEvent(EventType::OPEN_DEBUGGER);
+		break;
+	default:
+		break;
+	}
 }
 
 void Render::InitUpdate()
@@ -96,38 +105,40 @@ void Render::ComponentUpdate(RenderComponent * rc, const Transform & trans)
 	Model * model_ptr = rc->GetModel();
 	Shader * shader_ptr = rc->GetShader();
 	Texture * texture_ptr = rc->GetTexture();
-
-	glBindVertexArray(rc->GetVertexArray());
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
-
-	glUseProgram(shader_ptr->shade_prog);
-
-	if (rc->GetTexture() != nullptr && rc->GetTexture()->TextureID != 0)
+	if (model_ptr != nullptr && shader_ptr != nullptr && texture_ptr != nullptr)
 	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, rc->GetTexture()->TextureID);
-		glUniform4f(shader_ptr->r_color_vec4_loc, rc->GetColor().x, rc->GetColor().y, rc->GetColor().z, rc->GetColor().w);
+		glBindVertexArray(rc->GetVertexArray());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model_ptr->elem_buff_obj);
+
+		glUseProgram(shader_ptr->shade_prog);
+
+		if (rc->GetTexture() != nullptr && rc->GetTexture()->TextureID != 0)
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, rc->GetTexture()->TextureID);
+			glUniform4f(shader_ptr->r_color_vec4_loc, rc->GetColor().x, rc->GetColor().y, rc->GetColor().z, rc->GetColor().w);
+		}
+		else
+		{
+			glm::vec4 _color = glm::vec4(1.0f, 0.411f, 0.705f, 1.0f);
+			glUniform4f(shader_ptr->r_color_vec4_loc, _color.x, _color.y, _color.z, _color.w);
+		}
+
+		glUniform1i(shader_ptr->r_text_unit, 0);
+		glUniform4f(shader_ptr->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		btScalar matrix[16];
+		trans._transform.getOpenGLMatrix(matrix);
+
+		glUniformMatrix4fv(shader_ptr->r_project_mat4_loc, 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
+		glUniformMatrix4fv(shader_ptr->r_model_mat4_loc, 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
+		glDrawElements(GL_TRIANGLES, model_ptr->ISize, GL_UNSIGNED_INT, NULL);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glBindVertexArray(0);
+		glUseProgram(0);
 	}
-	else
-	{
-		glm::vec4 _color = glm::vec4(1.0f, 0.411f, 0.705f, 1.0f);
-		glUniform4f(shader_ptr->r_color_vec4_loc, _color.x, _color.y, _color.z, _color.w);
-	}
-
-	glUniform1i(shader_ptr->r_text_unit, 0);
-	glUniform4f(shader_ptr->r_text_color, 1.0f, 1.0f, 1.0f, 1.0f);
-
-	btScalar matrix[16];
-	trans._transform.getOpenGLMatrix(matrix);
-
-	glUniformMatrix4fv(shader_ptr->r_project_mat4_loc, 1, GL_FALSE, glm::value_ptr(projection_look_matrix));
-	glUniformMatrix4fv(shader_ptr->r_model_mat4_loc, 1, GL_FALSE, glm::value_ptr(getGLMMatrix4(matrix)));
-	glDrawElements(GL_TRIANGLES, model_ptr->ISize, GL_UNSIGNED_INT, NULL);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glBindVertexArray(0);
-	glUseProgram(0);
 }
 
 JOB_RETURN Render::Update(void * ptr)
@@ -142,6 +153,25 @@ JOB_RETURN Render::Update(void * ptr)
 		}
 	}
 	this->SwapBuffers();
+	return JOB_COMPLETED;
+}
+
+JOB_RETURN Render::LoadSingleComponent(void * ptr)
+{
+	//assert(dynamic_cast<RenderComponent*>(ptr));
+	auto obj = static_cast<RenderComponent*>(ptr);
+	{
+		if (!_models->HasItem(obj->GetModelPath(), obj->GetModelAdd()))
+			m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", obj, Job::JOB_LOAD_MODEL));
+		else
+			this->GenerateVAO(obj);
+
+		if (!_shaders->HasItem(obj->GetShaderPath(), obj->GetShaderAdd()))
+			m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", obj, Job::JOB_LOAD_SHADER));
+
+		if (!_textures->HasItem(obj->GetTexturePath(), obj->GetTextureAdd()))
+			m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", obj, Job::JOB_LOAD_TEXTURE));
+	}
 	return JOB_COMPLETED;
 }
 
@@ -279,17 +309,7 @@ JOB_RETURN Render::BindModel(void * ptr)
 			auto render = static_cast<RenderComponent*>(rc_cp);
 			if (render->GetModel() == model_ptr)
 			{
-				glGenVertexArrays(1, &render->GetVertexArray());
-				glBindVertexArray(render->GetVertexArray());
-
-				glBindBuffer(GL_ARRAY_BUFFER, render->GetModel()->vert_buff_obj);
-
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
-				glEnableVertexAttribArray(0);
-				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
-				glEnableVertexAttribArray(1);
-				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(5 * sizeof(GL_FLOAT)));
-				glEnableVertexAttribArray(2);
+				this->GenerateVAO(render);
 			}
 		}
 	}
@@ -300,6 +320,21 @@ JOB_RETURN Render::BindModel(void * ptr)
 	}
 
 	return JOB_COMPLETED;
+}
+
+void Render::GenerateVAO(RenderComponent * const render)
+{
+	glGenVertexArrays(1, &render->GetVertexArray());
+	glBindVertexArray(render->GetVertexArray());
+
+	glBindBuffer(GL_ARRAY_BUFFER, render->GetModel()->vert_buff_obj);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), 0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GL_FLOAT)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(5 * sizeof(GL_FLOAT)));
+	glEnableVertexAttribArray(2);
 }
 
 JOB_RETURN Render::BindTexture(void * ptr)

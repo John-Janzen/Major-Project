@@ -1,8 +1,7 @@
 #include "ThreadManager.h"
 
-
-ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*>& queue)
-	: task_queue(queue) 
+ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*> & queue)
+	: task_queue(queue)
 {
 	num_of_threads = size;
 	std::string name;
@@ -13,24 +12,26 @@ ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*>& queue)
 		{
 		case 0:
 			name = "Albert";
-			type = Thread::RENDER_THREAD;
-			rthread_num = i;
-			t_queues[i] = new BlockingQueue<Job*>(render_thread);
+			type = Thread::MAIN_THREAD;
+			mt_loc = i;
+			t_queues[i] = new BlockingQueue<Job*>(cv_main);
 			break;
 		case 1:
 			name = "Curie";
-			t_queues[i] = new BlockingQueue<Job*>(any_thread);
+			type = Thread::RENDER_THREAD;
+			rt_loc = i;
+			t_queues[i] = new BlockingQueue<Job*>(cv_render);
 			break;
 		case 2:
 			name = "Newton";
-			t_queues[i] = new BlockingQueue<Job*>(any_thread);
+			t_queues[i] = new BlockingQueue<Job*>(cv_any);
 			break;
 		case 3:
 			name = "Dennis";
-			t_queues[i] = new BlockingQueue<Job*>(any_thread);
+			t_queues[i] = new BlockingQueue<Job*>(cv_any);
 			break;
 		default:
-			t_queues[i] = new BlockingQueue<Job*>(any_thread);
+			t_queues[i] = new BlockingQueue<Job*>(cv_any);
 			break;
 		}
 		threads[i] = new Thread(this, *t_queues[i], name, type);
@@ -53,8 +54,7 @@ ThreadManager::~ThreadManager()
 
 void ThreadManager::Close()
 {
-	StopThreads();
-	//PrintJobs();
+	this->StopThreads();
 }
 
 bool ThreadManager::HasJobs() 
@@ -86,28 +86,35 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 
 	while (!task_queue.Empty())
 	{
-		switch (task_queue.Front()->j_type / JOB_STRIDE)
+		Job * temp = task_queue.Front();
+
+		switch (temp->j_type / JOB_STRIDE)
 		{
+		case Job::JOB_MAIN:
+			{
+				t_queues[mt_loc]->Emplace(temp);
+				task_queue.Pop();
+				
+				cv_main.notify_one();
+				break;
+			}
 		case Job::JOB_RENDER:
 			{
-				Job * temp = task_queue.Front();
-				t_queues[rthread_num]->Emplace(temp);
+				t_queues[rt_loc]->Emplace(temp);
 				task_queue.Pop();
-				render_thread.notify_one();
+
+				cv_render.notify_one();
 				break;
 			}
 		default:
 			{
-				Job * temp = task_queue.Front();
 				t_queues[count]->Emplace(temp);
 				task_queue.Pop();
-
-				//if (count == 1) render_thread.notify_one();
-
+				
 				if (count >= num_of_threads - 1) count = 1;
 				else count++;
 
-				any_thread.notify_one();
+				t_queues[count]->Alert();
 				break;
 			}
 		}
@@ -131,6 +138,7 @@ void ThreadManager::NewFrame()
 			t->ClearLogger();
 		
 	t_framestart = std::chrono::high_resolution_clock::now();
+
 }
 
 void ThreadManager::StopThreads()

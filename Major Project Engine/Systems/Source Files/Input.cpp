@@ -1,6 +1,6 @@
 #include "Input.h"
 
-Input::Input(TaskManager & tm, SceneManager & sm, EventHandler & eh) : System(tm, sm, eh) {}
+Input::Input(TaskManager & tm, SceneManager & sm) : System(tm, sm) {}
 
 Input::~Input() {}
 
@@ -32,12 +32,12 @@ JOB_RETURN Input::WindowControls(void * ptr)
 	switch (sdl_event->type)
 	{
 	case SDL_QUIT:
-		h_event.SendEvent(EventType::GAME_CLOSED);
+		//h_event.SendEvent(EventType::GAME_CLOSED);
 		break;
 	case SDL_WINDOWEVENT:
 		if (sdl_event->window.event == SDL_WINDOWEVENT_CLOSE)
 		{
-			h_event.SendEvent(EventType::GAME_CLOSED);
+			//h_event.SendEvent(EventType::GAME_CLOSED);
 			break;
 		}
 		break;
@@ -46,10 +46,10 @@ JOB_RETURN Input::WindowControls(void * ptr)
 		switch (sdl_event->key.keysym.scancode)
 		{
 		case SDL_SCANCODE_ESCAPE:
-			h_event.SendEvent(EventType::GAME_CLOSED);
+			//h_event.SendEvent(EventType::GAME_CLOSED);
 			break;
 		case SDL_SCANCODE_T:
-			h_event.SendEvent(EventType::OPEN_DEBUGGER);
+			//h_event.SendEvent(EventType::OPEN_DEBUGGER);
 			break;
 		default:
 			break;
@@ -79,11 +79,20 @@ void Input::PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_c
 {
 	if (pc_cp->GetType() == CONTROL_TYPE::MOUSE_KEYBOARD)
 	{
-		const Uint8 * keystate = SDL_GetKeyboardState(NULL);
-		if (keystate[SDL_SCANCODE_W]) transform->_transform.getOrigin() += (btVector3(0.f, 0.f, -10.f) * btScalar(_dt));
-		if (keystate[SDL_SCANCODE_A]) transform->_transform.getOrigin() += (btVector3(-10.f, 0.f, 0.f) * btScalar(_dt));
-		if (keystate[SDL_SCANCODE_S]) transform->_transform.getOrigin() += (btVector3(0.f, 0.f, 10.f) * btScalar(_dt));
-		if (keystate[SDL_SCANCODE_D]) transform->_transform.getOrigin() += (btVector3(10.f, 0.f, 0.f) * btScalar(_dt));
+		int x, y;
+		Uint32 mouse_state = SDL_GetMouseState(&x, &y);
+		if (mouse_state == SDL_BUTTON_LEFT && !buttonHeld)
+		{
+			EventHandler::Instance().SendEvent(EventType::LEFT_MOUSE_BUTTON);
+			buttonHeld = true;
+		}
+		if (buttonHeld && mouse_state != SDL_BUTTON_LEFT) buttonHeld = false;
+
+		const Uint8 * key_state = SDL_GetKeyboardState(NULL);
+		if (key_state[SDL_SCANCODE_W]) transform->_transform.getOrigin() += (btVector3(0.f, 0.f, -10.f) * btScalar(_dt));
+		if (key_state[SDL_SCANCODE_A]) transform->_transform.getOrigin() += (btVector3(-10.f, 0.f, 0.f) * btScalar(_dt));
+		if (key_state[SDL_SCANCODE_S]) transform->_transform.getOrigin() += (btVector3(0.f, 0.f, 10.f) * btScalar(_dt));
+		if (key_state[SDL_SCANCODE_D]) transform->_transform.getOrigin() += (btVector3(10.f, 0.f, 0.f) * btScalar(_dt));
 	}
 	else if (pc_cp->GetType() == CONTROL_TYPE::XBOX_CONTROLLER)
 	{
