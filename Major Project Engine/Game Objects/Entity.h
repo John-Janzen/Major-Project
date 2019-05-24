@@ -4,6 +4,7 @@
 #define _ENTITY_H
 
 #include <string>
+#include <vector>
 
 typedef std::uint16_t EntityID;
 
@@ -18,6 +19,7 @@ public:
 	std::string _name;
 	EntityID _id;
 	bool death_flag;
+	std::vector<EntityID> _childs;
 };
 
 

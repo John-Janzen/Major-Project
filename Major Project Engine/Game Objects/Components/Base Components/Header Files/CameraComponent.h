@@ -5,28 +5,21 @@
 
 #include "BaseComponent.h"
 
-#include <GL/glew.h>
-#include <glm.hpp>
-#include <gtc\matrix_transform.hpp>
-#include <gtx\euler_angles.hpp>
-#include <gtc\type_ptr.hpp>
+#include <LinearMath\btVector3.h>
 
-class CameraComponent :
+struct CameraComponent :
 	public BaseComponent
 {
-public:
-	CameraComponent(const std::uint16_t & id);
-	~CameraComponent();
+	CameraComponent(const std::uint16_t & id, btVector3 pos = btVector3(0.f, 0.f, 0.f), btVector3 aim = btVector3(0.f, 0.f, -1.f))
+		: BaseComponent(id), 
+		_aim(aim), 
+		_eye(pos)
+	{}
+	~CameraComponent() {}
 
-private:
-	
+	btScalar _fov = 60.f;
+	btScalar _near = 0.1f, _far = 1000.f;
+	btVector3 _eye, _aim, _up = btVector3(0.f, 1.f, 0.f);
 };
-
-inline CameraComponent::CameraComponent(const std::uint16_t & id)
-	: BaseComponent(id)
-{
-}
-
-inline CameraComponent::~CameraComponent() {}
 
 #endif // !_CAMERACOMPONENT_H

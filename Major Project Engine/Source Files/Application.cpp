@@ -76,29 +76,39 @@ bool Application::RunApplication()
 			switch (sdl_event.type)
 			{
 			case SDL_QUIT:
-				EventHandler::Instance().SendEvent(EventType::GAME_CLOSED);
+				//EventHandler::Instance().SendEvent(EventType::GAME_CLOSED);
+				_state = EXITING;
 				break;
 			case SDL_WINDOWEVENT:
 				if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
 				{
-					EventHandler::Instance().SendEvent(EventType::GAME_CLOSED);
+					//EventHandler::Instance().SendEvent(EventType::GAME_CLOSED);
+					_state = EXITING;
 					break;
 				}
 				break;
 			case SDL_KEYDOWN:
-			{
 				switch (sdl_event.key.keysym.scancode)
 				{
 				case SDL_SCANCODE_ESCAPE:
-					EventHandler::Instance().SendEvent(EventType::GAME_CLOSED);
+					if (SDL_GetRelativeMouseMode())
+						SDL_SetRelativeMouseMode(SDL_FALSE);
+					else
+						SDL_SetRelativeMouseMode(SDL_TRUE);
 					break;
 				case SDL_SCANCODE_T:
-					EventHandler::Instance().SendEvent(EventType::OPEN_DEBUGGER);
+					//EventHandler::Instance().SendEvent(EventType::OPEN_DEBUGGER);
+					_state = DEBUG_LOAD;
 					break;
 				default:
 					break;
 				}
+				break;
+			case SDL_MOUSEMOTION:
+			{
+
 			}
+				break;
 			default:
 				break;
 			}
@@ -106,6 +116,8 @@ bool Application::RunApplication()
 	}
 		break;
 	case DEBUG_LOAD:
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+		//SDL_ShowCursor(1);
 		m_thread.ShowDebugger();
 		_state = DEBUG_RUN;
 		break;
@@ -146,6 +158,8 @@ bool Application::RunApplication()
 		break;
 	}
 	case DEBUG_CLOSE:
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+		//SDL_ShowCursor(0);
 		m_thread.HideDebugger();
 		_state = PLAYING;
 		break;
@@ -200,7 +214,9 @@ bool Application::InitApp()
 	test_system = new TestSystem(m_task, m_scene);
 
 	renderer->InitSystem(this->CreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT));
-
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+	//auto s = SDL_GetDefaultCursor();
+	//SDL_ShowCursor(0);
 	this->LoadScene(MAIN_SCENE);
 
 	Initialized = true;
@@ -235,7 +251,7 @@ JOB_RETURN Application::GameLoop(void * ptr)
 	{
 		m_task.RegisterJob(new Job(bind_function(&Render::Update, renderer), "Render_Update", &m_scene.GetComponents(SceneManager::RENDER), Job::JOB_RENDER_UPDATE), true);
 
-		m_task.RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", &m_scene.GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_UPDATE), false);
+		m_task.RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", &m_scene.GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_UPDATE), true);
 
 		m_task.RegisterJob(new Job(bind_function(&Input::Update, input), "Input_Update", &m_scene.GetComponents(SceneManager::CONTROLLER), Job::JOB_INPUT_UPDATE), false);
 	}

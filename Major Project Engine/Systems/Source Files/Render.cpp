@@ -64,16 +64,19 @@ Render::~Render()
 
 bool Render::Load()
 {
-
-	projection_matrix = glm::perspective(glm::radians(_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, _near, _far);
-	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	btScalar transform[16];
-	btTransform camera_tranform = btTransform().getIdentity();
-	//camera_tranform.setRotation(btQuaternion(0.f, 0.f, 0.f));
-	camera_tranform.setOrigin(btVector3(btScalar(0.f), btScalar(-5.f), btScalar(-25.f)));
-	camera_tranform.getOpenGLMatrix(transform);
-
-	projection_look_matrix = projection_matrix * (look_matrix *	getGLMMatrix4(transform));
+	/*projection_matrix = glm::perspective(glm::radians(_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, _near, _far);
+	look_matrix = glm::lookAtRH(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));*/
+	
+	// Initialize Camera
+	{
+		for (auto camera : m_scene.GetComponents(SceneManager::CAMERA))
+		{
+			auto obj = static_cast<CameraComponent*>(camera);
+			{
+				projection_matrix = glm::perspective(glm::radians(obj->_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, obj->_near, obj->_far);
+			}
+		}
+	}
 
 	m_task.RegisterJob(new Job(bind_function(&Render::LoadComponents, this), "Render_Component_Loader", &m_scene.GetComponents(SceneManager::RENDER), Job::JOB_RENDER_LOAD));
 	return true;
@@ -87,7 +90,6 @@ void Render::HandleEvent(const EventType & e, void * data)
 	{
 	case EventType::RENDER_NEW_OBJECT:
 		m_task.RegisterJob(new Job(bind_function(&Render::LoadSingleComponent, this), "Load_Single_Render", data, Job::JOB_RENDER_LOAD_SINGLE), false);
-		//EventHandler::Instance().SendEvent(EventType::OPEN_DEBUGGER);
 		break;
 	default:
 		break;
@@ -98,6 +100,35 @@ void Render::InitUpdate()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+	
+	/*auto obj = static_cast<Transform*>(m_scene.FindComponent(SceneManager::CAMERA, m_scene.Camera->_id));
+	{
+		btScalar z, y, x;
+		obj->_transform.getRotation().getEulerZYX(z, y, x);
+		auto translate = obj->_transform.getOrigin();
+
+		glm::mat4 matrix = glm::eulerAngleXYZ(x, y, z);
+		matrix = glm::translate(matrix, glm::vec3(translate.x(), translate.y(), translate.z()));
+
+		projection_look_matrix = projection_matrix * (look_matrix *	matrix);
+	}*/
+	for (auto camera : m_scene.GetComponents(SceneManager::CAMERA))
+	{
+		auto obj = static_cast<CameraComponent*>(camera);
+		{
+			auto transform = static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, camera->_id))->_transform;
+			{
+				auto position = transform * obj->_eye;
+				auto direction = transform.getBasis() * (position + obj->_aim);
+
+				look_matrix = glm::lookAtRH(
+					glm::vec3(position.x(), position.y(), position.z()),
+					glm::vec3(direction.x(), direction.y(), direction.z()),
+					glm::vec3(obj->_up.x(), obj->_up.y(), obj->_up.z()));
+			}
+			projection_look_matrix = projection_matrix * look_matrix;
+		}
+	}
 }
 
 void Render::ComponentUpdate(RenderComponent * rc, const Transform & trans)
@@ -144,7 +175,6 @@ void Render::ComponentUpdate(RenderComponent * rc, const Transform & trans)
 JOB_RETURN Render::Update(void * ptr)
 {
 	this->InitUpdate();
-
 	for (auto & it : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
 		assert(dynamic_cast<RenderComponent*>(it));

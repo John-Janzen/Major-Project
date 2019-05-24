@@ -80,14 +80,7 @@ void Physics::HandleEvent(const EventType & e, void * data)
 
 JOB_RETURN Physics::PreUpdate(void * ptr)
 {
-	for (auto & input : *static_cast<std::vector<BaseComponent*>*>(ptr))
-	{
-		auto obj = static_cast<PhysicsComponent*>(m_scene.FindComponent(SceneManager::PHYSICS, input->_id));
-		{
-			obj->GetRigidBody()->getMotionState()->setWorldTransform(static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, input->_id))->_transform);
-			obj->GetRigidBody()->activate(true);
-		}
-	}
+	
 	{
 		std::lock_guard<std::mutex> lock(dworld_lock);
 		dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime(), 0, 0);
@@ -105,6 +98,15 @@ JOB_RETURN Physics::Update(void * ptr)
 	int remainder = PVector->size() % Breakdown;
 
 	int x, y;
+
+	for (auto & input : *static_cast<std::vector<BaseComponent*>*>(ptr))
+	{
+		auto obj = static_cast<PhysicsComponent*>(m_scene.FindComponent(SceneManager::PHYSICS, input->_id));
+		{
+			obj->GetRigidBody()->getMotionState()->setWorldTransform(static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, input->_id))->_transform);
+			obj->GetRigidBody()->activate(true);
+		}
+	}
 
 	if (num > Breakdown)
 	{

@@ -10,11 +10,11 @@ bool MainScene::Load(SceneManager & sm)
 	//m_entities->CreateEntity<Quad>("Quad")->Load(m_components);
 	//this->LoadCamera();
 	std::cout << "Number of Multi-Objects being created: " << NUM_MULTI_OBJECTS * NUM_MULTI_OBJECTS * NUM_MULTI_OBJECTS << std::endl;
-	//this->LoadQuad(sm);
+	this->LoadQuad(sm);
+	this->LoadPlayer(sm);
 	this->LoadFloor(sm);
 	this->LoadWalls(sm);
-	this->LoadPlayer(sm);
-	for (int i = 0; i < NUM_MULTI_OBJECTS; i++)
+	/*for (int i = 0; i < NUM_MULTI_OBJECTS; i++)
 	{
 		for (int j = 0; j < NUM_MULTI_OBJECTS; j++)
 		{
@@ -23,18 +23,13 @@ bool MainScene::Load(SceneManager & sm)
 				this->LoadMultiObject(sm, ((i * 3) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((j * 3) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((k * 3) - (NUM_MULTI_OBJECTS - 1) * 1.5));
 			}
 		}
-	}
+	}*/
 	return true;
 }
 
 bool MainScene::LoadCamera(SceneManager & sm)
 {
-	/*Entity * camera = m_entities->CreateEntity<Camera>("Camera", _camera);
-	m_components->AddComponent(camera->_id, new Transform(
-		btQuaternion(btScalar(0.f), btScalar(0.5f), btScalar(0.f)), 
-		btVector3(btScalar(0.f), btScalar(0.f), btScalar(-20.f))));
-	m_components->AddComponent(camera->_id, new PlayerControllerComponent());
-	m_components->AddComponent(camera->_id, new CameraComponent());*/
+	
 	return true;
 }
 
@@ -83,12 +78,12 @@ bool MainScene::LoadFloor(SceneManager & sm)
 
 bool MainScene::LoadPlayer(SceneManager & sm)
 {
-	//Entity * player = m_entities->CreateEntity<Player>("Player", _player1_ID);
-	Entity * & player = sm.CreateEntity("Player");
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(player->_id, btVector3(btScalar(0.f), btScalar(2.f), btScalar(30.f))));
-	sm.AddComponent(SceneManager::PHYSICS, new PlayerPhysicsComponent(player->_id));
-	sm.AddComponent(SceneManager::RENDER, new PlayerRenderComponent(player->_id));
-	sm.AddComponent(SceneManager::CONTROLLER, new PlayerControllerComponent(player->_id));
+	sm.Player = sm.CreateEntity("Player");
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(sm.Player->_id, btVector3(btScalar(0.f), btScalar(2.f), btScalar(10.f))));
+	sm.AddComponent(SceneManager::CAMERA, new CameraComponent(sm.Player->_id, btVector3(0.f, 2.f, 0.f), btVector3(0.f, 0.f, -2.f)));
+	sm.AddComponent(SceneManager::PHYSICS, new PlayerPhysicsComponent(sm.Player->_id));
+	sm.AddComponent(SceneManager::RENDER, new PlayerRenderComponent(sm.Player->_id));
+	sm.AddComponent(SceneManager::CONTROLLER, new PlayerControllerComponent(sm.Player->_id));
 	return true;
 }
 

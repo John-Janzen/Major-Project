@@ -9,5 +9,6 @@
 #include "SphereComponents.h"
 #include "QuadRenderComponent.h"
 #include "WallPhysicsComponent.h"
+#include "CameraComponent.h"
 
 #endif // !_GAMECOMPONENTS_H

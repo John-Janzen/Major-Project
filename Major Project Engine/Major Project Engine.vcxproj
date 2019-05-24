@@ -38,9 +38,9 @@
     <ClCompile Include="Managers\Source Files\TaskManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\CameraComponent.h" />
     <ClInclude Include="Game Objects\Components\Game Components\Header Files\FloorComponents.h" />
     <ClInclude Include="Header Files\EventHandler.h" />
-    <ClInclude Include="Game Objects\Components\Base Components\Header Files\CameraComponent.h" />
     <ClInclude Include="Game Objects\Components\Base Components\Header Files\ComponentHeaders.h" />
     <ClInclude Include="Game Objects\Components\Game Components\Header Files\GameComponents.h" />
     <ClInclude Include="Header Files\FileLoader.h" />

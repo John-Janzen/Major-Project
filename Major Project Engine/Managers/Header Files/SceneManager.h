@@ -21,6 +21,7 @@ public:
 		PHYSICS,
 		RENDER,
 		CONTROLLER,
+		CAMERA,
 		COUNT
 	};
 
@@ -56,6 +57,18 @@ public:
 	{
 		p_scene = scene;
 		scene->Load(*this);
+	}
+
+	Entity * FindEntity(const EntityID & id)
+	{
+		for (auto & ent : _entities)
+		{
+			if (ent->_id == id)
+			{
+				return ent;
+			}
+		}
+		return nullptr;
 	}
 
 	void AddComponent(const CompTypes & type, BaseComponent * && base)
@@ -103,6 +116,8 @@ public:
 		count_ent++;
 		return _entities[count_ent - 1];
 	}
+
+	Entity * Player;
 
 private:
 	static int id_count;

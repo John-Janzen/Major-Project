@@ -5,7 +5,6 @@
 
 #include "RenderComponent.h"
 #include "PlayerControllerComponent.h"
-#include "CameraComponent.h"
 #include "PhysicsComponent.h"
 #include "Transform.h"
 

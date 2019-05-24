@@ -23,7 +23,7 @@ struct PlayerRenderComponent :
 		model_path = std::string("Assets/Models/capsule.obj");
 		vertex_shader_path = std::string("Assets/Shaders/default_V_shader.glvs");
 		fragment_shader_path = std::string("Assets/Shaders/default_F_shader.glfs");
-		texture_path = std::string("Assets/Textures/Color_Checker.png");
+		texture_path = std::string("Assets/Textures/Test_Checker.png");
 	}
 	~PlayerRenderComponent() {}
 };
@@ -33,7 +33,7 @@ inline PlayerPhysicsComponent::PlayerPhysicsComponent(const std::uint16_t & id)
 {
 	//shape = new btBoxShape(btVector3(btScalar(1.f), btScalar(1.f), btScalar(1.f)));
 	//shape = new btSphereShape(btScalar(1.f));
-	shape = new btCapsuleShape(1.f, 4.f);
+	shape = new btCapsuleShape(1.f, 3.f);
 	mass = btScalar(10.f);
 	local_inertia = btVector3(0.f, 0.f, 0.f);
 

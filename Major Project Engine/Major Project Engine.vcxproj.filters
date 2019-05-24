@@ -140,9 +140,6 @@
     <ClInclude Include="Game Objects\Components\Base Components\Header Files\BaseComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Game Objects\Components\Base Components\Header Files\CameraComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Game Objects\Components\Base Components\Header Files\ComponentHeaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -177,6 +174,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Game Objects\Components\Game Components\Header Files\SphereComponents.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Game Objects\Components\Base Components\Header Files\CameraComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -33,8 +33,6 @@ public:
 
 	JOB_RETURN Update(void * ptr);
 
-
-
 	void SwapBuffers() { SDL_GL_SwapWindow(sdl_window); }
 
 private:
@@ -66,8 +64,6 @@ private:
 	glm::mat4 projection_matrix;
 	glm::mat4 look_matrix;
 
-	GLfloat _fov = 60.0f;
-	GLfloat _near = 0.1f, _far = 1000.0f;
 	int SCREEN_WIDTH;
 	int SCREEN_HEIGHT;
 
