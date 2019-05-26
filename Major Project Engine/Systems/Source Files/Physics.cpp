@@ -7,7 +7,7 @@ Physics::Physics(TaskManager & tm, SceneManager & sm)
 	dispatcher = new btCollisionDispatcher(collisionConfiguration);
 
 	overlappingPairCache = new btDbvtBroadphase();
-	solver = new btSequentialImpulseConstraintSolver;
+	solver = new btSequentialImpulseConstraintSolver();
 
 	dynamicWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 	dynamicWorld->setGravity(btVector3(0, -9.8, 0));
@@ -86,6 +86,17 @@ JOB_RETURN Physics::PreUpdate(void * ptr)
 		dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime(), 0, 0);
 	}
 
+	int num = dynamicWorld->getDispatcher()->getNumManifolds();
+	for (int i = 0; i < num; i++)
+	{
+		btPersistentManifold * p_manifold = dynamicWorld->getDispatcher()->getManifoldByIndexInternal(i);
+		const btCollisionObject * object1 = p_manifold->getBody0();
+		const btCollisionObject * object2 = p_manifold->getBody1();
+		if (object1->getCollisionShape()->isNonMoving() && object2->getCollisionShape()->isNonMoving())
+		{
+
+		}
+	}
 	return JOB_COMPLETED;
 }
 

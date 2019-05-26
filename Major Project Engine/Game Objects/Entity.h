@@ -8,18 +8,27 @@
 
 typedef std::uint16_t EntityID;
 
+enum EntityType
+{
+	DEFAULT,
+	PLAYER,
+	MULTIOBJECT,
+	WALLSFLOOR,
+	BULLET,
+	COUNT
+};
+
 struct Entity
 {
-public:
-	Entity(const std::string & name, EntityID id) 
+	Entity(const std::string & name, const EntityID & id, const EntityType & type) 
 		: _name(name), _id(id), death_flag(false) 
 	{}
 	~Entity() {}
 
 	std::string _name;
 	EntityID _id;
+	EntityType entity;
 	bool death_flag;
-	std::vector<EntityID> _childs;
 };
 
 

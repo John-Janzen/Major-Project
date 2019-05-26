@@ -10,6 +10,7 @@
 
 #define DEG_TO_RAD 0.01745329;
 #define RAD_TO_DEG 57.29578;
+#define MIN_UPWARDS_TILT_DEG 1.0;
 
 class Input :
 	public System
@@ -31,10 +32,12 @@ public:
 	void ChangeInput();
 private:
 
-	void PlayerControls(const GLfloat & _dt, PlayerControllerComponent * pc_cp, Transform * transform);
+	void PlayerControls(PlayerControllerComponent * pc_cp, Transform * transform);
 
 	const float player_speed = 10.f;
 	const float camera_rotation_deg = 10.f;
+
+	GLfloat rotate = 0.f;
 
 	bool buttonHeld = false;
 };

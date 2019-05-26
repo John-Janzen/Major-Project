@@ -61,8 +61,6 @@ private:
 	JOB_RETURN BindShader(void * ptr);
 
 	glm::mat4 projection_look_matrix;
-	glm::mat4 projection_matrix;
-	glm::mat4 look_matrix;
 
 	int SCREEN_WIDTH;
 	int SCREEN_HEIGHT;

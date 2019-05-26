@@ -12,7 +12,6 @@ Application::Application(const std::size_t & num_of_threads)
 
 	m_thread.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, Job::JOB_APPLICATION_UPDATE));
 	m_thread.AllocateJobs(0);
-
 }
 
 Application::~Application()
@@ -104,11 +103,6 @@ bool Application::RunApplication()
 					break;
 				}
 				break;
-			case SDL_MOUSEMOTION:
-			{
-
-			}
-				break;
 			default:
 				break;
 			}
@@ -117,7 +111,6 @@ bool Application::RunApplication()
 		break;
 	case DEBUG_LOAD:
 		SDL_SetRelativeMouseMode(SDL_FALSE);
-		//SDL_ShowCursor(1);
 		m_thread.ShowDebugger();
 		_state = DEBUG_RUN;
 		break;
@@ -141,16 +134,22 @@ bool Application::RunApplication()
 					m_thread.CheckDebugMouseLoc(sdl_event.motion);
 					break;
 				case SDL_KEYDOWN:
-				{
-					switch (sdl_event.key.keysym.scancode)
 					{
-					case SDL_SCANCODE_T:
-						_state = DEBUG_CLOSE;
-						break;
-					default:
+						switch (sdl_event.key.keysym.scancode)
+						{
+						case SDL_SCANCODE_T:
+							_state = DEBUG_CLOSE;
+							break;
+						default:
+							break;
+						}
+					}
+				case SDL_MOUSEMOTION:
+					{
+						int x, y;
+						Uint32 mouse_state = SDL_GetRelativeMouseState(&x, &y);
 						break;
 					}
-				}
 				}
 			}
 		}
@@ -159,7 +158,6 @@ bool Application::RunApplication()
 	}
 	case DEBUG_CLOSE:
 		SDL_SetRelativeMouseMode(SDL_TRUE);
-		//SDL_ShowCursor(0);
 		m_thread.HideDebugger();
 		_state = PLAYING;
 		break;
@@ -256,11 +254,11 @@ JOB_RETURN Application::GameLoop(void * ptr)
 		m_task.RegisterJob(new Job(bind_function(&Input::Update, input), "Input_Update", &m_scene.GetComponents(SceneManager::CONTROLLER), Job::JOB_INPUT_UPDATE), false);
 	}
 	
-	while (m_thread.HasJobs() || m_task.HasJobs())
+	do 
 	{
 		int num = m_task.ManageJobs();
 		m_thread.AllocateJobs(num);
-	}
+	} while (Timer::Instance().CheckTimeLimit() && (m_thread.HasJobs() || m_task.HasJobs()));
 
 	m_thread.MainThreadJob(new Job(bind_function(&Application::WaitTillNextFrame, this), "Wait_Time_For_Frame", nullptr, Job::JOB_TILL_NEXT_FRAME));
 	m_thread.AllocateJobs(1);

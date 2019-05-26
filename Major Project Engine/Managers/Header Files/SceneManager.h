@@ -38,14 +38,18 @@ public:
 		{
 		case LEFT_MOUSE_BUTTON:
 		{
-			Entity * & project = this->CreateEntity("Projectile");
-			this->AddComponent(SceneManager::TRANSFORM, new Transform(project->_id, btVector3(0.f, 10.f, 0.f)));
+			Entity * & project = this->CreateEntity("Projectile", EntityType::BULLET);
+			auto player = static_cast<BaseComponent*>(data);
+			auto transform = static_cast<Transform*>(this->FindComponent(SceneManager::TRANSFORM, player->_id))->_transform;
+			this->AddComponent(SceneManager::TRANSFORM, new Transform(project->_id, transform * btVector3(0.f, 2.f, -2.f)));
 
 			this->AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->_id));
 			EventHandler::Instance().SendEvent(EventType::RENDER_NEW_OBJECT, this->FindComponent(SceneManager::RENDER, project->_id));
 
 			this->AddComponent(SceneManager::PHYSICS, new SpherePhysicsComponent(project->_id));
-			EventHandler::Instance().SendEvent(EventType::PHYSICS_NEW_OBJECT, this->FindComponent(SceneManager::PHYSICS, project->_id));
+			auto physics = static_cast<PhysicsComponent*>(this->FindComponent(SceneManager::PHYSICS, project->_id));
+			physics->linearVelocity = transform.getBasis() * physics->linearVelocity;
+			EventHandler::Instance().SendEvent(EventType::PHYSICS_NEW_OBJECT, physics);
 		}
 			break;
 		default:
@@ -53,9 +57,8 @@ public:
 		}
 	}
 
-	void LoadScene(Scene * && scene)
+	void LoadScene(Scene * scene)
 	{
-		p_scene = scene;
 		scene->Load(*this);
 	}
 
@@ -110,20 +113,15 @@ public:
 		return nullptr;
 	}
 
-	Entity * & CreateEntity(const std::string & name)
+	Entity * & CreateEntity(const std::string & name, const EntityType & type)
 	{
-		_entities[count_ent] = new Entity(name, id_count++);
+		_entities[count_ent] = new Entity(name, id_count++, type);
 		count_ent++;
 		return _entities[count_ent - 1];
 	}
 
-	Entity * Player;
-
 private:
 	static int id_count;
-
-	Scene * p_scene;
-	
 	
 	std::uint16_t count_ent = 0;
 	std::array<std::vector<BaseComponent*>, COUNT> _components;

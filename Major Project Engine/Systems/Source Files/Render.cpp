@@ -22,7 +22,15 @@ Render::Render(TaskManager & tm, SceneManager & sm)
 	{
 		m_task.dictionary.emplace(Job::JOB_RENDER_LOAD_SINGLE, std::vector<Job::JOB_ID>());
 		m_task.dictionary[Job::JOB_RENDER_LOAD_SINGLE].emplace_back(Job::JOB_RENDER_UPDATE);
-		//m_task.dictionary[Job::JOB_RENDER_UPDATE].emplace_back(Job::JOB_PHYSICS_COMPONENT);
+
+		m_task.dictionary.emplace(Job::JOB_LOAD_MODEL, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_LOAD_MODEL].emplace_back(Job::JOB_RENDER_UPDATE);
+
+		m_task.dictionary.emplace(Job::JOB_LOAD_TEXTURE, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_LOAD_TEXTURE].emplace_back(Job::JOB_RENDER_UPDATE);
+
+		m_task.dictionary.emplace(Job::JOB_LOAD_SHADER, std::vector<Job::JOB_ID>());
+		m_task.dictionary[Job::JOB_LOAD_SHADER].emplace_back(Job::JOB_RENDER_UPDATE);
 	}
 }
 
@@ -73,7 +81,7 @@ bool Render::Load()
 		{
 			auto obj = static_cast<CameraComponent*>(camera);
 			{
-				projection_matrix = glm::perspective(glm::radians(obj->_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, obj->_near, obj->_far);
+				obj->projection = glm::perspective(glm::radians(obj->_fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, obj->_near, obj->_far);
 			}
 		}
 	}
@@ -100,33 +108,23 @@ void Render::InitUpdate()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-	
-	/*auto obj = static_cast<Transform*>(m_scene.FindComponent(SceneManager::CAMERA, m_scene.Camera->_id));
-	{
-		btScalar z, y, x;
-		obj->_transform.getRotation().getEulerZYX(z, y, x);
-		auto translate = obj->_transform.getOrigin();
 
-		glm::mat4 matrix = glm::eulerAngleXYZ(x, y, z);
-		matrix = glm::translate(matrix, glm::vec3(translate.x(), translate.y(), translate.z()));
-
-		projection_look_matrix = projection_matrix * (look_matrix *	matrix);
-	}*/
 	for (auto camera : m_scene.GetComponents(SceneManager::CAMERA))
 	{
 		auto obj = static_cast<CameraComponent*>(camera);
 		{
+			glm::mat4 look_matrix;
 			auto transform = static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, camera->_id))->_transform;
 			{
 				auto position = transform * obj->_eye;
-				auto direction = transform.getBasis() * (position + obj->_aim);
+				auto direction = position + obj->_aim;
 
 				look_matrix = glm::lookAtRH(
 					glm::vec3(position.x(), position.y(), position.z()),
 					glm::vec3(direction.x(), direction.y(), direction.z()),
 					glm::vec3(obj->_up.x(), obj->_up.y(), obj->_up.z()));
 			}
-			projection_look_matrix = projection_matrix * look_matrix;
+			projection_look_matrix = obj->projection * look_matrix;
 		}
 	}
 }

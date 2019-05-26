@@ -24,6 +24,8 @@ public:
 	btRigidBody * GetRigidBody() const { return rigid_body; }
 	void SetRigidBody(btRigidBody * rb) { rigid_body = rb; }
 
+	btVector3 linearVelocity;
+
 protected:
 	btCollisionShape * shape;
 
@@ -31,6 +33,7 @@ protected:
 	btVector3 local_inertia;
 
 	btRigidBody * rigid_body;
+
 };
 
 

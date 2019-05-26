@@ -32,7 +32,6 @@ void TaskManager::RegisterJob(JobFunction function, const std::string name, void
 		std::lock_guard<std::mutex> lock(jobs_lock);
 		num_of_jobs++;
 	}
-	
 }
 
 void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
