@@ -3,7 +3,12 @@
 ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*> & queue)
 	: task_queue(queue)
 {
-	num_of_threads = size;
+	EventHandler::Instance().SubscribeEvent(EventType::JOB_FINISHED, this);
+	EventHandler::Instance().SubscribeEvent(EventType::JOB_REENTER, this);
+	EventHandler::Instance().SubscribeEvent(EventType::NEW_FRAME, this);
+	EventHandler::Instance().SubscribeEvent(EventType::STATE_CHANGE, this);
+
+	n_threads = size;
 	std::string name;
 	for (std::size_t i = 0; i < size; i++)
 	{
@@ -34,13 +39,13 @@ ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*> & queue
 			t_queues[i] = new BlockingQueue<Job*>(cv_any);
 			break;
 		}
-		threads[i] = new Thread(this, *t_queues[i], name, type);
+		threads[i] = new Thread(*t_queues[i], name, type);
 	}
 }
 
 ThreadManager::~ThreadManager()
 {
-	for (std::size_t i = 0; i < num_of_threads; i++)
+	for (std::size_t i = 0; i < n_threads; i++)
 	{
 		delete(threads[i]);
 	}
@@ -49,6 +54,51 @@ ThreadManager::~ThreadManager()
 	{
 		delete task_queue.Front();
 		task_queue.Pop();
+	}
+}
+
+void ThreadManager::HandleEvent(const EventType & e, void * data)
+{
+	switch (e)
+	{
+	case EventType::JOB_FINISHED:
+	{
+		std::lock_guard<std::mutex> lock(finished_job);
+		jobs_to_finish--;
+		break;
+	}
+	case EventType::JOB_REENTER:
+	{
+		this->RetryJob(static_cast<Job*>(data));
+		break;
+	}
+	case EventType::NEW_FRAME:
+	{
+		this->NewFrame();
+		break;
+	}
+	case EventType::STATE_CHANGE:
+	{
+		GAME_STATE gs = *static_cast<GAME_STATE*>(data);
+
+		if (gs == DEBUG_LOAD)
+		{
+			for (auto thread : threads)
+				if (thread != nullptr)
+					thread->ToggleDebug();
+			debug_mode = 1;
+		}
+		else if (gs == DEBUG_RUN)
+		{
+			for (auto thread : threads)
+				if (thread != nullptr)
+					thread->ToggleDebug();
+			debug_mode = 0;
+		}
+		break;
+	}
+	default:
+		break;
 	}
 }
 
@@ -90,33 +140,36 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 
 		switch (temp->j_type / JOB_STRIDE)
 		{
-		case Job::JOB_MAIN:
-			{
-				t_queues[mt_loc]->Emplace(temp);
-				task_queue.Pop();
+		case job::JOB_MAIN:
+			t_queues[mt_loc]->Emplace(temp);
+			task_queue.Pop();
 				
-				cv_main.notify_one();
-				break;
-			}
-		case Job::JOB_RENDER:
-			{
-				t_queues[rt_loc]->Emplace(temp);
-				task_queue.Pop();
+			cv_main.notify_one();
+			break;
+		case job::JOB_RENDER:
+			t_queues[rt_loc]->Emplace(temp);
+			task_queue.Pop();
 
-				cv_render.notify_one();
-				break;
-			}
+			cv_render.notify_one();
+			break;
 		default:
+		{
+			int selection = 1;
+			for (int i = 1; i < n_threads; i++)
 			{
-				t_queues[count]->Emplace(temp);
-				task_queue.Pop();
-				
-				if (count >= num_of_threads - 1) count = 1;
-				else count++;
-
-				t_queues[count]->Alert();
-				break;
+				if (threads[selection]->GetAllotedTime() < threads[i]->GetAllotedTime())
+				{
+					selection = i;
+				}
 			}
+
+			//threads[selection]->AddAllotedTime(*temp->time_units);
+			t_queues[selection]->Emplace(temp);
+			task_queue.Pop();
+
+			t_queues[selection]->Alert();
+		}
+			break;
 		}
 	}
 }
@@ -133,17 +186,24 @@ void ThreadManager::PrintJobs()
 
 void ThreadManager::NewFrame()
 {
-	for (const auto & t : threads)
-		if (t != nullptr)
-			t->ClearLogger();
-		
-	t_framestart = std::chrono::high_resolution_clock::now();
-
+	if (debug_mode == 1)
+	{
+		for (const auto & t : threads)
+			if (t != nullptr)
+				t->ClearLogger();
+		t_framestart = std::chrono::high_resolution_clock::now();
+		debug_mode = 2;
+	}
+	else if (debug_mode == 2)
+	{
+		t_debug.LoadDebugData(threads, t_framestart);
+		EventHandler::Instance().SendEvent(EventType::DEBUG_FINISHED_LOAD);
+	}
 }
 
 void ThreadManager::StopThreads()
 {
-	for (std::size_t i = 0; i < num_of_threads; i++)
+	for (std::size_t i = 0; i < n_threads; i++)
 	{
 		t_queues[i]->Close();
 		threads[i]->Stop();

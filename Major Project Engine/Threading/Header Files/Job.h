@@ -4,9 +4,7 @@
 #define _JOB_H
 
 #include <functional>
-#include <memory>
 #include <atomic>
-#include <vector>
 #include <array>
 
 enum JOB_RETURN
@@ -27,24 +25,8 @@ JobFunction bind_function(JOB_RETURN(T::* pFunc)(void*), T * const sys = nullptr
 
 const std::uint16_t JOB_STRIDE = 0x100;
 
-/*
-* Job class that holds the data for the threads 
-* to read and work on.
-*
-* Job type as stated above will govern what a job will do.
-*
-* Function gives the thread an actual function to work on - However,
-* this is extremely limiting as all jobs currently have to work
-* at a JOB_RETURN ?function? (Content*) architecture.
-*
-* (Will need to develop further)
-*/
-struct Job
+namespace job
 {
-public:
-
-	static const int MAX_PARENTS = 32;
-
 	/*
 	* List of Job Types that the threads will
 	* run. This will provide a verious number
@@ -98,18 +80,40 @@ public:
 
 		JOB_HEAD_END
 	};
+}
 
-	Job(JobFunction function, const std::string name, void* data = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT, Job * parent = nullptr)
-		: _func(function), job_name(name), _content(data), j_type(type) 
-	{
-		if (parent != nullptr)
-		{
-			_parent_jobs[parent_count] = parent;
-			parent_count++;
-		}
-	}
+/*
+* Job class that holds the data for the threads 
+* to read and work on.
+*
+* Job type as stated above will govern what a job will do.
+*
+* Function gives the thread an actual function to work on - However,
+* this is extremely limiting as all jobs currently have to work
+* at a JOB_RETURN ?function? (Content*) architecture.
+*
+* (Will need to develop further)
+*/
+struct Job
+{
+	static const int MAX_PARENTS = 32;
 
-	Job() : _content(nullptr), j_type(JOB_DEFAULT) {}
+	using UNIT_TIME = uint16_t;
+
+	Job
+	(
+		JobFunction function, 
+		const std::string name, 
+		void* data = nullptr, 
+		const job::JOB_ID type = job::JOB_DEFAULT
+	)
+		: _func(function), 
+		job_name(name), 
+		_content(data), 
+		j_type(type) 
+	{}
+
+	Job() : _content(nullptr), j_type(job::JOB_DEFAULT) {}
 
 	~Job()
 	{
@@ -127,12 +131,14 @@ public:
 
 	JOB_RETURN operator()()
 	{
-		return _func(_content);
+		JOB_RETURN ret = _func(_content);
+
+		return ret;
 	}
 
 	bool operator()(Job * const & lhs, Job * const & rhs)
 	{
-		return lhs->_scale < rhs->_scale;
+		return lhs->time_units < rhs->time_units;
 	}
 
 	void AddParent(Job * & job)
@@ -144,12 +150,11 @@ public:
 	}
 
 	// NAME
-	std::string job_name;
+	const std::string job_name;
 	
 	// SCHEDULING TOOLS
-	JOB_ID j_type;
-	float _scale = 0;
-	int _age = 0;
+	job::JOB_ID j_type;
+	UNIT_TIME * time_units = nullptr;
 
 	// JOB WAITING TOOLS
 	std::atomic_int _awaiting = 0;

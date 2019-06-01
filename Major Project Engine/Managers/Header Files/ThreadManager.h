@@ -5,6 +5,8 @@
 
 #include "ThreadDebugger.h"
 #include "SharedQueue.h"
+#include "EventHandler.h"
+#include "GameStates.h"
 
 #include <queue>
 #include <array>
@@ -18,16 +20,18 @@ with this class by calling RegisterJob.
 Furthermore, main thread is going to be the only one to
 use most of these functions.
 */
-class ThreadManager
+class ThreadManager : public EventListener
 {
 public:
 
-	ThreadManager(const std::size_t & n_threads, SharedQueue<Job*>& queue);
+	ThreadManager(const std::size_t & n_threads, SharedQueue<Job*> & queue);
 
 	/*
 	Deletes the threads and job list.
 	*/
 	~ThreadManager();
+
+	void HandleEvent(const EventType & e, void * data);
 
 	/*
 	Stops the threads.
@@ -60,7 +64,7 @@ public:
 	*/
 	void StopThreads();
 
-	void RetryJob(Job * & job)
+	void RetryJob(Job * job)
 	{
 		task_queue.Emplace(job);
 	}
@@ -70,20 +74,14 @@ public:
 		task_queue.Emplace(job);
 	}
 
-	void NotifyDone()
-	{
-		std::lock_guard<std::mutex> lock(finished_job);
-		jobs_to_finish--;
-	}
+	const std::size_t GetNumThreads() const { return n_threads; }
 
 	std::atomic<int> jobs_to_finish = 0;
-
-	const std::size_t GetNumThreads() const { return num_of_threads; }
 
 	/// DEBUGGING SECTION
 	void LoadDebugger(const float & rate, const std::size_t & count) { t_debug.LoadDebug(rate, count); }
 	void ShowDebugger() { t_debug.ShowDebug(); }
-	void RenderDebugger() { t_debug.RenderDebug(threads, t_framestart); }
+	void RenderDebugger() { t_debug.RenderDebug(); }
 	void HideDebugger() { t_debug.HideDebug(); }
 	Uint32 GetDebugWindowID() { return t_debug.GetWindowID(); }
 	void CheckDebugMouseLoc(const SDL_MouseMotionEvent & mme) { t_debug.CheckMouseLocation(mme); }
@@ -91,6 +89,7 @@ public:
 private:
 
 	ThreadDebugger t_debug;
+	std::uint8_t debug_mode = 0;
 
 	std::array<Thread*, Thread::MAX_THREADS> threads = { nullptr };
 	std::array<BlockingQueue<Job*>*, Thread::MAX_THREADS> t_queues = { nullptr };
@@ -99,7 +98,7 @@ private:
 	std::condition_variable cv_any, cv_render, cv_main;
 
 	SharedQueue<Job*> & task_queue;
-	std::size_t num_of_threads;
+	std::size_t n_threads;
 	std::mutex finished_job;
 
 	std::chrono::high_resolution_clock::time_point t_framestart;

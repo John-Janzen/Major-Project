@@ -14,13 +14,13 @@ public:
 	MainScene();
 	~MainScene();
 	bool Load(SceneManager & sm);
+
 	bool Unload();
 
-	static const int NUM_MULTI_OBJECTS = 3;
+	static const int NUM_MULTI_OBJECTS = 2;
 
 private:
-
-	bool LoadCamera(SceneManager & sm);
+	bool LoadBullet(SceneManager & sm);
 
 	bool LoadWalls(SceneManager & sm);
 

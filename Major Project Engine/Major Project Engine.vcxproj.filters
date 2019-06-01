@@ -179,5 +179,8 @@
     <ClInclude Include="Game Objects\Components\Base Components\Header Files\CameraComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Header Files\GameStates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

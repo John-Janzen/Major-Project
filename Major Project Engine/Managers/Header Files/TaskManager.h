@@ -5,26 +5,29 @@
 
 #include "Scheduler.h"
 #include "SharedQueue.h"
+#include "EventHandler.h"
 
 #include <list>
 #include <atomic>
 #include <mutex>
 #include <map>
 
-class TaskManager
+class TaskManager : public EventListener
 {
 public:
 	TaskManager(const std::size_t & n_threads);
 
 	~TaskManager();
 
-	void SetTimeLock(const float & time_lock);
+	void HandleEvent(const EventType & e, void * data);
+
+	void SetTimeLock(const float & time_limit);
 
 	void Close();
 
 	bool HasJobs();
 
-	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const Job::JOB_ID type = Job::JOB_DEFAULT);
+	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const job::JOB_ID type = job::JOB_DEFAULT);
 
 	void RegisterJob(Job * & job, bool wait = false, Job * parent_job = nullptr);
 
@@ -35,11 +38,11 @@ public:
 	SharedQueue<Job*> & GetJobList() { return task_queue; }
 
 	// Map of jobs that need to wait on other jobs
-	std::map<Job::JOB_ID, std::vector<Job::JOB_ID>> dictionary;
+	std::map<job::JOB_ID, std::vector<job::JOB_ID>> dictionary;
 
 private:
 
-	//Scheduler * _scheduler;
+	Scheduler _scheduler;
 
 	// List of jobs available
 	SharedQueue<Job*> task_queue;

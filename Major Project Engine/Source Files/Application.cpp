@@ -9,8 +9,11 @@ Application::Application(const std::size_t & num_of_threads)
 	Timer::Instance().Init();
 	EventHandler::Instance().SubscribeEvent(OPEN_DEBUGGER, this);
 	EventHandler::Instance().SubscribeEvent(GAME_CLOSED, this);
+	EventHandler::Instance().SubscribeEvent(NEW_FRAME, this);
+	EventHandler::Instance().SubscribeEvent(T_BUTTON_PRESSED, this);
+	EventHandler::Instance().SubscribeEvent(DEBUG_FINISHED_LOAD, this);
 
-	m_thread.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, Job::JOB_APPLICATION_UPDATE));
+	m_thread.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, job::JOB_APPLICATION_UPDATE));
 	m_thread.AllocateJobs(0);
 }
 
@@ -37,10 +40,20 @@ void Application::HandleEvent(const EventType & e, void * data)
 		_state = EXITING;
 		break;
 	case EventType::OPEN_DEBUGGER:
-		if (_state == DEBUG_LOAD && _state == DEBUG_RUN)
+		if (_state == DEBUG_LOAD || _state == DEBUG_RUN)
 			_state = DEBUG_CLOSE;
 		else
 			_state = DEBUG_LOAD;
+		break;
+	case EventType::NEW_FRAME:
+		can_start = true;
+		start_frame.notify_one();
+		break;
+	case EventType::T_BUTTON_PRESSED:
+		this->ChangeGameState(GAME_STATE::DEBUG_LOAD);
+		break;
+	case EventType::DEBUG_FINISHED_LOAD:
+		this->ChangeGameState(GAME_STATE::DEBUG_RUN);
 		break;
 	default:
 		break;
@@ -56,16 +69,16 @@ bool Application::RunApplication()
 		if (!Initialized)
 			this->InitApp();
 		else
-			if (!m_thread.HasJobs())
-				_state = LOADING;
+			if (!m_thread.HasJobs() || !m_task.HasJobs())
+				this->ChangeGameState(GAME_STATE::LOADING);
 
 		break;
 	case LOADING:
 		if (!LoadedApp)
 			this->LoadApp();
 		else
-			if (!m_thread.HasJobs())
-				_state = PLAYING;
+			if (!m_thread.HasJobs() || !m_task.HasJobs())
+				this->ChangeGameState(GAME_STATE::PLAYING);
 
 		break;
 	case PLAYING:
@@ -75,14 +88,12 @@ bool Application::RunApplication()
 			switch (sdl_event.type)
 			{
 			case SDL_QUIT:
-				//EventHandler::Instance().SendEvent(EventType::GAME_CLOSED);
-				_state = EXITING;
+				this->ChangeGameState(GAME_STATE::EXITING);
 				break;
 			case SDL_WINDOWEVENT:
 				if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
 				{
-					//EventHandler::Instance().SendEvent(EventType::GAME_CLOSED);
-					_state = EXITING;
+					this->ChangeGameState(GAME_STATE::EXITING);
 					break;
 				}
 				break;
@@ -94,10 +105,6 @@ bool Application::RunApplication()
 						SDL_SetRelativeMouseMode(SDL_FALSE);
 					else
 						SDL_SetRelativeMouseMode(SDL_TRUE);
-					break;
-				case SDL_SCANCODE_T:
-					//EventHandler::Instance().SendEvent(EventType::OPEN_DEBUGGER);
-					_state = DEBUG_LOAD;
 					break;
 				default:
 					break;
@@ -112,7 +119,6 @@ bool Application::RunApplication()
 	case DEBUG_LOAD:
 		SDL_SetRelativeMouseMode(SDL_FALSE);
 		m_thread.ShowDebugger();
-		_state = DEBUG_RUN;
 		break;
 
 	case DEBUG_RUN:
@@ -126,7 +132,7 @@ bool Application::RunApplication()
 				case SDL_WINDOWEVENT:
 					if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
 					{
-						_state = DEBUG_CLOSE;
+						this->ChangeGameState(GAME_STATE::DEBUG_CLOSE);
 						break;
 					}
 					break;
@@ -138,7 +144,7 @@ bool Application::RunApplication()
 						switch (sdl_event.key.keysym.scancode)
 						{
 						case SDL_SCANCODE_T:
-							_state = DEBUG_CLOSE;
+							this->ChangeGameState(GAME_STATE::DEBUG_CLOSE);
 							break;
 						default:
 							break;
@@ -159,7 +165,7 @@ bool Application::RunApplication()
 	case DEBUG_CLOSE:
 		SDL_SetRelativeMouseMode(SDL_TRUE);
 		m_thread.HideDebugger();
-		_state = PLAYING;
+		this->ChangeGameState(GAME_STATE::PLAYING);
 		break;
 	case PAUSED:
 		break;
@@ -213,8 +219,6 @@ bool Application::InitApp()
 
 	renderer->InitSystem(this->CreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 	SDL_SetRelativeMouseMode(SDL_TRUE);
-	//auto s = SDL_GetDefaultCursor();
-	//SDL_ShowCursor(0);
 	this->LoadScene(MAIN_SCENE);
 
 	Initialized = true;
@@ -224,7 +228,6 @@ bool Application::InitApp()
 
 bool Application::LoadApp()
 {
-	//Timer::Instance().Start();
 	bool check = true;
 
 	check &= renderer->Load();
@@ -232,6 +235,7 @@ bool Application::LoadApp()
 	check &= input->Load();
 
 	m_thread.LoadDebugger(refresh_rate, n_threads);
+	m_task.SetTimeLock(refresh_rate);
 	
 	LoadedApp = true;
 	return check;
@@ -244,23 +248,14 @@ bool Application::CloseApp()
 }
 
 JOB_RETURN Application::GameLoop(void * ptr)
-{
-	if (_state == PLAYING)
-	{
-		m_task.RegisterJob(new Job(bind_function(&Render::Update, renderer), "Render_Update", &m_scene.GetComponents(SceneManager::RENDER), Job::JOB_RENDER_UPDATE), true);
-
-		m_task.RegisterJob(new Job(bind_function(&Physics::Update, physics), "Physics_Update", &m_scene.GetComponents(SceneManager::PHYSICS), Job::JOB_PHYSICS_UPDATE), true);
-
-		m_task.RegisterJob(new Job(bind_function(&Input::Update, input), "Input_Update", &m_scene.GetComponents(SceneManager::CONTROLLER), Job::JOB_INPUT_UPDATE), false);
-	}
-	
+{	
 	do 
 	{
 		int num = m_task.ManageJobs();
 		m_thread.AllocateJobs(num);
-	} while (Timer::Instance().CheckTimeLimit() && (m_thread.HasJobs() || m_task.HasJobs()));
+	} while (m_thread.HasJobs() || m_task.HasJobs());
 
-	m_thread.MainThreadJob(new Job(bind_function(&Application::WaitTillNextFrame, this), "Wait_Time_For_Frame", nullptr, Job::JOB_TILL_NEXT_FRAME));
+	m_thread.MainThreadJob(new Job(bind_function(&Application::WaitTillNextFrame, this), "Wait_Time_For_Frame", nullptr, job::JOB_TILL_NEXT_FRAME));
 	m_thread.AllocateJobs(1);
 
 	return JOB_COMPLETED;
@@ -269,16 +264,19 @@ JOB_RETURN Application::GameLoop(void * ptr)
 JOB_RETURN Application::WaitTillNextFrame(void * ptr)
 {
 	Timer::Instance().WaitTime();
-	can_start = true;
-	start_frame.notify_one();
 
-	if (_state != DEBUG_LOAD && _state != DEBUG_CLOSE && _state != DEBUG_RUN)
-		m_thread.NewFrame();
+	EventHandler::Instance().SendEvent(EventType::NEW_FRAME);
 
-	m_thread.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, Job::JOB_APPLICATION_UPDATE));
+	m_thread.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, job::JOB_APPLICATION_UPDATE));
 	m_thread.AllocateJobs(1);
 
 	return JOB_COMPLETED;
+}
+
+void Application::ChangeGameState(const GAME_STATE & gs)
+{
+	this->_state = gs;
+	EventHandler::Instance().SendEvent(STATE_CHANGE, &_state);
 }
 
 bool Application::LoadScene(const SCENE_SELECTION type)

@@ -11,7 +11,6 @@ struct SpherePhysicsComponent :
 {
 	SpherePhysicsComponent(const std::uint16_t & id);
 	~SpherePhysicsComponent() {}
-	void LoadExtraData();
 };
 
 struct SphereRenderComponent :
@@ -33,21 +32,18 @@ inline SpherePhysicsComponent::SpherePhysicsComponent(const std::uint16_t & id)
 	: PhysicsComponent(id)
 {
 	//shape = new btBoxShape(btVector3(btScalar(1.f), btScalar(1.f), btScalar(1.f)));
-	shape = new btSphereShape(btScalar(1.f));
+	coll_shape = new btSphereShape(btScalar(1.f));
 	mass = btScalar(3.f);
 	local_inertia = btVector3(0.f, 0.f, 0.f);
 
 	bool dynamic = (mass != 0.f);
 	if (dynamic)
-		shape->calculateLocalInertia(mass, local_inertia);
+		coll_shape->calculateLocalInertia(mass, local_inertia);
 
-	linearVelocity = btVector3(0.f, 0.f, -100.f);
-}
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(this->mass, new btDefaultMotionState(), this->coll_shape, this->local_inertia);
+	coll_object = new btRigidBody(rbInfo);
 
-inline void SpherePhysicsComponent::LoadExtraData()
-{
-	//rigid_body->setLinearVelocity(btVector3));
-	rigid_body->setLinearVelocity(linearVelocity);
+	btRigidBody::upcast(this->coll_object)->setLinearVelocity(btVector3(0.f, 0.f, -100.f));
 }
 
 #endif // !_SPHERECOMPONENTS_H

@@ -28,7 +28,7 @@ void Timer::WaitTime()
 	frame_count++;																// INCREMENT FRAME
 	if (ms(current_time_frame - frame_rate_control) >= ms(std::chrono::seconds(1)))		// CHECK IF DURATION OF FRAME IS GREATER THAN A SECOND
 	{
-		//std::cout << frame_count << std::endl;
+		std::cout << frame_count << std::endl;
 		frame_rate_control = hr_clock::now();									// RESET THE FRAME TIME TO NOW
 		frame_count = 0u;														// RESET FRAME COUNT
 	}

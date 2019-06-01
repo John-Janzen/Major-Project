@@ -5,11 +5,10 @@
 * Constructor that registers a name for the
 * thread class.
 */
-Thread::Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type)
+Thread::Thread(BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type)
 	: job_list(queue), _name(name), t_type(type)
 {
-	//Logger = ThreadLogger();
-	_thread = std::make_unique<std::thread>(&Thread::Execution, this, tm);
+	_thread = std::make_unique<std::thread>(&Thread::Execution, this);
 }
 
 /*
@@ -27,34 +26,38 @@ Thread::~Thread() {}
 * go back to sleep. Else, the job will hopefully be completed
 * and the thread continues the cycle.
 */
-void Thread::Execution(ThreadManager * const tm)
+void Thread::Execution()
 {
-	Job * current_job;
+	ThreadData * data = nullptr;
 	while (_running)
 	{
 		job_list.Aquire(current_job);
 
 		if (!_running) break;
 
-		auto & data = Logger.Instatiate(current_job->j_type, current_job->job_name);
+		if (debug_mode)
+			data = Logger.Instatiate(current_job->j_type, current_job->job_name);
 
 		switch ((*current_job)())
 		{
 		case JOB_COMPLETED:
+			//this->SubAllotedTime(*current_job->time_units);
 			count++;
+			EventHandler::Instance().SendEvent(EventType::JOB_FINISHED, current_job);
 
 			delete(current_job);
 			current_job = nullptr;
 
-			data.t_end = std::chrono::high_resolution_clock::now();
-
-			tm->NotifyDone();
+			if (debug_mode && data != nullptr)
+				data->t_end = std::chrono::high_resolution_clock::now();
 			break;
 		case JOB_RETRY:
-			tm->RetryJob(current_job);
+			//this->SubAllotedTime(*current_job->time_units);
+			EventHandler::Instance().SendEvent(EventType::JOB_REENTER, current_job);
 
 			current_job = nullptr;
-			data.t_end = std::chrono::high_resolution_clock::now();
+			if (debug_mode && data != nullptr)
+				data->t_end = std::chrono::high_resolution_clock::now();
 			break;
 		case JOB_ISSUE:
 			printf("ISSUE FOUND WITH JOB: %s", current_job->job_name.c_str());

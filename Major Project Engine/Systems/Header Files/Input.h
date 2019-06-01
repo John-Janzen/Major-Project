@@ -39,7 +39,7 @@ private:
 
 	GLfloat rotate = 0.f;
 
-	bool buttonHeld = false;
+	bool buttonHeld = false, Tbutton = false;
 };
 
 #endif // !_INPUT_H

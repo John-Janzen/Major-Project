@@ -59,6 +59,8 @@ private:
 		return SDL_CreateWindow("Major Project", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
 	}
 
+	void ChangeGameState(const GAME_STATE & gs);
+
 	Render * renderer = nullptr;
 	Input * input = nullptr;
 	TestSystem * test_system = nullptr;
@@ -69,20 +71,6 @@ private:
 	SceneManager m_scene;
 
 protected:
-
-	enum GAME_STATE
-	{
-		NULL_STATE,
-		INITIALIZING,
-		LOADING,
-		PLAYING,
-		PAUSED,
-		DELOAD,
-		DEBUG_LOAD,
-		DEBUG_RUN,
-		DEBUG_CLOSE,
-		EXITING
-	};
 
 	bool game_running = true;
 	GAME_STATE _state;

@@ -17,20 +17,22 @@ Render::Render(TaskManager & tm, SceneManager & sm)
 	_textures = new Storage<Texture>();
 
 	EventHandler::Instance().SubscribeEvent(EventType::RENDER_NEW_OBJECT, this);
+	EventHandler::Instance().SubscribeEvent(EventType::STATE_CHANGE, this);
+	EventHandler::Instance().SubscribeEvent(EventType::NEW_FRAME, this);
 
 	// Jobs that need to wait on other jobs go here
 	{
-		m_task.dictionary.emplace(Job::JOB_RENDER_LOAD_SINGLE, std::vector<Job::JOB_ID>());
-		m_task.dictionary[Job::JOB_RENDER_LOAD_SINGLE].emplace_back(Job::JOB_RENDER_UPDATE);
+		/*m_task.dictionary.emplace(job::JOB_RENDER_LOAD_SINGLE, std::vector<job::JOB_ID>());
+		m_task.dictionary[job::JOB_RENDER_LOAD_SINGLE].emplace_back(job::JOB_RENDER_UPDATE);
 
-		m_task.dictionary.emplace(Job::JOB_LOAD_MODEL, std::vector<Job::JOB_ID>());
-		m_task.dictionary[Job::JOB_LOAD_MODEL].emplace_back(Job::JOB_RENDER_UPDATE);
+		m_task.dictionary.emplace(job::JOB_LOAD_MODEL, std::vector<job::JOB_ID>());
+		m_task.dictionary[job::JOB_LOAD_MODEL].emplace_back(job::JOB_RENDER_UPDATE);
 
-		m_task.dictionary.emplace(Job::JOB_LOAD_TEXTURE, std::vector<Job::JOB_ID>());
-		m_task.dictionary[Job::JOB_LOAD_TEXTURE].emplace_back(Job::JOB_RENDER_UPDATE);
+		m_task.dictionary.emplace(job::JOB_LOAD_TEXTURE, std::vector<job::JOB_ID>());
+		m_task.dictionary[job::JOB_LOAD_TEXTURE].emplace_back(job::JOB_RENDER_UPDATE);
 
-		m_task.dictionary.emplace(Job::JOB_LOAD_SHADER, std::vector<Job::JOB_ID>());
-		m_task.dictionary[Job::JOB_LOAD_SHADER].emplace_back(Job::JOB_RENDER_UPDATE);
+		m_task.dictionary.emplace(job::JOB_LOAD_SHADER, std::vector<job::JOB_ID>());
+		m_task.dictionary[job::JOB_LOAD_SHADER].emplace_back(job::JOB_RENDER_UPDATE);*/
 	}
 }
 
@@ -86,7 +88,7 @@ bool Render::Load()
 		}
 	}
 
-	m_task.RegisterJob(new Job(bind_function(&Render::LoadComponents, this), "Render_Component_Loader", &m_scene.GetComponents(SceneManager::RENDER), Job::JOB_RENDER_LOAD));
+	m_task.RegisterJob(new Job(bind_function(&Render::LoadComponents, this), "Render_Component_Loader", &m_scene.GetComponents(SceneManager::RENDER), job::JOB_RENDER_LOAD));
 	return true;
 }
 
@@ -97,7 +99,20 @@ void Render::HandleEvent(const EventType & e, void * data)
 	switch (e)
 	{
 	case EventType::RENDER_NEW_OBJECT:
-		m_task.RegisterJob(new Job(bind_function(&Render::LoadSingleComponent, this), "Load_Single_Render", data, Job::JOB_RENDER_LOAD_SINGLE), false);
+		m_task.RegisterJob(new Job(bind_function(&Render::LoadSingleComponent, this), "Load_Single_Render", data, job::JOB_RENDER_LOAD_SINGLE), false);
+		break;
+	case EventType::STATE_CHANGE:
+	{
+		GAME_STATE gs = *static_cast<GAME_STATE*>(data);
+		if (gs == PLAYING || gs == DEBUG_LOAD)
+			paused = false;
+		else
+			paused = true;
+		break;
+	}
+	case EventType::NEW_FRAME:
+		if (!paused)
+			m_task.RegisterJob(new Job(bind_function(&Render::Update, this), "Render_Update", &m_scene.GetComponents(SceneManager::RENDER), job::JOB_RENDER_UPDATE), true);
 		break;
 	default:
 		break;
@@ -190,15 +205,15 @@ JOB_RETURN Render::LoadSingleComponent(void * ptr)
 	auto obj = static_cast<RenderComponent*>(ptr);
 	{
 		if (!_models->HasItem(obj->GetModelPath(), obj->GetModelAdd()))
-			m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", obj, Job::JOB_LOAD_MODEL));
+			m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", obj, job::JOB_LOAD_MODEL));
 		else
 			this->GenerateVAO(obj);
 
 		if (!_shaders->HasItem(obj->GetShaderPath(), obj->GetShaderAdd()))
-			m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", obj, Job::JOB_LOAD_SHADER));
+			m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", obj, job::JOB_LOAD_SHADER));
 
 		if (!_textures->HasItem(obj->GetTexturePath(), obj->GetTextureAdd()))
-			m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", obj, Job::JOB_LOAD_TEXTURE));
+			m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", obj, job::JOB_LOAD_TEXTURE));
 	}
 	return JOB_COMPLETED;
 }
@@ -211,13 +226,13 @@ JOB_RETURN Render::LoadComponents(void * ptr)
 		auto obj = static_cast<RenderComponent*>(render);
 		{
 			if (!_models->HasItem(obj->GetModelPath(), obj->GetModelAdd()))
-				m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", render, Job::JOB_LOAD_MODEL));
+				m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", render, job::JOB_LOAD_MODEL));
 
 			if (!_shaders->HasItem(obj->GetShaderPath(), obj->GetShaderAdd()))
-				m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", render, Job::JOB_LOAD_SHADER));
+				m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", render, job::JOB_LOAD_SHADER));
 
 			if (!_textures->HasItem(obj->GetTexturePath(), obj->GetTextureAdd()))
-				m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", render, Job::JOB_LOAD_TEXTURE));
+				m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", render, job::JOB_LOAD_TEXTURE));
 		}
 	}
 	return JOB_COMPLETED;
@@ -233,7 +248,7 @@ bool Render::InitSDL()
 		return false;
 	}
 
-	m_task.RegisterJob(new Job(bind_function(&Render::GiveThreadedContext, this), "Threaded_Context", nullptr, Job::JOB_RENDER_DEFAULT));
+	m_task.RegisterJob(new Job(bind_function(&Render::GiveThreadedContext, this), "Threaded_Context", nullptr, job::JOB_RENDER_DEFAULT));
 	return true;
 }
 
@@ -284,7 +299,7 @@ JOB_RETURN Render::ModelFileImport(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	if (LoadOBJModelFile(rc->GetModelPath(), rc->GetModelAdd()))
 	{
-		m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, Job::JOB_BIND_MODEL));
+		m_task.RegisterJob(new Job(bind_function(&Render::BindModel, this), "Bind_Model", rc, job::JOB_BIND_MODEL));
 		return JOB_COMPLETED;
 	}
 	return JOB_ISSUE;
@@ -295,7 +310,7 @@ JOB_RETURN Render::ShaderFileImport(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	if (LoadShaderFile(rc->GetVShaderPath(), rc->GetFShaderPath(), rc->GetShaderAdd()))
 	{
-		m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, Job::JOB_BIND_SHADER));
+		m_task.RegisterJob(new Job(bind_function(&Render::BindShader, this), "Bind_Shader", rc, job::JOB_BIND_SHADER));
 		return JOB_COMPLETED;
 	}
 	return JOB_ISSUE;
@@ -306,7 +321,7 @@ JOB_RETURN Render::TextureFileImport(void * ptr)
 	RenderComponent * rc = static_cast<RenderComponent*>(ptr);
 	if (LoadTextureFile(rc->GetTexturePath(), rc->GetTextureAdd()))
 	{
-		m_task.RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, Job::JOB_BIND_TEXTURE));
+		m_task.RegisterJob(new Job(bind_function(&Render::BindTexture, this), "Bind_Texture", rc, job::JOB_BIND_TEXTURE));
 		return JOB_COMPLETED;
 	}
 	return JOB_ISSUE;

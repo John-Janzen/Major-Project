@@ -8,6 +8,7 @@
 #include "TaskManager.h"
 #include "ComponentHeaders.h"
 #include "SceneManager.h"
+#include "GameStates.h"
 
 #include <cassert>
 
@@ -23,6 +24,8 @@ public:
 
 	virtual void HandleEvent() {};
 protected:
+	bool paused = true;
+
 	TaskManager & m_task;
 	SceneManager & m_scene;
 };

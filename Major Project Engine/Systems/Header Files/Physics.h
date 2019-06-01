@@ -17,7 +17,7 @@ public:
 	bool Load();
 	void HandleEvent(const EventType & e, void * data);
 
-	JOB_RETURN PreUpdate(void * ptr);
+	JOB_RETURN StepSimulation(void * ptr);
 	JOB_RETURN Update(void * ptr);
 
 	JOB_RETURN LoadComponents(void * ptr);

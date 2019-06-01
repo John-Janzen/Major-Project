@@ -18,7 +18,7 @@ public:
 
 	void LoadDebug(const float & rate, const std::size_t & count);
 
-	void RenderDebug(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time);
+	void RenderDebug();
 
 	void ShowDebug()
 	{
@@ -29,6 +29,7 @@ public:
 	{
 		SDL_HideWindow(debug_window);
 		current_frame.clear();
+		loaded = false;
 	}
 
 	Uint32 GetWindowID() 
@@ -37,6 +38,10 @@ public:
 	}
 
 	void CheckMouseLocation(const SDL_MouseMotionEvent & event);
+
+	void LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time);
+
+	bool loaded = false;
 
 private:
 	
@@ -52,7 +57,7 @@ private:
 
 	void CalculateRect(const Thread::ThreadData & data, const Thread::ctp & object_time, SDL_Rect & rect);
 
-	void ColorByID(const Job::JOB_ID & id, DataPoints::Color & color);
+	void ColorByID(const job::JOB_ID & id, DataPoints::Color & color);
 
 	SDL_Window * debug_window = nullptr;
 	SDL_Renderer * debug_renderer = nullptr;
@@ -63,6 +68,7 @@ private:
 	const static int default_height;
 
 	const int border_width = 50;
+
 
 	std::size_t windowX = default_width - border_width;
 	std::size_t windowY = default_height - border_width;

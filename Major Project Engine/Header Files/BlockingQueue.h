@@ -23,7 +23,6 @@ public:
 
 	void Close()
 	{
-		//std::lock_guard<std::mutex> lock(_mutex);
 		open = false;
 		_cv.notify_all();
 	}
@@ -80,8 +79,6 @@ private:
 	std::queue<T> _queue;
 
 	bool open = true;
-
-	float total_time = 0;
 };
 
 #endif // !_BLOCKINGQUEUE_H

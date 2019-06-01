@@ -43,12 +43,11 @@ public:
 			auto transform = static_cast<Transform*>(this->FindComponent(SceneManager::TRANSFORM, player->_id))->_transform;
 			this->AddComponent(SceneManager::TRANSFORM, new Transform(project->_id, transform * btVector3(0.f, 2.f, -2.f)));
 
-			this->AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->_id));
-			EventHandler::Instance().SendEvent(EventType::RENDER_NEW_OBJECT, this->FindComponent(SceneManager::RENDER, project->_id));
+			auto c_render = this->AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->_id));
+			EventHandler::Instance().SendEvent(EventType::RENDER_NEW_OBJECT, c_render);
 
-			this->AddComponent(SceneManager::PHYSICS, new SpherePhysicsComponent(project->_id));
-			auto physics = static_cast<PhysicsComponent*>(this->FindComponent(SceneManager::PHYSICS, project->_id));
-			physics->linearVelocity = transform.getBasis() * physics->linearVelocity;
+			auto physics = static_cast<PhysicsComponent*>(this->AddComponent(SceneManager::PHYSICS, new SpherePhysicsComponent(project->_id)));
+			btRigidBody::upcast(physics->coll_object)->setLinearVelocity(transform.getBasis() * btRigidBody::upcast(physics->coll_object)->getLinearVelocity());
 			EventHandler::Instance().SendEvent(EventType::PHYSICS_NEW_OBJECT, physics);
 		}
 			break;
@@ -74,9 +73,10 @@ public:
 		return nullptr;
 	}
 
-	void AddComponent(const CompTypes & type, BaseComponent * && base)
+	BaseComponent * AddComponent(const CompTypes & type, BaseComponent * && base)
 	{
 		_components[type].emplace_back(base);
+		return _components[type].back();
 	}
 
 	std::vector<BaseComponent*> & GetComponents(const CompTypes & type)
@@ -103,6 +103,9 @@ public:
 					break;
 				case CONTROLLER:
 					assert(dynamic_cast<PlayerControllerComponent*>(comp));
+					break;
+				case CAMERA:
+					assert(dynamic_cast<CameraComponent*>(comp));
 					break;
 				default:
 					break;

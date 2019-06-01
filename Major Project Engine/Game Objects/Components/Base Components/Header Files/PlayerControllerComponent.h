@@ -4,6 +4,7 @@
 #define _PLAYERCONTROLLERCOMPONENT_H
 
 #include "BaseComponent.h"
+#include "BulletDynamics\Character\btCharacterControllerInterface.h"
 
 enum CONTROL_TYPE {
 	NULL_CONTROL,
@@ -11,16 +12,11 @@ enum CONTROL_TYPE {
 	XBOX_CONTROLLER
 };
 
-class PlayerControllerComponent :
+struct PlayerControllerComponent :
 	public BaseComponent
 {
-public:
 	PlayerControllerComponent(const std::uint16_t & id) : BaseComponent(id) {}
 	~PlayerControllerComponent(){}
-
-	const CONTROL_TYPE & GetType() const { return current_type; }
-
-private:
 	CONTROL_TYPE current_type = MOUSE_KEYBOARD;
 };
 

@@ -1,10 +1,36 @@
 #include "TaskManager.h"
 
-TaskManager::TaskManager(const std::size_t & n_threads) {}
+TaskManager::TaskManager(const std::size_t & n_thread)
+{
+	EventHandler::Instance().SubscribeEvent(EventType::NEW_FRAME, this);
+	EventHandler::Instance().SubscribeEvent(EventType::JOB_FINISHED, this);
+}
 
 TaskManager::~TaskManager() {}
 
-void TaskManager::SetTimeLock(const float & time_lock) {}
+void TaskManager::HandleEvent(const EventType & e, void * data)
+{
+	switch (e)
+	{
+	case EventType::JOB_FINISHED:
+	{
+
+		break;
+	}
+	case EventType::NEW_FRAME:
+	{
+
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+void TaskManager::SetTimeLock(const float & time_limit)
+{
+	_scheduler.SetTimeLock(time_limit);
+}
 
 void TaskManager::Close()
 {
@@ -25,7 +51,7 @@ bool TaskManager::HasJobs()
 	return (!waiting_jobs.empty() || !task_queue.Empty());
 }
 
-void TaskManager::RegisterJob(JobFunction function, const std::string name, void* content, const Job::JOB_ID type)
+void TaskManager::RegisterJob(JobFunction function, const std::string name, void* content, const job::JOB_ID type)
 {
 	task_queue.Emplace(new Job(function, name, content, type));
 	{

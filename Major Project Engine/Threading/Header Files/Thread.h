@@ -15,8 +15,6 @@
 #include <queue>
 #include <iostream>
 
-class ThreadManager;
-
 /*
 * The thread wrapper class that encapsulate the standard
 * c++ library thread class. This will provide with additional
@@ -40,19 +38,24 @@ public:
 
 	struct ThreadData
 	{
-		Job::JOB_ID t_id;
+		job::JOB_ID t_id;
 		std::string t_name;
 		ctp t_start, t_end;
 	};
 
-	Thread(ThreadManager * const tm, BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type = ANY_THREAD);
+	Thread(BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type = ANY_THREAD);
 
 	~Thread();
 
-	void Execution(ThreadManager * const tm);
+	void Execution();
 	void Stop();
 
 	const THREAD_TYPE GetType() { return t_type; }
+
+	const int GetAllotedTime() const { return this->queue_time; }
+
+	void AddAllotedTime(const Job::UNIT_TIME & time) { this->queue_time += time; }
+	void SubAllotedTime(const Job::UNIT_TIME & time) { this->queue_time -= time; }
 
 	/*
 	* Prints available stats.
@@ -72,10 +75,12 @@ public:
 		Logger.ClearData();
 	}
 
-	const std::vector<ThreadData> & AquireData()
+	std::vector<ThreadData> & AquireData()
 	{
 		return Logger.GetData();
 	}
+
+	void ToggleDebug() { debug_mode = !debug_mode; }
 
 private:
 
@@ -86,14 +91,9 @@ private:
 		ThreadLogger() {};
 		~ThreadLogger() {};
 
-		ThreadData & Instatiate(const Job::JOB_ID & id, const std::string & name)
+		ThreadData * Instatiate(const job::JOB_ID & id, const std::string & name)
 		{
-			std::lock_guard<std::mutex> lk(t_data_lock);
-			auto & loc = *t_data.emplace(t_data.end(), ThreadData());
-			loc.t_start = hr::now();
-			loc.t_id = id;
-			loc.t_name = name;
-			return loc;
+			return &(*t_data.emplace(t_data.end(), ThreadData{ id, name, hr::now() }));
 		}
 
 		void PrintData(const std::string name, const ctp & obj_time)
@@ -117,27 +117,26 @@ private:
 
 		void ClearData()
 		{
-			std::lock_guard<std::mutex> lk(t_data_lock);
 			t_data.clear();
 		}
 
-		const std::vector<ThreadData> & GetData() { return t_data; }
+		std::vector<ThreadData> & GetData() { return t_data; }
 
 	private:
 		std::vector<ThreadData> t_data;
-		std::mutex t_data_lock;
-
 	} Logger;
 
 	//ThreadLogger Logger;
 	THREAD_TYPE t_type;
 
-	bool _running = true;
+	bool _running = true, debug_mode = false;
 	std::string _name;
 	int count = 0;
 
+	Job::UNIT_TIME queue_time = 0;
+
 	std::unique_ptr<std::thread> _thread;
-	//Job * current_job;
+	Job * current_job;
 
 	BlockingQueue<Job*> & job_list;
 };

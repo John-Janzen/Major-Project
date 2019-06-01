@@ -9,9 +9,12 @@ bool Input::Load()
 	SDL_Init(SDL_INIT_GAMECONTROLLER);
 	SDL_Init(SDL_INIT_EVENTS);
 
+	EventHandler::Instance().SubscribeEvent(EventType::STATE_CHANGE, this);
+	EventHandler::Instance().SubscribeEvent(EventType::NEW_FRAME, this);
+
 	{
-		m_task.dictionary.emplace(Job::JOB_INPUT_UPDATE, std::vector<Job::JOB_ID>());
-		m_task.dictionary[Job::JOB_INPUT_UPDATE].emplace_back(Job::JOB_PHYSICS_UPDATE);
+		m_task.dictionary.emplace(job::JOB_INPUT_UPDATE, std::vector<job::JOB_ID>());
+		m_task.dictionary[job::JOB_INPUT_UPDATE].emplace_back(job::JOB_PHYSICS_UPDATE);
 	}
 
 	return true;
@@ -24,7 +27,24 @@ void Input::Close(void* content)
 
 void Input::HandleEvent(const EventType & e, void * data)
 {
-
+	switch (e)
+	{
+	case EventType::STATE_CHANGE:
+	{
+		GAME_STATE gs = *static_cast<GAME_STATE*>(data);
+		if (gs == PLAYING || gs == DEBUG_LOAD)
+			paused = false;
+		else
+			paused = true;
+		break;
+	}
+	case EventType::NEW_FRAME:
+		if (!paused)
+			m_task.RegisterJob(new Job(bind_function(&Input::Update, this), "Input_Update", &m_scene.GetComponents(SceneManager::CONTROLLER), job::JOB_INPUT_UPDATE), false);
+		break;
+	default:
+		break;
+	}
 }
 
 JOB_RETURN Input::Update (void * ptr)
@@ -42,7 +62,7 @@ JOB_RETURN Input::Update (void * ptr)
 
 void Input::PlayerControls(PlayerControllerComponent * pc_cp, Transform * transform)
 {
-	if (pc_cp->GetType() == CONTROL_TYPE::MOUSE_KEYBOARD)
+	if (pc_cp->current_type == CONTROL_TYPE::MOUSE_KEYBOARD)
 	{
 		const float deltaTime = Timer::Instance().GetDeltaTime();
 		int x, y;
@@ -87,6 +107,8 @@ void Input::PlayerControls(PlayerControllerComponent * pc_cp, Transform * transf
 		if (key_state[SDL_SCANCODE_A]) distance += (btVector3(player_speed, 0.f, 0.f) * btScalar(deltaTime));
 		if (key_state[SDL_SCANCODE_S]) distance += (btVector3(0.f, 0.f, -player_speed) * btScalar(deltaTime));
 		if (key_state[SDL_SCANCODE_D]) distance += (btVector3(-player_speed, 0.f, 0.f) * btScalar(deltaTime));
+		if (key_state[SDL_SCANCODE_T] && !Tbutton) { EventHandler::Instance().SendEvent(EventType::T_BUTTON_PRESSED); Tbutton = true; }
+		if (!key_state[SDL_SCANCODE_T] && Tbutton) { Tbutton = false; }
 		
 		if (!distance.isZero())
 		{
@@ -94,7 +116,7 @@ void Input::PlayerControls(PlayerControllerComponent * pc_cp, Transform * transf
 			transform->_transform.getOrigin().setY(2.f);
 		}
 	}
-	else if (pc_cp->GetType() == CONTROL_TYPE::XBOX_CONTROLLER)
+	else if (pc_cp->current_type == CONTROL_TYPE::XBOX_CONTROLLER)
 	{
 
 	}

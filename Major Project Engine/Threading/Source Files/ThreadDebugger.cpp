@@ -43,34 +43,13 @@ void ThreadDebugger::LoadDebug(const float & rate, const std::size_t & count)
 	heightOfLines = (int)(windowY / n_threads);
 }
 
-void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time)
+void ThreadDebugger::RenderDebug()
 {
 	SDL_SetRenderDrawColor(debug_renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 	SDL_RenderClear(debug_renderer);
 
 	SDL_Rect rect;
 	DataPoints dp_job;
-	if (current_frame.empty())
-	{
-		job_label = "No Job Selected";
-		int count = 0;
-		for (auto & thread : threads)
-		{
-			if (thread == nullptr) continue;
-			rect = SDL_Rect();
-			for (auto & data : thread->AquireData())
-			{
-				ColorByID(data.t_id, dp_job.c);
-				CalculateRect(data, object_time, rect);
-
-				rect.y = (count * heightOfLines) + border_width;
-				dp_job.id = data.t_id;
-				dp_job.name = data.t_name;
-				current_frame.emplace_back(std::make_pair(rect, dp_job));
-			}
-			count++;
-		}
-	}
 
 	SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderDrawRects(debug_renderer, m_borders, 2);
@@ -108,31 +87,65 @@ void ThreadDebugger::RenderDebug(std::array<Thread*, Thread::MAX_THREADS> thread
 
 	SDL_DestroyTexture(text_texture);
 	SDL_FreeSurface(text_surface);
+
+	text_surface = nullptr;
+	text_texture = nullptr;
 }
 
-void ThreadDebugger::ColorByID(const Job::JOB_ID & id, DataPoints::Color & color)
+void ThreadDebugger::LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time)
+{
+	SDL_Rect rect;
+	DataPoints dp_job;
+
+	if (!loaded)
+	{
+		job_label = "No Job Selected";
+		int count = 0;
+		for (auto & thread : threads)
+		{
+			if (thread == nullptr) continue;
+			rect = SDL_Rect();
+			for (auto & data : thread->AquireData())
+			{
+				if ((data.t_end - data.t_start).count() < 0) data.t_end = Thread::hr::now();
+
+				ColorByID(data.t_id, dp_job.c);
+				CalculateRect(data, object_time, rect);
+
+				rect.y = (count * heightOfLines) + border_width;
+				dp_job.id = data.t_id;
+				dp_job.name = data.t_name;
+				current_frame.emplace_back(std::make_pair(rect, dp_job));
+			}
+			count++;
+		}
+		loaded = true;
+	}
+}
+
+void ThreadDebugger::ColorByID(const job::JOB_ID & id, DataPoints::Color & color)
 {
 	switch (id / JOB_STRIDE)
 	{
-	case Job::JOB_MAIN:
+	case job::JOB_MAIN:
 		color.r = color.g = 255;
-		color.b = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(Job::JOB_MAIN_COUNT - Job::JOB_MAIN_DEFAULT)) * 255);
+		color.b = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(job::JOB_MAIN_COUNT - job::JOB_MAIN_DEFAULT)) * 255);
 		break;
-	case Job::JOB_RENDER:
+	case job::JOB_RENDER:
 		color.r = 255;
-		color.g = color.b = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(Job::JOB_RENDER_COUNT - Job::JOB_RENDER_DEFAULT)) * 255);
+		color.g = color.b = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(job::JOB_RENDER_COUNT - job::JOB_RENDER_DEFAULT)) * 255);
 		break;
-	case Job::JOB_INPUT:
-		color.r = color.b = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(Job::JOB_INPUT_COUNT - Job::JOB_INPUT_DEFAULT)) * 255);
+	case job::JOB_INPUT:
+		color.r = color.b = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(job::JOB_INPUT_COUNT - job::JOB_INPUT_DEFAULT)) * 255);
 		color.g = 255;
 		break;
-	case Job::JOB_PHYSICS:
-		color.r = color.g = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(Job::JOB_PHYSICS_COUNT - Job::JOB_PHYSICS_DEFAULT)) * 255);
+	case job::JOB_PHYSICS:
+		color.r = color.g = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(job::JOB_PHYSICS_COUNT - job::JOB_PHYSICS_DEFAULT)) * 255);
 		color.b = 255;
 		break;
-	case Job::JOB_MISC:
+	case job::JOB_MISC:
 		color.r = color.b = 255;
-		color.g = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(Job::JOB_DEFAULT_COUNT - Job::JOB_DEFAULT)) * 255);
+		color.g = (Uint8)std::roundf(((id % JOB_STRIDE) / (float)(job::JOB_DEFAULT_COUNT - job::JOB_DEFAULT)) * 255);
 		break;
 	default:
 		break;
