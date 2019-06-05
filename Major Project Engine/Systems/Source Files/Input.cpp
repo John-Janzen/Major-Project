@@ -20,10 +20,7 @@ bool Input::Load()
 	return true;
 }
 
-void Input::Close(void* content)
-{
-
-}
+void Input::Close(void* content) {}
 
 void Input::HandleEvent(const EventType & e, void * data)
 {
@@ -33,7 +30,10 @@ void Input::HandleEvent(const EventType & e, void * data)
 	{
 		GAME_STATE gs = *static_cast<GAME_STATE*>(data);
 		if (gs == PLAYING || gs == DEBUG_LOAD)
+		{
 			paused = false;
+			SDL_GetRelativeMouseState(NULL, NULL);
+		}
 		else
 			paused = true;
 		break;
@@ -67,13 +67,13 @@ void Input::PlayerControls(PlayerControllerComponent * pc_cp, Transform * transf
 		const float deltaTime = Timer::Instance().GetDeltaTime();
 		int x, y;
 		Uint32 mouse_state = SDL_GetRelativeMouseState(&x, &y);
+
 		if (mouse_state == SDL_BUTTON_LEFT && !buttonHeld)
 		{
 			EventHandler::Instance().SendEvent(EventType::LEFT_MOUSE_BUTTON, pc_cp);
 			buttonHeld = true;
 		}
 		if (buttonHeld && mouse_state != SDL_BUTTON_LEFT) buttonHeld = false;
-
 
 		if (x != 0 || y != 0)
 		{
@@ -94,8 +94,8 @@ void Input::PlayerControls(PlayerControllerComponent * pc_cp, Transform * transf
 
 					camera->_aim = camera->_aim.rotate(right, deltaY * btScalar(deltaTime));
 					camera->_up = camera->_up.rotate(right, deltaY * btScalar(deltaTime));
-					
-					camera->_aim =camera->_aim.rotate(btVector3(0.f, 1.f, 0.f), -deltaX * btScalar(deltaTime));
+
+					camera->_aim = camera->_aim.rotate(btVector3(0.f, 1.f, 0.f), -deltaX * btScalar(deltaTime));
 					camera->_up = camera->_up.rotate(btVector3(0.f, 1.f, 0.f), -deltaX * btScalar(deltaTime));
 				}
 			}
@@ -107,6 +107,7 @@ void Input::PlayerControls(PlayerControllerComponent * pc_cp, Transform * transf
 		if (key_state[SDL_SCANCODE_A]) distance += (btVector3(player_speed, 0.f, 0.f) * btScalar(deltaTime));
 		if (key_state[SDL_SCANCODE_S]) distance += (btVector3(0.f, 0.f, -player_speed) * btScalar(deltaTime));
 		if (key_state[SDL_SCANCODE_D]) distance += (btVector3(-player_speed, 0.f, 0.f) * btScalar(deltaTime));
+		if (key_state[SDL_SCANCODE_RSHIFT] || key_state[SDL_SCANCODE_LSHIFT]) distance *= running;
 		if (key_state[SDL_SCANCODE_T] && !Tbutton) { EventHandler::Instance().SendEvent(EventType::T_BUTTON_PRESSED); Tbutton = true; }
 		if (!key_state[SDL_SCANCODE_T] && Tbutton) { Tbutton = false; }
 		
@@ -115,6 +116,7 @@ void Input::PlayerControls(PlayerControllerComponent * pc_cp, Transform * transf
 			transform->_transform.getOrigin() += transform->_transform.getBasis() * -distance;
 			transform->_transform.getOrigin().setY(2.f);
 		}
+		EventHandler::Instance().SendEvent(EventType::PLAYER_INPUT_TO_PHYSICS, pc_cp);
 	}
 	else if (pc_cp->current_type == CONTROL_TYPE::XBOX_CONTROLLER)
 	{

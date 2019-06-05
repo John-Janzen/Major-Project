@@ -31,7 +31,6 @@ ThreadDebugger::~ThreadDebugger()
 
 void ThreadDebugger::LoadDebug(const float & rate, const std::size_t & count)
 {
-
 	if (SDL_CreateWindowAndRenderer(default_width, default_height, SDL_WINDOW_HIDDEN, &debug_window, &debug_renderer) == -1)
 		printf("Error creating debug window");
 
@@ -41,6 +40,7 @@ void ThreadDebugger::LoadDebug(const float & rate, const std::size_t & count)
 	refresh_rate = rate;
 	widthOfLines = (int)(windowX / refresh_rate);
 	heightOfLines = (int)(windowY / n_threads);
+	current_frame.resize(50);
 }
 
 void ThreadDebugger::RenderDebug()

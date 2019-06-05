@@ -20,7 +20,7 @@ bool MainScene::Load(SceneManager & sm)
 		{
 			for (int k = 0; k < NUM_MULTI_OBJECTS; k++)
 			{
-				this->LoadMultiObject(sm, ((i * 2) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((j * 2) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((k * 2) - (NUM_MULTI_OBJECTS - 1) * 1.5));
+				this->LoadMultiObject(sm, ((i * 2) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((j * 3) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((k * 2) - (NUM_MULTI_OBJECTS - 1) * 1.5));
 			}
 		}
 	}
@@ -38,22 +38,22 @@ bool MainScene::LoadBullet(SceneManager & sm)
 bool MainScene::LoadWalls(SceneManager & sm) 
 {
 	Entity * & w_wall = sm.CreateEntity("Wall_West", EntityType::WALLSFLOOR);
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(w_wall->_id, btQuaternion(0.f, 0.f, 1.57f), btVector3(btScalar(50.f), btScalar(25.f), btScalar(0.f))));
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(w_wall->_id, btQuaternion(0.f, 0.f, 1.57f), btVector3(btScalar(50.f), btScalar(50.f), btScalar(0.f))));
 	sm.AddComponent(SceneManager::PHYSICS, new WallPhysicsComponent(w_wall->_id));
 	sm.AddComponent(SceneManager::RENDER, new FloorRenderComponent(w_wall->_id));
 
 	Entity * & e_wall = sm.CreateEntity("Wall_east", EntityType::WALLSFLOOR);
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(e_wall->_id, btQuaternion(0.f, 0.f, -1.57f), btVector3(btScalar(-50.f), btScalar(25.f), btScalar(0.f))));
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(e_wall->_id, btQuaternion(0.f, 0.f, -1.57f), btVector3(btScalar(-50.f), btScalar(50.f), btScalar(0.f))));
 	sm.AddComponent(SceneManager::PHYSICS, new WallPhysicsComponent(e_wall->_id));
 	sm.AddComponent(SceneManager::RENDER, new FloorRenderComponent(e_wall->_id));
 
 	Entity * & n_wall = sm.CreateEntity("Wall_north", EntityType::WALLSFLOOR);
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(n_wall->_id, btQuaternion(0.f, -1.57f, 0.f), btVector3(btScalar(0.f), btScalar(25.f), btScalar(50.f))));
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(n_wall->_id, btQuaternion(0.f, -1.57f, 0.f), btVector3(btScalar(0.f), btScalar(50.f), btScalar(50.f))));
 	sm.AddComponent(SceneManager::PHYSICS, new WallPhysicsComponent(n_wall->_id));
 	sm.AddComponent(SceneManager::RENDER, new FloorRenderComponent(n_wall->_id));
 
 	Entity * & s_wall = sm.CreateEntity("Wall_south", EntityType::WALLSFLOOR);
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(s_wall->_id, btQuaternion(0.f, 1.57f, 0.f), btVector3(btScalar(0.f), btScalar(25.f), btScalar(-50.f))));
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(s_wall->_id, btQuaternion(0.f, 1.57f, 0.f), btVector3(btScalar(0.f), btScalar(50.f), btScalar(-50.f))));
 	sm.AddComponent(SceneManager::PHYSICS, new WallPhysicsComponent(s_wall->_id));
 	sm.AddComponent(SceneManager::RENDER, new FloorRenderComponent(s_wall->_id));
 	return true;

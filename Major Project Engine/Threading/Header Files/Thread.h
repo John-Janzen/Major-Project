@@ -52,6 +52,8 @@ public:
 
 	const THREAD_TYPE GetType() { return t_type; }
 
+	const bool HasJob() { return (current_job != nullptr); }
+
 	const int GetAllotedTime() const { return this->queue_time; }
 
 	void AddAllotedTime(const Job::UNIT_TIME & time) { this->queue_time += time; }

@@ -37,28 +37,28 @@ public:
 
 private:
 
-	void InitUpdate();
-
-	void ComponentUpdate(RenderComponent * rc, const Transform & trans);
-
-	JOB_RETURN LoadSingleComponent(void * ptr);
-
-	JOB_RETURN LoadComponents(void * ptr);
-
 	bool InitSDL();
-
 	bool InitGL();
 
 	JOB_RETURN GiveThreadedContext(void * ptr);
+
+	void InitUpdate();
+	void ComponentUpdate(RenderComponent * rc, const Transform & trans);
+
+	JOB_RETURN LoadSingleComponent(void * ptr);
+	JOB_RETURN LoadComponents(void * ptr);
 
 	JOB_RETURN ModelFileImport(void * ptr);
 	JOB_RETURN ShaderFileImport(void * ptr);
 	JOB_RETURN TextureFileImport(void * ptr);
 
 	JOB_RETURN BindModel(void * ptr);
-	void GenerateVAO(RenderComponent * const render);
 	JOB_RETURN BindTexture(void * ptr);
 	JOB_RETURN BindShader(void * ptr);
+
+	void GenerateVAO(RenderComponent * const render);
+
+private:
 
 	glm::mat4 projection_look_matrix;
 
@@ -75,9 +75,10 @@ private:
 
 	GLfloat Y_rotation = 0.0f;
 
-	Storage<Model> * _models;
-	Storage<Shader> * _shaders;
-	Storage<Texture> * _textures;
+	Storage<Model> _models;
+	std::map<std::string, std::vector<RenderComponent*>> model_listeners;
+	Storage<Shader> _shaders;
+	Storage<Texture> _textures;
 };
 
 #endif // !_RENDER_H

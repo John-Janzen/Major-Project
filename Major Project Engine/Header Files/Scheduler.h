@@ -3,6 +3,7 @@
 #ifndef _SCHEDULER_H
 #define _SCHEDULER_H
 
+#include "EventHandler.h"
 #include "Job.h"
 
 #include <chrono>
@@ -24,20 +25,17 @@ public:
 
 	void CheckForJob(Job * job);
 
+	void CalculateJobTime(Job * job);
+
 private:
 
-	struct JobData
-	{
-		Job::UNIT_TIME time = 0u;
-		int count = 0;
+	using FuncTimes = std::map<job::JOB_ID, Job::UNIT_TIME>;
+	using hr_clock = std::chrono::high_resolution_clock;
+	using milliseconds = std::chrono::duration<float, std::milli>;
 
-		Job::UNIT_TIME & Get() { count++; return time; }
-	};
-
-	using FuncTimes = std::map<job::JOB_ID, JobData>;
+	const static Job::UNIT_TIME MAX_UNITS = 1000;
 
 	float time_lock;
-	const Job::UNIT_TIME MAX_UNITS = 1000;
 	Job::UNIT_TIME unit_lock_ratio;
 
 	FuncTimes function_map;

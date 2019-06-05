@@ -9,7 +9,7 @@
 #include "SceneHeaders.h"
 #include "EventHandler.h"
 
-class SceneManager : public EventListener
+class SceneManager
 {
 public:
 
@@ -25,36 +25,9 @@ public:
 		COUNT
 	};
 
-	SceneManager()
-	{
-		EventHandler::Instance().SubscribeEvent(LEFT_MOUSE_BUTTON, this);
-	}
+	SceneManager() {}
 
 	~SceneManager();
-
-	void HandleEvent(const EventType & e, void * data)
-	{
-		switch (e)
-		{
-		case LEFT_MOUSE_BUTTON:
-		{
-			Entity * & project = this->CreateEntity("Projectile", EntityType::BULLET);
-			auto player = static_cast<BaseComponent*>(data);
-			auto transform = static_cast<Transform*>(this->FindComponent(SceneManager::TRANSFORM, player->_id))->_transform;
-			this->AddComponent(SceneManager::TRANSFORM, new Transform(project->_id, transform * btVector3(0.f, 2.f, -2.f)));
-
-			auto c_render = this->AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->_id));
-			EventHandler::Instance().SendEvent(EventType::RENDER_NEW_OBJECT, c_render);
-
-			auto physics = static_cast<PhysicsComponent*>(this->AddComponent(SceneManager::PHYSICS, new SpherePhysicsComponent(project->_id)));
-			btRigidBody::upcast(physics->coll_object)->setLinearVelocity(transform.getBasis() * btRigidBody::upcast(physics->coll_object)->getLinearVelocity());
-			EventHandler::Instance().SendEvent(EventType::PHYSICS_NEW_OBJECT, physics);
-		}
-			break;
-		default:
-			break;
-		}
-	}
 
 	void LoadScene(Scene * scene)
 	{

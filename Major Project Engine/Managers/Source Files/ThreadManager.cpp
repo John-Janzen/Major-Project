@@ -63,8 +63,11 @@ void ThreadManager::HandleEvent(const EventType & e, void * data)
 	{
 	case EventType::JOB_FINISHED:
 	{
-		std::lock_guard<std::mutex> lock(finished_job);
-		jobs_to_finish--;
+		{
+			std::lock_guard<std::mutex> lock(finished_job);
+			jobs_to_finish--;
+		}
+
 		break;
 	}
 	case EventType::JOB_REENTER:
@@ -111,15 +114,14 @@ bool ThreadManager::HasJobs()
 { 
 	bool check = false;
 
-	for (const auto queue : t_queues)
+	for (int i = 1; i < n_threads; i++)
 	{
-		if (queue == nullptr) continue;
+		check |= !t_queues[i]->Empty();
 
-		check |= !queue->Empty();
-		if (!queue->Empty())
-		{
-			queue->Alert();
-		}
+		if (!t_queues[i]->Empty())
+			t_queues[i]->Alert();
+
+		check |= threads[i]->HasJob();
 	}
 	check |= !task_queue.Empty();
 
@@ -142,12 +144,14 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 		{
 		case job::JOB_MAIN:
 			t_queues[mt_loc]->Emplace(temp);
+			threads[mt_loc]->AddAllotedTime(temp->s_data.time_units);
 			task_queue.Pop();
 				
 			cv_main.notify_one();
 			break;
 		case job::JOB_RENDER:
 			t_queues[rt_loc]->Emplace(temp);
+			threads[rt_loc]->AddAllotedTime(temp->s_data.time_units);
 			task_queue.Pop();
 
 			cv_render.notify_one();
@@ -157,13 +161,13 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 			int selection = 1;
 			for (int i = 1; i < n_threads; i++)
 			{
-				if (threads[selection]->GetAllotedTime() < threads[i]->GetAllotedTime())
+				if (threads[i]->GetAllotedTime() < threads[selection]->GetAllotedTime())
 				{
 					selection = i;
 				}
 			}
 
-			//threads[selection]->AddAllotedTime(*temp->time_units);
+			threads[selection]->AddAllotedTime(temp->s_data.time_units);
 			t_queues[selection]->Emplace(temp);
 			task_queue.Pop();
 
@@ -188,9 +192,10 @@ void ThreadManager::NewFrame()
 {
 	if (debug_mode == 1)
 	{
-		for (const auto & t : threads)
-			if (t != nullptr)
-				t->ClearLogger();
+		for (int i = 0; i < n_threads; i++)
+		{
+			threads[i]->ClearLogger();
+		}
 		t_framestart = std::chrono::high_resolution_clock::now();
 		debug_mode = 2;
 	}

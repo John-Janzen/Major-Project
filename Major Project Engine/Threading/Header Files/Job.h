@@ -6,6 +6,7 @@
 #include <functional>
 #include <atomic>
 #include <array>
+#include <chrono>
 
 enum JOB_RETURN
 {
@@ -57,9 +58,9 @@ namespace job
 		JOB_PHYSICS_DEFAULT = JOB_STRIDE * JOB_PHYSICS,
 		JOB_PHYSICS_LOAD,
 		JOB_PHYSICS_LOAD_SINGLE,
-		JOB_PHYSICS_PREUPDATE,
 		JOB_PHYSICS_UPDATE,
 		JOB_PHYSICS_COMPONENT,
+		JOB_PHYSICS_COLLISION_DETECTION,
 		JOB_PHYSICS_COUNT,
 
 		JOB_INPUT_DEFAULT = JOB_STRIDE * JOB_INPUT,
@@ -68,6 +69,7 @@ namespace job
 		JOB_INPUT_COUNT,
 
 		JOB_RENDER_DEFAULT = JOB_STRIDE * JOB_RENDER,
+		JOB_RENDER_THREADING_CONTEXT,
 		JOB_RENDER_LOAD,
 		JOB_RENDER_LOAD_SINGLE,
 		JOB_RENDER_UPDATE,
@@ -119,6 +121,7 @@ struct Job
 	{
 		_func = NULL;
 		if (_content != nullptr) _content = nullptr;
+		job_name.clear();
 		for (auto & parent : _parent_jobs)
 		{
 			if (parent != nullptr)
@@ -131,14 +134,12 @@ struct Job
 
 	JOB_RETURN operator()()
 	{
-		JOB_RETURN ret = _func(_content);
-
-		return ret;
+		return _func(_content);
 	}
 
 	bool operator()(Job * const & lhs, Job * const & rhs)
 	{
-		return lhs->time_units < rhs->time_units;
+		return lhs->s_data.time_units < rhs->s_data.time_units;
 	}
 
 	void AddParent(Job * & job)
@@ -150,11 +151,15 @@ struct Job
 	}
 
 	// NAME
-	const std::string job_name;
+	std::string job_name;
 	
 	// SCHEDULING TOOLS
 	job::JOB_ID j_type;
-	UNIT_TIME * time_units = nullptr;
+	struct ScheduleData
+	{
+		UNIT_TIME time_units = 0;
+		std::chrono::high_resolution_clock::time_point start_time, end_time;
+	} s_data;
 
 	// JOB WAITING TOOLS
 	std::atomic_int _awaiting = 0;

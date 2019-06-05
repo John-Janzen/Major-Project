@@ -12,15 +12,11 @@ Application::Application(const std::size_t & num_of_threads)
 	EventHandler::Instance().SubscribeEvent(NEW_FRAME, this);
 	EventHandler::Instance().SubscribeEvent(T_BUTTON_PRESSED, this);
 	EventHandler::Instance().SubscribeEvent(DEBUG_FINISHED_LOAD, this);
-
-	m_thread.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, job::JOB_APPLICATION_UPDATE));
-	m_thread.AllocateJobs(0);
+	EventHandler::Instance().SubscribeEvent(LEFT_MOUSE_BUTTON, this);
 }
 
 Application::~Application()
 {
-	m_task.Close();
-	m_thread.Close();
 
 	if (renderer != nullptr) delete renderer;
 	if (input != nullptr) delete input;
@@ -39,21 +35,41 @@ void Application::HandleEvent(const EventType & e, void * data)
 	case EventType::GAME_CLOSED:
 		_state = EXITING;
 		break;
+
 	case EventType::OPEN_DEBUGGER:
 		if (_state == DEBUG_LOAD || _state == DEBUG_RUN)
-			_state = DEBUG_CLOSE;
+			this->ChangeGameState(GAME_STATE::DEBUG_CLOSE);
 		else
-			_state = DEBUG_LOAD;
+			this->ChangeGameState(GAME_STATE::DEBUG_LOAD);
 		break;
+
 	case EventType::NEW_FRAME:
 		can_start = true;
 		start_frame.notify_one();
 		break;
+
 	case EventType::T_BUTTON_PRESSED:
 		this->ChangeGameState(GAME_STATE::DEBUG_LOAD);
 		break;
+
 	case EventType::DEBUG_FINISHED_LOAD:
 		this->ChangeGameState(GAME_STATE::DEBUG_RUN);
+		break;
+
+	case LEFT_MOUSE_BUTTON:
+	{
+		Entity * & project = m_scene.CreateEntity("Projectile", EntityType::BULLET);
+		auto player = static_cast<BaseComponent*>(data);
+		auto transform = static_cast<Transform*>(m_scene.FindComponent(SceneManager::TRANSFORM, player->_id))->_transform;
+		m_scene.AddComponent(SceneManager::TRANSFORM, new Transform(project->_id, transform * btVector3(0.f, 2.f, -2.f)));
+
+		auto c_render = m_scene.AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->_id));
+		EventHandler::Instance().SendEvent(EventType::RENDER_NEW_OBJECT, c_render);
+
+		auto physics = static_cast<PhysicsComponent*>(m_scene.AddComponent(SceneManager::PHYSICS, new SpherePhysicsComponent(project->_id)));
+		btRigidBody::upcast(physics->coll_object)->setLinearVelocity(transform.getBasis() * btRigidBody::upcast(physics->coll_object)->getLinearVelocity());
+		EventHandler::Instance().SendEvent(EventType::PHYSICS_NEW_OBJECT, physics);
+	}
 		break;
 	default:
 		break;
@@ -82,6 +98,7 @@ bool Application::RunApplication()
 
 		break;
 	case PLAYING:
+	case PAUSED:
 	{
 		while (SDL_PollEvent(&sdl_event))
 		{
@@ -102,9 +119,15 @@ bool Application::RunApplication()
 				{
 				case SDL_SCANCODE_ESCAPE:
 					if (SDL_GetRelativeMouseMode())
+					{
+						this->ChangeGameState(GAME_STATE::PAUSED);
 						SDL_SetRelativeMouseMode(SDL_FALSE);
+					}
 					else
+					{
+						this->ChangeGameState(GAME_STATE::PLAYING);
 						SDL_SetRelativeMouseMode(SDL_TRUE);
+					}
 					break;
 				default:
 					break;
@@ -167,8 +190,6 @@ bool Application::RunApplication()
 		m_thread.HideDebugger();
 		this->ChangeGameState(GAME_STATE::PLAYING);
 		break;
-	case PAUSED:
-		break;
 	case DELOAD:
 		break;
 	case EXITING:
@@ -178,7 +199,7 @@ bool Application::RunApplication()
 		break;
 	}
 
-	{
+	if (_state == PLAYING || _state == DEBUG_RUN || _state == DEBUG_LOAD) {
 		std::unique_lock<std::mutex> lock(start);
 		start_frame.wait(lock, [this]
 		{
@@ -213,8 +234,8 @@ bool Application::InitApp()
 	m_task.SetTimeLock(refresh_rate);
 
 	renderer = new Render(m_task, m_scene);
-	input = new Input(m_task, m_scene);
 	physics = new Physics(m_task, m_scene);
+	input = new Input(m_task, m_scene);
 	test_system = new TestSystem(m_task, m_scene);
 
 	renderer->InitSystem(this->CreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT));
@@ -230,6 +251,9 @@ bool Application::LoadApp()
 {
 	bool check = true;
 
+	m_task.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, job::JOB_APPLICATION_UPDATE));
+	m_thread.AllocateJobs(0);
+
 	check &= renderer->Load();
 	check &= physics->Load();
 	check &= input->Load();
@@ -244,6 +268,8 @@ bool Application::LoadApp()
 bool Application::CloseApp()
 {
 	game_running = false;
+	m_thread.Close();
+	m_task.Close();
 	return false;
 }
 
@@ -255,7 +281,7 @@ JOB_RETURN Application::GameLoop(void * ptr)
 		m_thread.AllocateJobs(num);
 	} while (m_thread.HasJobs() || m_task.HasJobs());
 
-	m_thread.MainThreadJob(new Job(bind_function(&Application::WaitTillNextFrame, this), "Wait_Time_For_Frame", nullptr, job::JOB_TILL_NEXT_FRAME));
+	m_task.MainThreadJob(new Job(bind_function(&Application::WaitTillNextFrame, this), "Wait_Time_For_Frame", nullptr, job::JOB_TILL_NEXT_FRAME));
 	m_thread.AllocateJobs(1);
 
 	return JOB_COMPLETED;
@@ -267,7 +293,7 @@ JOB_RETURN Application::WaitTillNextFrame(void * ptr)
 
 	EventHandler::Instance().SendEvent(EventType::NEW_FRAME);
 
-	m_thread.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, job::JOB_APPLICATION_UPDATE));
+	m_task.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, job::JOB_APPLICATION_UPDATE));
 	m_thread.AllocateJobs(1);
 
 	return JOB_COMPLETED;

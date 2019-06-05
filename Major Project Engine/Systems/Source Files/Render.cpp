@@ -12,20 +12,16 @@ glm::mat4 getGLMMatrix4(const btScalar * matrix)
 Render::Render(TaskManager & tm, SceneManager & sm)
 	: System(tm, sm)
 {
-	_models = new Storage<Model>();
-	_shaders = new Storage<Shader>();
-	_textures = new Storage<Texture>();
-
 	EventHandler::Instance().SubscribeEvent(EventType::RENDER_NEW_OBJECT, this);
 	EventHandler::Instance().SubscribeEvent(EventType::STATE_CHANGE, this);
 	EventHandler::Instance().SubscribeEvent(EventType::NEW_FRAME, this);
 
 	// Jobs that need to wait on other jobs go here
 	{
-		/*m_task.dictionary.emplace(job::JOB_RENDER_LOAD_SINGLE, std::vector<job::JOB_ID>());
-		m_task.dictionary[job::JOB_RENDER_LOAD_SINGLE].emplace_back(job::JOB_RENDER_UPDATE);
+		m_task.dictionary.emplace(job::JOB_RENDER_THREADING_CONTEXT, std::vector<job::JOB_ID>());
+		m_task.dictionary[job::JOB_RENDER_THREADING_CONTEXT].emplace_back(job::JOB_RENDER_LOAD);
 
-		m_task.dictionary.emplace(job::JOB_LOAD_MODEL, std::vector<job::JOB_ID>());
+		/*m_task.dictionary.emplace(job::JOB_LOAD_MODEL, std::vector<job::JOB_ID>());
 		m_task.dictionary[job::JOB_LOAD_MODEL].emplace_back(job::JOB_RENDER_UPDATE);
 
 		m_task.dictionary.emplace(job::JOB_LOAD_TEXTURE, std::vector<job::JOB_ID>());
@@ -65,10 +61,6 @@ Render::~Render()
 	std::cout << "Render Destructor called" << std::endl;
 	sdl_window = nullptr;
 
-	delete _models;
-	delete _textures;
-	delete _shaders;
-
 	SDL_DestroyWindow(sdl_window);
 }
 
@@ -88,7 +80,8 @@ bool Render::Load()
 		}
 	}
 
-	m_task.RegisterJob(new Job(bind_function(&Render::LoadComponents, this), "Render_Component_Loader", &m_scene.GetComponents(SceneManager::RENDER), job::JOB_RENDER_LOAD));
+	m_task.RegisterJob(new Job(bind_function(&Render::LoadComponents, this), "Render_Component_Loader", &m_scene.GetComponents(SceneManager::RENDER), job::JOB_RENDER_LOAD), true);
+	m_task.RegisterJob(new Job(bind_function(&Render::GiveThreadedContext, this), "Threaded_Context", nullptr, job::JOB_RENDER_THREADING_CONTEXT), false);
 	return true;
 }
 
@@ -204,15 +197,15 @@ JOB_RETURN Render::LoadSingleComponent(void * ptr)
 	//assert(dynamic_cast<RenderComponent*>(ptr));
 	auto obj = static_cast<RenderComponent*>(ptr);
 	{
-		if (!_models->HasItem(obj->GetModelPath(), obj->GetModelAdd()))
+		if (!_models.HasItem(obj->GetModelPath(), obj->GetModelAdd()))
 			m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", obj, job::JOB_LOAD_MODEL));
 		else
 			this->GenerateVAO(obj);
 
-		if (!_shaders->HasItem(obj->GetShaderPath(), obj->GetShaderAdd()))
+		if (!_shaders.HasItem(obj->GetShaderPath(), obj->GetShaderAdd()))
 			m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", obj, job::JOB_LOAD_SHADER));
 
-		if (!_textures->HasItem(obj->GetTexturePath(), obj->GetTextureAdd()))
+		if (!_textures.HasItem(obj->GetTexturePath(), obj->GetTextureAdd()))
 			m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", obj, job::JOB_LOAD_TEXTURE));
 	}
 	return JOB_COMPLETED;
@@ -225,13 +218,20 @@ JOB_RETURN Render::LoadComponents(void * ptr)
 		assert(dynamic_cast<RenderComponent*>(render));
 		auto obj = static_cast<RenderComponent*>(render);
 		{
-			if (!_models->HasItem(obj->GetModelPath(), obj->GetModelAdd()))
+			if (!_models.HasItem(obj->GetModelPath(), obj->GetModelAdd()))
+			{
+				model_listeners[obj->GetModelPath()] = std::vector<RenderComponent*>();
 				m_task.RegisterJob(new Job(bind_function(&Render::ModelFileImport, this), "Model_Import", render, job::JOB_LOAD_MODEL));
+			}
+			else
+			{
+				model_listeners[obj->GetModelPath()].emplace_back(obj);
+			}
 
-			if (!_shaders->HasItem(obj->GetShaderPath(), obj->GetShaderAdd()))
+			if (!_shaders.HasItem(obj->GetShaderPath(), obj->GetShaderAdd()))
 				m_task.RegisterJob(new Job(bind_function(&Render::ShaderFileImport, this), "Shader_Import", render, job::JOB_LOAD_SHADER));
 
-			if (!_textures->HasItem(obj->GetTexturePath(), obj->GetTextureAdd()))
+			if (!_textures.HasItem(obj->GetTexturePath(), obj->GetTextureAdd()))
 				m_task.RegisterJob(new Job(bind_function(&Render::TextureFileImport, this), "Texture_Import", render, job::JOB_LOAD_TEXTURE));
 		}
 	}
@@ -247,8 +247,6 @@ bool Render::InitSDL()
 		printf("SDL INIT VIDEO failed! SDL_ERROR: %s\n", SDL_GetError());
 		return false;
 	}
-
-	m_task.RegisterJob(new Job(bind_function(&Render::GiveThreadedContext, this), "Threaded_Context", nullptr, job::JOB_RENDER_DEFAULT));
 	return true;
 }
 
@@ -346,10 +344,13 @@ JOB_RETURN Render::BindModel(void * ptr)
 		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * model_ptr->VSize),
 			model_ptr->_vertices,
 			GL_STATIC_DRAW);
-		for (auto & rc_cp : m_scene.GetComponents(SceneManager::RENDER))
+
+		this->GenerateVAO(rc_cp);
+
+		for (auto models : model_listeners[model_ptr->_name])
 		{
-			assert(dynamic_cast<RenderComponent*>(rc_cp));
-			auto render = static_cast<RenderComponent*>(rc_cp);
+			assert(dynamic_cast<RenderComponent*>(models));
+			auto render = static_cast<RenderComponent*>(models);
 			if (render->GetModel() == model_ptr)
 			{
 				this->GenerateVAO(render);

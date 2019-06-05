@@ -3,8 +3,6 @@
 #ifndef _MODEL_H
 #define _MODEL_H
 
-#include "Job.h"
-
 #include <GL\glew.h>
 #include <stdint.h>
 #include <mutex>
@@ -21,8 +19,6 @@ struct Model
 		: _name(name), _vertices{ vert }, _indices{ ind }, VSize(vs), ISize(is) { }
 
 	~Model() { if (_vertices != nullptr) delete _vertices; if (_indices != nullptr) delete _indices; }
-
-	JOB_RETURN CheckDoneLoad(void * ptr) { return (_vertices != nullptr && _indices != nullptr) ? JOB_COMPLETED : JOB_RETRY; }
 
 	std::string _name;
 	const GLfloat * _vertices;
@@ -41,11 +37,6 @@ struct Texture
 		: _name(name) {}
 	~Texture() { if (TextureID != 0) glDeleteTextures(1, _texture); }
 
-	JOB_RETURN CheckDoneLoad(void * ptr) 
-	{
-		return (_texture != nullptr && TextureID != 0) ? JOB_COMPLETED : JOB_RETRY; 
-	}
-
 	std::string _name;
 	const GLuint * _texture;
 	GLuint imgWidth, imgHeight, texWidth, texHeight;
@@ -59,8 +50,6 @@ struct Shader
 	Shader(const std::string name) 
 		: _name(name) {}
 	~Shader() {}
-
-	JOB_RETURN CheckDoneLoad(void * ptr) { return (_shaderID_Vert != 0 && _shaderID_Frag != 0) ? JOB_COMPLETED : JOB_RETRY; }
 
 	std::string _name;
 	GLuint _shaderID_Vert, _shaderID_Frag;
@@ -116,7 +105,7 @@ public:
 		}
 	}
 
-	bool HasItem(const std::string name)
+	const bool & HasItem(const std::string name)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
 		for (auto mod : _objects)
@@ -129,7 +118,7 @@ public:
 		return false;
 	}
 
-	bool HasItem(const std::string & name, T * & model)
+	const bool HasItem(const std::string & name, T * & model)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
 		for (auto mod : _objects)

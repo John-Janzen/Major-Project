@@ -38,33 +38,39 @@ void Thread::Execution()
 		if (debug_mode)
 			data = Logger.Instatiate(current_job->j_type, current_job->job_name);
 
-		switch ((*current_job)())
+		if (current_job != nullptr)
 		{
-		case JOB_COMPLETED:
-			//this->SubAllotedTime(*current_job->time_units);
-			count++;
-			EventHandler::Instance().SendEvent(EventType::JOB_FINISHED, current_job);
+			current_job->s_data.start_time = hr::now();
+			switch ((*current_job)())
+			{
+			case JOB_COMPLETED:
+				current_job->s_data.end_time = hr::now();
+				this->SubAllotedTime(current_job->s_data.time_units);
 
-			delete(current_job);
-			current_job = nullptr;
+				count++;
+				EventHandler::Instance().SendEvent(EventType::JOB_FINISHED, current_job);
 
-			if (debug_mode && data != nullptr)
-				data->t_end = std::chrono::high_resolution_clock::now();
-			break;
-		case JOB_RETRY:
-			//this->SubAllotedTime(*current_job->time_units);
-			EventHandler::Instance().SendEvent(EventType::JOB_REENTER, current_job);
+				delete(current_job);
+				current_job = nullptr;
 
-			current_job = nullptr;
-			if (debug_mode && data != nullptr)
-				data->t_end = std::chrono::high_resolution_clock::now();
-			break;
-		case JOB_ISSUE:
-			printf("ISSUE FOUND WITH JOB: %s", current_job->job_name.c_str());
-			throw std::invalid_argument("FOUND ISSUE");
-			break;
-		default:
-			break;
+				if (debug_mode && data != nullptr)
+					data->t_end = std::chrono::high_resolution_clock::now();
+				break;
+			case JOB_RETRY:
+				this->SubAllotedTime(current_job->s_data.time_units);
+				EventHandler::Instance().SendEvent(EventType::JOB_REENTER, current_job);
+
+				current_job = nullptr;
+				if (debug_mode && data != nullptr)
+					data->t_end = std::chrono::high_resolution_clock::now();
+				break;
+			case JOB_ISSUE:
+				printf("ISSUE FOUND WITH JOB: %s", current_job->job_name.c_str());
+				throw std::invalid_argument("FOUND ISSUE");
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }

@@ -17,7 +17,6 @@ public:
 	bool Load();
 	void HandleEvent(const EventType & e, void * data);
 
-	JOB_RETURN StepSimulation(void * ptr);
 	JOB_RETURN Update(void * ptr);
 
 	JOB_RETURN LoadComponents(void * ptr);
@@ -27,6 +26,8 @@ private:
 
 	std::mutex dworld_lock;
 	JOB_RETURN ComponentUpdate(void * ptr);
+
+	JOB_RETURN CollisionDetection(void * ptr);
 
 	JOB_RETURN LoadSingleComponent(void * ptr);
 
@@ -38,5 +39,7 @@ private:
 	btDiscreteDynamicsWorld * dynamicWorld;
 
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
+
+	const int p_breakdown = 8;
 };
 

@@ -10,6 +10,7 @@
 
 #include <queue>
 #include <array>
+#include <cassert>
 
 /*
 This Manager class is created as a singleton because
@@ -65,11 +66,6 @@ public:
 	void StopThreads();
 
 	void RetryJob(Job * job)
-	{
-		task_queue.Emplace(job);
-	}
-
-	void MainThreadJob(Job * && job)
 	{
 		task_queue.Emplace(job);
 	}

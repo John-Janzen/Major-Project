@@ -31,6 +31,8 @@ public:
 
 	void RegisterJob(Job * & job, bool wait = false, Job * parent_job = nullptr);
 
+	void MainThreadJob(Job *&& job);
+
 	void RegisterJob(Job * && job, bool wait = false, Job * parent_job = nullptr);
 
 	int ManageJobs();

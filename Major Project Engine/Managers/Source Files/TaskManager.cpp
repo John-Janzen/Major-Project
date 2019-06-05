@@ -14,7 +14,7 @@ void TaskManager::HandleEvent(const EventType & e, void * data)
 	{
 	case EventType::JOB_FINISHED:
 	{
-
+		_scheduler.CalculateJobTime(static_cast<Job*>(data));
 		break;
 	}
 	case EventType::NEW_FRAME:
@@ -65,6 +65,8 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 	if (parent_job != nullptr)
 		job->AddParent(parent_job);
 
+	this->_scheduler.CheckForJob(job);
+
 	if (dictionary.find(job->j_type) != dictionary.end())
 	{
 		for (auto jobs : dictionary.find(job->j_type)->second)
@@ -95,10 +97,18 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 	}
 }
 
+void TaskManager::MainThreadJob(Job * && job)
+{
+	this->_scheduler.CheckForJob(job);
+	task_queue.Emplace(job);
+}
+
 void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
 {
 	if (parent_job != nullptr)
 		job->AddParent(parent_job);
+
+	this->_scheduler.CheckForJob(job);
 
 	if (dictionary.find(job->j_type) != dictionary.end())
 	{
