@@ -19,7 +19,6 @@ void TaskManager::HandleEvent(const EventType & e, void * data)
 	}
 	case EventType::NEW_FRAME:
 	{
-
 		break;
 	}
 	default:
@@ -48,7 +47,7 @@ void TaskManager::Close()
 bool TaskManager::HasJobs()
 {
 	std::lock_guard<std::mutex> lk(list_lock);
-	return (!waiting_jobs.empty() || !task_queue.Empty());
+	return !(waiting_jobs.empty() && task_queue.Empty());
 }
 
 void TaskManager::RegisterJob(JobFunction function, const std::string name, void* content, const job::JOB_ID type)

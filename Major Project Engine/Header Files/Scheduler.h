@@ -3,11 +3,11 @@
 #ifndef _SCHEDULER_H
 #define _SCHEDULER_H
 
-#include "EventHandler.h"
 #include "Job.h"
 
 #include <chrono>
 #include <map>
+#include <mutex>
 
 class Scheduler
 {
@@ -19,8 +19,8 @@ public:
 
 	void SetTimeLock(const float & time_lock)
 	{
-		this->time_lock = time_lock;
-		unit_lock_ratio = (int)std::ceil(MAX_UNITS / time_lock);
+		auto milliseconds = std::chrono::duration<float, std::milli>(time_lock);
+		this->time_lock = std::chrono::duration_cast<nanoseconds>(milliseconds);
 	}
 
 	void CheckForJob(Job * job);
@@ -29,16 +29,9 @@ public:
 
 private:
 
-	using FuncTimes = std::map<job::JOB_ID, Job::UNIT_TIME>;
-	using hr_clock = std::chrono::high_resolution_clock;
-	using milliseconds = std::chrono::duration<float, std::milli>;
-
-	const static Job::UNIT_TIME MAX_UNITS = 1000;
-
-	float time_lock;
-	Job::UNIT_TIME unit_lock_ratio;
-
-	FuncTimes function_map;
+	std::map<job::JOB_ID, nanoseconds> function_map;
+	std::mutex map_access;
+	nanoseconds time_lock;
 };
 
 #endif // !_SCHEDULER_H

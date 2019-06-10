@@ -92,7 +92,7 @@ void ThreadDebugger::RenderDebug()
 	text_texture = nullptr;
 }
 
-void ThreadDebugger::LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time)
+void ThreadDebugger::LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> threads, const hr_tp & object_time)
 {
 	SDL_Rect rect;
 	DataPoints dp_job;
@@ -107,7 +107,7 @@ void ThreadDebugger::LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> thre
 			rect = SDL_Rect();
 			for (auto & data : thread->AquireData())
 			{
-				if ((data.t_end - data.t_start).count() < 0) data.t_end = Thread::hr::now();
+				if ((data.t_end - data.t_start).count() < 0) data.t_end = hr::now();
 
 				ColorByID(data.t_id, dp_job.c);
 				CalculateRect(data, object_time, rect);
@@ -170,10 +170,10 @@ void ThreadDebugger::CheckMouseLocation(const SDL_MouseMotionEvent & event)
 	job_label = "No Job Selected";
 }
 
-void ThreadDebugger::CalculateRect(const Thread::ThreadData & data, const Thread::ctp & object_time,  SDL_Rect & rect)
+void ThreadDebugger::CalculateRect(const Thread::ThreadData & data, const hr_tp & object_time,  SDL_Rect & rect)
 {
-	rect.x = (int)std::ceilf((std::chrono::duration_cast<std::chrono::microseconds>(data.t_start - object_time).count() / (refresh_rate * 1000)) * (windowX)) + border_width;
-	rect.w = (int)std::ceilf((std::chrono::duration_cast<std::chrono::microseconds>(data.t_end - data.t_start).count() / (refresh_rate * 1000)) * (windowX));
+	rect.x = (int)std::ceilf((std::chrono::duration<float, std::milli>(data.t_start - object_time).count() / refresh_rate) * (windowX)) + border_width;
+	rect.w = (int)std::ceilf((std::chrono::duration<float, std::milli>(data.t_end - data.t_start).count() / refresh_rate) * (windowX));
 	if (rect.w <= 2)
 		rect.w = 5;
 	rect.h = heightOfLines;

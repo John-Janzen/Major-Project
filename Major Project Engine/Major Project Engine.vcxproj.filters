@@ -68,9 +68,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Header Files\BlockingQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Header Files\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>

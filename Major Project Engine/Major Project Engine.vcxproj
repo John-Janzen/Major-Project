@@ -60,7 +60,6 @@
     <ClInclude Include="Header Files\Application.h" />
     <ClInclude Include="Game Objects\Components\Base Components\Header Files\BaseComponent.h" />
     <ClInclude Include="Game Objects\Entity.h" />
-    <ClInclude Include="Header Files\BlockingQueue.h" />
     <ClInclude Include="Threading\Header Files\ThreadDebugger.h" />
     <ClInclude Include="Threading\Header Files\Thread.h" />
     <ClInclude Include="Managers\Header Files\ThreadManager.h" />

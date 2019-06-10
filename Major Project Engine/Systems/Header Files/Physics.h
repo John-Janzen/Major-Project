@@ -40,6 +40,6 @@ private:
 
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
 
-	const int p_breakdown = 8;
+	const int p_breakdown = 4;
 };
 

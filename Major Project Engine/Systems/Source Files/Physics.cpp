@@ -122,21 +122,25 @@ JOB_RETURN Physics::Update(void * ptr)
 			x = i * n_updates_per_job;
 			y = (i + 1) * n_updates_per_job;
 
-			x2 = i * n_collisions_per_job;
-			y2 = (i + 1) * n_collisions_per_job;
-
 			if (i == p_breakdown - 1)
-			{
 				y += remainder;
-				y2 += remainder2;
-			}
 
 			std::vector<int> * updates = new std::vector<int>{ x, y };
 			m_task.RegisterJob(new Job(
 				bind_function(&Physics::ComponentUpdate, this),
-				"Physics_Split_Component",
+				"Physics_Component_Update",
 				updates,
 				job::JOB_PHYSICS_COMPONENT), false);
+
+			
+		}
+		for (int i = 0; i < p_breakdown; i++) 
+		{
+			x2 = i * n_collisions_per_job;
+			y2 = (i + 1) * n_collisions_per_job;
+
+			if (i == p_breakdown - 1)
+				y2 += remainder2;
 
 			std::vector<int> * select = new std::vector<int>{ x2, y2 };
 			m_task.RegisterJob(

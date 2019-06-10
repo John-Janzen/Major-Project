@@ -19,27 +19,22 @@ ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*> & queue
 			name = "Albert";
 			type = Thread::MAIN_THREAD;
 			mt_loc = i;
-			t_queues[i] = new BlockingQueue<Job*>(cv_main);
 			break;
 		case 1:
 			name = "Curie";
 			type = Thread::RENDER_THREAD;
 			rt_loc = i;
-			t_queues[i] = new BlockingQueue<Job*>(cv_render);
 			break;
 		case 2:
 			name = "Newton";
-			t_queues[i] = new BlockingQueue<Job*>(cv_any);
 			break;
 		case 3:
 			name = "Dennis";
-			t_queues[i] = new BlockingQueue<Job*>(cv_any);
 			break;
 		default:
-			t_queues[i] = new BlockingQueue<Job*>(cv_any);
 			break;
 		}
-		threads[i] = new Thread(*t_queues[i], name, type);
+		threads[i] = new Thread(name, type);
 	}
 }
 
@@ -116,17 +111,12 @@ bool ThreadManager::HasJobs()
 
 	for (int i = 1; i < n_threads; i++)
 	{
-		check |= !t_queues[i]->Empty();
-
-		if (!t_queues[i]->Empty())
-			t_queues[i]->Alert();
-
 		check |= threads[i]->HasJob();
 	}
 	check |= !task_queue.Empty();
 
 	check |= jobs_to_finish != 0;
-	return check; 
+	return check;
 }
 
 void ThreadManager::AllocateJobs(const int num_new_jobs)
@@ -143,35 +133,26 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 		switch (temp->j_type / JOB_STRIDE)
 		{
 		case job::JOB_MAIN:
-			t_queues[mt_loc]->Emplace(temp);
-			threads[mt_loc]->AddAllotedTime(temp->s_data.time_units);
+			threads[mt_loc]->EmplaceNewJob(temp, frame_start);
 			task_queue.Pop();
-				
-			cv_main.notify_one();
 			break;
-		case job::JOB_RENDER:
-			t_queues[rt_loc]->Emplace(temp);
-			threads[rt_loc]->AddAllotedTime(temp->s_data.time_units);
-			task_queue.Pop();
 
-			cv_render.notify_one();
+		case job::JOB_RENDER:
+			threads[rt_loc]->EmplaceNewJob(temp, frame_start);
+			task_queue.Pop();
 			break;
+
 		default:
 		{
-			int selection = 1;
+			int selection = n_threads - 1;
 			for (int i = 1; i < n_threads; i++)
 			{
-				if (threads[i]->GetAllotedTime() < threads[selection]->GetAllotedTime())
-				{
+				if (threads[i]->GetEndTime() < threads[selection]->GetEndTime()) 
 					selection = i;
-				}
 			}
 
-			threads[selection]->AddAllotedTime(temp->s_data.time_units);
-			t_queues[selection]->Emplace(temp);
+			threads[selection]->EmplaceNewJob(temp, frame_start);
 			task_queue.Pop();
-
-			t_queues[selection]->Alert();
 		}
 			break;
 		}
@@ -183,7 +164,7 @@ void ThreadManager::PrintJobs()
 	int total = 0;
 	for (const auto & t : threads)
 		if (t != nullptr)
-			total += t->PrintLogger(t_framestart);
+			total += t->PrintLogger(frame_start);
 
 	printf("Total count is: %u\n", total);
 }
@@ -196,13 +177,23 @@ void ThreadManager::NewFrame()
 		{
 			threads[i]->ClearLogger();
 		}
-		t_framestart = std::chrono::high_resolution_clock::now();
+		debug_start = std::chrono::high_resolution_clock::now();
 		debug_mode = 2;
 	}
 	else if (debug_mode == 2)
 	{
-		t_debug.LoadDebugData(threads, t_framestart);
+		t_debug.LoadDebugData(threads, debug_start);
 		EventHandler::Instance().SendEvent(EventType::DEBUG_FINISHED_LOAD);
+	}
+
+	frame_start = std::chrono::high_resolution_clock::now();
+
+	for (int i = 1; i < n_threads; i++)
+	{
+		if ((threads[i]->GetAllotedTime() != nanoseconds(0) || threads[i]->GetEndTime() != nanoseconds(0)) && !threads[i]->HasJob())
+		{
+			threads[i]->ResetAllotedTime();
+		}
 	}
 }
 
@@ -210,7 +201,6 @@ void ThreadManager::StopThreads()
 {
 	for (std::size_t i = 0; i < n_threads; i++)
 	{
-		t_queues[i]->Close();
 		threads[i]->Stop();
 	}
 }

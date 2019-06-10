@@ -39,7 +39,7 @@ public:
 
 	void CheckMouseLocation(const SDL_MouseMotionEvent & event);
 
-	void LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> threads, const Thread::ctp & object_time);
+	void LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> threads, const hr_tp & object_time);
 
 	bool loaded = false;
 
@@ -55,7 +55,7 @@ private:
 		std::string name;
 	};
 
-	void CalculateRect(const Thread::ThreadData & data, const Thread::ctp & object_time, SDL_Rect & rect);
+	void CalculateRect(const Thread::ThreadData & data, const hr_tp & object_time, SDL_Rect & rect);
 
 	void ColorByID(const job::JOB_ID & id, DataPoints::Color & color);
 

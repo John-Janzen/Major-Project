@@ -78,7 +78,14 @@ public:
 	void LoadDebugger(const float & rate, const std::size_t & count) { t_debug.LoadDebug(rate, count); }
 	void ShowDebugger() { t_debug.ShowDebug(); }
 	void RenderDebugger() { t_debug.RenderDebug(); }
-	void HideDebugger() { t_debug.HideDebug(); }
+	void HideDebugger() 
+	{ 
+		t_debug.HideDebug(); 
+		for (int i = 0; i < n_threads; i++)
+		{
+			threads[i]->ClearLogger();
+		}
+	}
 	Uint32 GetDebugWindowID() { return t_debug.GetWindowID(); }
 	void CheckDebugMouseLoc(const SDL_MouseMotionEvent & mme) { t_debug.CheckMouseLocation(mme); }
 
@@ -88,16 +95,13 @@ private:
 	std::uint8_t debug_mode = 0;
 
 	std::array<Thread*, Thread::MAX_THREADS> threads = { nullptr };
-	std::array<BlockingQueue<Job*>*, Thread::MAX_THREADS> t_queues = { nullptr };
 	std::size_t rt_loc, mt_loc;
-
-	std::condition_variable cv_any, cv_render, cv_main;
 
 	SharedQueue<Job*> & task_queue;
 	std::size_t n_threads;
 	std::mutex finished_job;
 
-	std::chrono::high_resolution_clock::time_point t_framestart;
+	std::chrono::high_resolution_clock::time_point debug_start, frame_start;
 	
 	int count = 1;
 };

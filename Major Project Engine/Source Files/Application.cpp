@@ -85,7 +85,7 @@ bool Application::RunApplication()
 		if (!Initialized)
 			this->InitApp();
 		else
-			if (!m_thread.HasJobs() || !m_task.HasJobs())
+			if (!m_thread.HasJobs() && !m_task.HasJobs())
 				this->ChangeGameState(GAME_STATE::LOADING);
 
 		break;
@@ -93,7 +93,7 @@ bool Application::RunApplication()
 		if (!LoadedApp)
 			this->LoadApp();
 		else
-			if (!m_thread.HasJobs() || !m_task.HasJobs())
+			if (!m_thread.HasJobs() && !m_task.HasJobs())
 				this->ChangeGameState(GAME_STATE::PLAYING);
 
 		break;
@@ -254,12 +254,12 @@ bool Application::LoadApp()
 	m_task.MainThreadJob(new Job(bind_function(&Application::GameLoop, this), "Application_Update", nullptr, job::JOB_APPLICATION_UPDATE));
 	m_thread.AllocateJobs(0);
 
+	m_thread.LoadDebugger(refresh_rate, n_threads);
+	m_task.SetTimeLock(refresh_rate);
+
 	check &= renderer->Load();
 	check &= physics->Load();
 	check &= input->Load();
-
-	m_thread.LoadDebugger(refresh_rate, n_threads);
-	m_task.SetTimeLock(refresh_rate);
 	
 	LoadedApp = true;
 	return check;
@@ -279,7 +279,7 @@ JOB_RETURN Application::GameLoop(void * ptr)
 	{
 		int num = m_task.ManageJobs();
 		m_thread.AllocateJobs(num);
-	} while (m_thread.HasJobs() || m_task.HasJobs());
+	} while (Timer::Instance().CheckTimeLimit() && (m_thread.HasJobs() || m_task.HasJobs()));
 
 	m_task.MainThreadJob(new Job(bind_function(&Application::WaitTillNextFrame, this), "Wait_Time_For_Frame", nullptr, job::JOB_TILL_NEXT_FRAME));
 	m_thread.AllocateJobs(1);

@@ -5,8 +5,8 @@
 * Constructor that registers a name for the
 * thread class.
 */
-Thread::Thread(BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type)
-	: job_list(queue), _name(name), t_type(type)
+Thread::Thread(const std::string & name, const THREAD_TYPE type)
+	: _name(name), t_type(type)
 {
 	_thread = std::make_unique<std::thread>(&Thread::Execution, this);
 }
@@ -29,10 +29,25 @@ Thread::~Thread() {}
 void Thread::Execution()
 {
 	ThreadData * data = nullptr;
-	while (_running)
+	while (true)
 	{
-		job_list.Aquire(current_job);
-
+		{
+			std::unique_lock<std::mutex> lock(queue_mutex);
+			_cv.wait(lock, [this] {
+				if (!this->_queue.empty())
+				{
+					this->current_job = std::move(this->_queue.front());
+					this->_queue.pop();
+					return true;
+				}
+				if (!this->_running)
+				{
+					return true;
+				}
+				return false;
+			});
+		}
+		
 		if (!_running) break;
 
 		if (debug_mode)
@@ -45,7 +60,11 @@ void Thread::Execution()
 			{
 			case JOB_COMPLETED:
 				current_job->s_data.end_time = hr::now();
-				this->SubAllotedTime(current_job->s_data.time_units);
+				{
+					std::lock_guard<std::mutex> lock(time_mutex);
+					this->queue_time -= this->current_job->s_data.time_span;
+					if (_queue.empty()) current_end = nanoseconds(0);
+				}
 
 				count++;
 				EventHandler::Instance().SendEvent(EventType::JOB_FINISHED, current_job);
@@ -55,14 +74,20 @@ void Thread::Execution()
 
 				if (debug_mode && data != nullptr)
 					data->t_end = std::chrono::high_resolution_clock::now();
+
 				break;
 			case JOB_RETRY:
-				this->SubAllotedTime(current_job->s_data.time_units);
+				{
+					std::lock_guard<std::mutex> lock(time_mutex);
+					this->queue_time -= this->current_job->s_data.time_span;
+					if (_queue.empty()) current_end = nanoseconds(0);
+				}
 				EventHandler::Instance().SendEvent(EventType::JOB_REENTER, current_job);
 
 				current_job = nullptr;
 				if (debug_mode && data != nullptr)
 					data->t_end = std::chrono::high_resolution_clock::now();
+
 				break;
 			case JOB_ISSUE:
 				printf("ISSUE FOUND WITH JOB: %s", current_job->job_name.c_str());
@@ -82,6 +107,7 @@ void Thread::Execution()
 void Thread::Stop()
 {
 	_running = false;
+	this->Alert();
 	_thread->join();
 	_thread.reset();
 }

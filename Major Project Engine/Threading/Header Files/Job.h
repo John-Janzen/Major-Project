@@ -17,6 +17,11 @@ enum JOB_RETURN
 
 //typedef bool(*JobFunction)(void* &);
 using JobFunction = std::function<JOB_RETURN(void*)>;
+typedef std::chrono::high_resolution_clock hr;
+typedef hr::time_point hr_tp;
+//using milliseconds = std::chrono::duration<float, std::milli>;
+
+using nanoseconds = std::chrono::nanoseconds;
 
 template<class T>
 JobFunction bind_function(JOB_RETURN(T::* pFunc)(void*), T * const sys = nullptr)
@@ -100,8 +105,6 @@ struct Job
 {
 	static const int MAX_PARENTS = 32;
 
-	using UNIT_TIME = uint16_t;
-
 	Job
 	(
 		JobFunction function, 
@@ -139,7 +142,7 @@ struct Job
 
 	bool operator()(Job * const & lhs, Job * const & rhs)
 	{
-		return lhs->s_data.time_units < rhs->s_data.time_units;
+		return lhs->s_data.time_span < rhs->s_data.time_span;
 	}
 
 	void AddParent(Job * & job)
@@ -157,7 +160,7 @@ struct Job
 	job::JOB_ID j_type;
 	struct ScheduleData
 	{
-		UNIT_TIME time_units = 0;
+		nanoseconds time_span;
 		std::chrono::high_resolution_clock::time_point start_time, end_time;
 	} s_data;
 

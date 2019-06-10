@@ -4,7 +4,6 @@
 #define _THREAD_H
 
 #include "Job.h"
-#include "BlockingQueue.h"
 
 #include <atomic>
 #include <thread>
@@ -23,8 +22,6 @@
 class Thread
 {
 public:
-	typedef std::chrono::high_resolution_clock hr;
-	typedef hr::time_point ctp;
 
 	static const std::size_t MAX_THREADS = 8;
 
@@ -40,24 +37,65 @@ public:
 	{
 		job::JOB_ID t_id;
 		std::string t_name;
-		ctp t_start, t_end;
+		hr_tp t_start, t_end;
 	};
 
-	Thread(BlockingQueue<Job*> & queue, const std::string & name, const THREAD_TYPE type = ANY_THREAD);
+	Thread(const std::string & name, const THREAD_TYPE type = ANY_THREAD);
 
 	~Thread();
 
 	void Execution();
+
 	void Stop();
+
+	void Alert() { _cv.notify_one(); }
 
 	const THREAD_TYPE GetType() { return t_type; }
 
-	const bool HasJob() { return (current_job != nullptr); }
+	const bool HasJob() 
+	{ 
+		bool test = !this->_queue.empty();
+		bool test2 = current_job != nullptr;
 
-	const int GetAllotedTime() const { return this->queue_time; }
+		if (test)
+			this->Alert();
 
-	void AddAllotedTime(const Job::UNIT_TIME & time) { this->queue_time += time; }
-	void SubAllotedTime(const Job::UNIT_TIME & time) { this->queue_time -= time; }
+		if (current_job != nullptr)
+			auto asdar = "asdasr";
+
+		return (test2 || test);
+	}
+
+	void EmplaceNewJob(Job * & job, const hr_tp & objective_time) 
+	{
+		{
+			std::lock_guard<std::mutex> lock(time_mutex);
+			if (current_end <= nanoseconds(0))
+			{
+				auto now = nanoseconds(hr::now() - objective_time);
+				current_end = now + job->s_data.time_span;
+			}
+			else
+			{
+				current_end += job->s_data.time_span;
+			}
+			queue_time += job->s_data.time_span;
+		}
+		{
+			std::lock_guard<std::mutex> lock(queue_mutex);
+			this->_queue.emplace(job);
+		}
+		this->Alert();
+	}
+
+	const nanoseconds GetAllotedTime() 
+	{
+		std::lock_guard<std::mutex> lock(time_mutex);
+		return queue_time;
+	}
+
+	const nanoseconds GetEndTime() { std::lock_guard<std::mutex> lock(time_mutex); return current_end; }
+	void ResetAllotedTime() { queue_time = nanoseconds(0); current_end = nanoseconds(0); }
 
 	/*
 	* Prints available stats.
@@ -98,7 +136,7 @@ private:
 			return &(*t_data.emplace(t_data.end(), ThreadData{ id, name, hr::now() }));
 		}
 
-		void PrintData(const std::string name, const ctp & obj_time)
+		void PrintData(const std::string name, const hr_tp & obj_time)
 		{
 			std::cout << "Logged Data for Thread: " << name.c_str() << "\n";
 			std::cout << "-------------------------" << "\n";
@@ -135,12 +173,14 @@ private:
 	std::string _name;
 	int count = 0;
 
-	Job::UNIT_TIME queue_time = 0;
-
 	std::unique_ptr<std::thread> _thread;
-	Job * current_job;
+	Job * current_job = nullptr;
 
-	BlockingQueue<Job*> & job_list;
+	std::mutex queue_mutex, time_mutex;
+	std::condition_variable _cv;
+	std::queue<Job*> _queue;
+	nanoseconds queue_time = nanoseconds(0), current_end = nanoseconds(0);
+
 };
 
 #endif // !_THREAD_H

@@ -6,31 +6,36 @@ Scheduler::~Scheduler() {}
 
 void Scheduler::CheckForJob(Job * job)
 {
+	
 	if (function_map.find(job->j_type) != function_map.end())
 	{
-		job->s_data.time_units = function_map[job->j_type];
+		std::lock_guard<std::mutex> lock(map_access);
+		job->s_data.time_span = function_map[job->j_type];
 	}
 	else
 	{
-		auto temp = function_map.emplace(job->j_type, MAX_UNITS);
-		job->s_data.time_units = temp.first->second;
+		std::lock_guard<std::mutex> lock(map_access);
+		auto temp = function_map.emplace(job->j_type, time_lock);
+		job->s_data.time_span = temp.first->second;
 	}
 }
 
 void Scheduler::CalculateJobTime(Job * job)
 {
-	milliseconds time_taken;
-	if ((time_taken = milliseconds(job->s_data.end_time - job->s_data.start_time)).count() > 0.f)
+	nanoseconds time_taken;
+	if ((time_taken = job->s_data.end_time - job->s_data.start_time) > nanoseconds(0))
 	{
-		if (function_map[job->j_type] != MAX_UNITS)
+		if (function_map[job->j_type] != time_lock)
 		{
+			std::lock_guard<std::mutex> lock(map_access);
 			auto & current_units = function_map[job->j_type];
-			auto new_units = ((time_taken.count() * unit_lock_ratio) + current_units) / 2.f;
+			auto new_units = (time_taken + current_units) / 2;
 			current_units = new_units;
 		}
 		else
 		{
-          	function_map[job->j_type] = time_taken.count() * unit_lock_ratio;
+			std::lock_guard<std::mutex> lock(map_access);
+          	function_map[job->j_type] = time_taken;
 		}
 	}
 }

@@ -20,7 +20,7 @@ bool MainScene::Load(SceneManager & sm)
 		{
 			for (int k = 0; k < NUM_MULTI_OBJECTS; k++)
 			{
-				this->LoadMultiObject(sm, ((i * 2) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((j * 3) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((k * 2) - (NUM_MULTI_OBJECTS - 1) * 1.5));
+				this->LoadMultiObject(sm, ((i * 3) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((j * 3) - (NUM_MULTI_OBJECTS - 1) * 1.5), ((k * 3) - (NUM_MULTI_OBJECTS - 1) * 1.5));
 			}
 		}
 	}
