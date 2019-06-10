@@ -36,7 +36,7 @@ public:
 
 	void SetTimeLock(const float time) 
 	{
-		current_time_lock = ms(time); 
+		current_time_lock = ms(time);
 	}
 
 private:

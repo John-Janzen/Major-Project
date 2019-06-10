@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "SceneHeaders.h"
+#include "EventHandler.h"
 
 class SceneManager
 {
@@ -20,21 +21,35 @@ public:
 		PHYSICS,
 		RENDER,
 		CONTROLLER,
+		CAMERA,
 		COUNT
 	};
 
-	SceneManager();
+	SceneManager() {}
+
 	~SceneManager();
 
-	void LoadScene(Scene * && scene)
+	void LoadScene(Scene * scene)
 	{
-		p_scene = scene;
 		scene->Load(*this);
 	}
 
-	void AddComponent(const CompTypes & type, BaseComponent * && base)
+	Entity * FindEntity(const EntityID & id)
+	{
+		for (auto & ent : _entities)
+		{
+			if (ent->_id == id)
+			{
+				return ent;
+			}
+		}
+		return nullptr;
+	}
+
+	BaseComponent * AddComponent(const CompTypes & type, BaseComponent * && base)
 	{
 		_components[type].emplace_back(base);
+		return _components[type].back();
 	}
 
 	std::vector<BaseComponent*> & GetComponents(const CompTypes & type)
@@ -62,6 +77,9 @@ public:
 				case CONTROLLER:
 					assert(dynamic_cast<PlayerControllerComponent*>(comp));
 					break;
+				case CAMERA:
+					assert(dynamic_cast<CameraComponent*>(comp));
+					break;
 				default:
 					break;
 				}
@@ -71,17 +89,15 @@ public:
 		return nullptr;
 	}
 
-	Entity * & CreateEntity(const std::string & name)
+	Entity * & CreateEntity(const std::string & name, const EntityType & type)
 	{
-		_entities[count_ent] = new Entity(name, id_count++);
+		_entities[count_ent] = new Entity(name, id_count++, type);
 		count_ent++;
 		return _entities[count_ent - 1];
 	}
 
 private:
 	static int id_count;
-
-	Scene * p_scene;
 	
 	std::uint16_t count_ent = 0;
 	std::array<std::vector<BaseComponent*>, COUNT> _components;

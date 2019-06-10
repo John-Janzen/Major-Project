@@ -38,6 +38,10 @@ void TestSystem::Close(void* content)
 
 }
 
+void TestSystem::HandleEvent(const EventType & e, void * data)
+{
+}
+
 bool TestSystem::Process(void* content)
 {
 	//const InitialContent * IContent = dynamic_cast<const InitialContent*>(content);

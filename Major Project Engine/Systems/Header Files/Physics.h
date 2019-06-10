@@ -5,6 +5,7 @@
 #include <btBulletDynamicsCommon.h>
 #include <stdio.h>
 #include <exception>
+#include <mutex>
 
 class Physics :
 	public System
@@ -13,15 +14,22 @@ public:
 	Physics(TaskManager & tm, SceneManager & sm);
 	~Physics();
 
-	JOB_RETURN PreUpdate(void * ptr);
+	bool Load();
+	void HandleEvent(const EventType & e, void * data);
+
 	JOB_RETURN Update(void * ptr);
 
-	bool Load();
+	JOB_RETURN LoadComponents(void * ptr);
 	void Close(void * content);
 
 private:
 
+	std::mutex dworld_lock;
 	JOB_RETURN ComponentUpdate(void * ptr);
+
+	JOB_RETURN CollisionDetection(void * ptr);
+
+	JOB_RETURN LoadSingleComponent(void * ptr);
 
 	btDefaultCollisionConfiguration * collisionConfiguration;
 	btCollisionDispatcher * dispatcher;
@@ -31,5 +39,7 @@ private:
 	btDiscreteDynamicsWorld * dynamicWorld;
 
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
+
+	const int p_breakdown = 4;
 };
 

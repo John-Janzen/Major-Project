@@ -20,15 +20,15 @@
 #include <algorithm>
 #include <mutex>
 
-extern bool LoadShaderFile(const std::string vert_path, const std::string frag_path, Shader * & shader);
+extern bool LoadShaderFile(const std::string & vert_path, const std::string & frag_path, Shader * & shader);
 
-extern bool LoadOBJModelFile(const std::string path, Model * & model);
+extern bool LoadOBJModelFile(const std::string & path, Model * & model);
 
-extern bool LoadTextureFile(const std::string path, Texture * & texture);
+extern bool LoadTextureFile(const std::string & path, Texture * & texture);
 
 extern std::string OpenFileRead(const std::string & path);
 
-extern const GLuint CompileShader(const std::string shader, const GLenum type);
+extern const GLuint CompileShader(const std::string & shader, const GLenum type);
 
 template<typename Out>
 Out * MallocSpace(const std::vector<Out> & tooManyVecs)

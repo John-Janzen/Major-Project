@@ -24,9 +24,10 @@ Initializes and runs everything in the engine.
 int main(int argc, char * args[])
 {
 
-	Application * game = new Application();
+	int n_threads = std::thread::hardware_concurrency();
+	Application * game = new Application(n_threads / 2);
 	
-	while (game->GameLoop());
+	while (game->RunApplication());
 
 	delete game;
 	return 0;

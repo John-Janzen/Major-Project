@@ -4,7 +4,6 @@
 #define _TESTSYSTEM_H
 
 #include "System.h"
-#include "Content.h"
 #include "ThreadManager.h"
 
 #include <vector>
@@ -20,6 +19,8 @@ public:
 
 	bool Load();
 	void Close(void* content);
+
+	void HandleEvent(const EventType & e, void * data);
 
 	JOB_RETURN Update(void * ptr) { return JOB_COMPLETED; }
 

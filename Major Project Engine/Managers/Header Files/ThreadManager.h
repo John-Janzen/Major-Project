@@ -3,11 +3,14 @@
 #ifndef _THREADMANAGER_H
 #define _THREADMANAGER_H
 
-#include "Thread.h"
+#include "ThreadDebugger.h"
 #include "SharedQueue.h"
+#include "EventHandler.h"
+#include "GameStates.h"
 
 #include <queue>
 #include <array>
+#include <cassert>
 
 /*
 This Manager class is created as a singleton because
@@ -18,18 +21,18 @@ with this class by calling RegisterJob.
 Furthermore, main thread is going to be the only one to
 use most of these functions.
 */
-class ThreadManager
+class ThreadManager : public EventListener
 {
 public:
 
-	static const std::size_t MAX_THREADS = 8;
-
-	explicit ThreadManager(SharedQueue<Job*> & queue, const std::size_t & size);
+	ThreadManager(const std::size_t & n_threads, SharedQueue<Job*> & queue);
 
 	/*
 	Deletes the threads and job list.
 	*/
 	~ThreadManager();
+
+	void HandleEvent(const EventType & e, void * data);
 
 	/*
 	Stops the threads.
@@ -62,35 +65,45 @@ public:
 	*/
 	void StopThreads();
 
-	void RetryJob(Job * & job)
+	void RetryJob(Job * job)
 	{
 		task_queue.Emplace(job);
 	}
 
-	void NotifyDone()
-	{
-		std::lock_guard<std::mutex> lock(finished_job);
-		jobs_to_finish--;
-	}
+	const std::size_t GetNumThreads() const { return n_threads; }
 
 	std::atomic<int> jobs_to_finish = 0;
 
-	const std::size_t GetNumThreads() const { return num_of_threads; }
+	/// DEBUGGING SECTION
+	void LoadDebugger(const float & rate, const std::size_t & count) { t_debug.LoadDebug(rate, count); }
+	void ShowDebugger() { t_debug.ShowDebug(); }
+	void RenderDebugger() { t_debug.RenderDebug(); }
+	void HideDebugger() 
+	{ 
+		t_debug.HideDebug(); 
+		for (int i = 0; i < n_threads; i++)
+		{
+			threads[i]->ClearLogger();
+		}
+	}
+	Uint32 GetDebugWindowID() { return t_debug.GetWindowID(); }
+	void CheckDebugMouseLoc(const SDL_MouseMotionEvent & mme) { t_debug.CheckMouseLocation(mme); }
 
 private:
-	std::array<Thread*, MAX_THREADS> threads = { nullptr };
-	std::array<BlockingQueue<Job*>*, MAX_THREADS> t_queues = { nullptr };
-	std::size_t rthread_num;
 
-	std::condition_variable any_thread, render_thread;
+	ThreadDebugger t_debug;
+	std::uint8_t debug_mode = 0;
+
+	std::array<Thread*, Thread::MAX_THREADS> threads = { nullptr };
+	std::size_t rt_loc, mt_loc;
 
 	SharedQueue<Job*> & task_queue;
-	std::size_t num_of_threads;
+	std::size_t n_threads;
 	std::mutex finished_job;
 
-	std::chrono::high_resolution_clock::time_point t_framestart;
+	std::chrono::high_resolution_clock::time_point debug_start, frame_start;
 	
-	int count = 0;
+	int count = 1;
 };
 
 #endif // !_THREADMANAGER_H

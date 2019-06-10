@@ -3,8 +3,6 @@
 #ifndef _MODEL_H
 #define _MODEL_H
 
-#include "Job.h"
-
 #include <GL\glew.h>
 #include <stdint.h>
 #include <mutex>
@@ -21,8 +19,6 @@ struct Model
 		: _name(name), _vertices{ vert }, _indices{ ind }, VSize(vs), ISize(is) { }
 
 	~Model() { if (_vertices != nullptr) delete _vertices; if (_indices != nullptr) delete _indices; }
-
-	JOB_RETURN CheckDoneLoad(void * ptr) { return (_vertices != nullptr && _indices != nullptr) ? JOB_COMPLETED : JOB_RETRY; }
 
 	std::string _name;
 	const GLfloat * _vertices;
@@ -41,11 +37,6 @@ struct Texture
 		: _name(name) {}
 	~Texture() { if (TextureID != 0) glDeleteTextures(1, _texture); }
 
-	JOB_RETURN CheckDoneLoad(void * ptr) 
-	{
-		return (_texture != nullptr && TextureID != 0) ? JOB_COMPLETED : JOB_RETRY; 
-	}
-
 	std::string _name;
 	const GLuint * _texture;
 	GLuint imgWidth, imgHeight, texWidth, texHeight;
@@ -60,17 +51,21 @@ struct Shader
 		: _name(name) {}
 	~Shader() {}
 
-	JOB_RETURN CheckDoneLoad(void * ptr) { return (_shaderID_Vert != 0 && _shaderID_Frag != 0) ? JOB_COMPLETED : JOB_RETRY; }
-
 	std::string _name;
 	GLuint _shaderID_Vert, _shaderID_Frag;
 	GLuint shade_prog = 0;
-};
 
-enum LOAD {
-	CURRENT_LOAD,
-	WAIT_LOAD,
-	DONE_LOAD
+	// Any data required in shader is to be put here
+	GLint r_project_mat4_loc;
+	GLint r_model_mat4_loc;
+	GLint r_color_vec4_loc;
+
+	GLint r_text_adj_w;
+	GLint r_text_adj_h;
+
+	GLint r_text_avail;
+	GLint r_text_color;
+	GLint r_text_unit;
 };
 
 template <class T>
@@ -91,10 +86,10 @@ public:
 		}
 	}
 
-	void AddItem(T * model)
+	void AddItem(T * && model)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
-		_objects[num_items] = model;
+		_objects[num_items] = std::move(model);
 		num_items++;
 	}
 
@@ -110,7 +105,7 @@ public:
 		}
 	}
 
-	bool HasItem(const std::string name)
+	const bool & HasItem(const std::string name)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
 		for (auto mod : _objects)
@@ -123,7 +118,7 @@ public:
 		return false;
 	}
 
-	LOAD HasItem(const std::string & name, T * & model)
+	const bool HasItem(const std::string & name, T * & model)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
 		for (auto mod : _objects)
@@ -131,23 +126,20 @@ public:
 			if (mod != nullptr && name.compare(mod->_name) == 0)
 			{
 				model = mod;
-				if (mod->CheckDoneLoad(nullptr) == JOB_COMPLETED)
-					return DONE_LOAD;
-				else
-					return WAIT_LOAD;
+				return true;
 			}
 		}
 		_objects[num_items] = new T(name);
 		model = _objects[num_items];
 		num_items++;
-		return CURRENT_LOAD;
+		return false;
 	}
 
 private:
 
 	static const uint16_t MAX_ITEMS = 16;
 	size_t num_items = 0;
-	T * _objects[MAX_ITEMS] = { nullptr };
+	std::array<T*, MAX_ITEMS> _objects = { nullptr };
 	std::mutex saftey_lock;
 };
 

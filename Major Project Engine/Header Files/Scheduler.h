@@ -6,39 +6,32 @@
 #include "Job.h"
 
 #include <chrono>
-#include <list>
-#include <vector>
-#include <queue>
 #include <map>
+#include <mutex>
 
 class Scheduler
 {
 public:
 
-	using hr_clock = std::chrono::high_resolution_clock;
-	using ms = std::chrono::duration<float, std::milli>;
-	using FuncTimes = std::map<Job::JOB_ID, float>;
+	Scheduler();
 
-	Scheduler(const std::size_t & size);
 	~Scheduler();
 
-	void SetTimeLock(const float & lock);
+	void SetTimeLock(const float & time_lock)
+	{
+		auto milliseconds = std::chrono::duration<float, std::milli>(time_lock);
+		this->time_lock = std::chrono::duration_cast<nanoseconds>(milliseconds);
+	}
 
-	void StartFrame();
+	void CheckForJob(Job * job);
 
-	void SetScale(Job *& job);
-
-	bool CheckForJob(Job * job);
-
-	void SortJobs (std::list<Job*> & job_list, std::priority_queue<Job*, std::vector<Job*>, Job> & job_queue);
+	void CalculateJobTime(Job * job);
 
 private:
 
-	hr_clock::time_point t_start;
-	float time_limit;
-	float frame_time = 0;
-	std::size_t  size_of_bickets = 1;
-	FuncTimes m_functions;
+	std::map<job::JOB_ID, nanoseconds> function_map;
+	std::mutex map_access;
+	nanoseconds time_lock;
 };
 
 #endif // !_SCHEDULER_H

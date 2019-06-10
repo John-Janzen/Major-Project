@@ -3,12 +3,16 @@
 #ifndef _SYSTEM_H
 #define _SYSTEM_H
 
-#include "TaskManager.h"
-#include "SceneManager.h"
-#include "Content.h"
 #include "Timer.h"
+#include "EventHandler.h"
+#include "TaskManager.h"
+#include "ComponentHeaders.h"
+#include "SceneManager.h"
+#include "GameStates.h"
 
-class System
+#include <cassert>
+
+class System : public EventListener
 {
 public:
 	System(TaskManager & tm, SceneManager & sm);
@@ -18,7 +22,10 @@ public:
 	virtual bool Load() = 0;
 	virtual void Close(void* content) = 0;
 
+	virtual void HandleEvent() {};
 protected:
+	bool paused = true;
+
 	TaskManager & m_task;
 	SceneManager & m_scene;
 };
