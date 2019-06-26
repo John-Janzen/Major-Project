@@ -8,6 +8,9 @@
 #include <array>
 #include <chrono>
 
+/*
+Job returns that flag what to do next
+*/
 enum JOB_RETURN
 {
 	JOB_COMPLETED,
@@ -15,22 +18,26 @@ enum JOB_RETURN
 	JOB_ISSUE
 };
 
-//typedef bool(*JobFunction)(void* &);
 using JobFunction = std::function<JOB_RETURN(void*)>;
 typedef std::chrono::high_resolution_clock hr;
 typedef hr::time_point hr_tp;
-//using milliseconds = std::chrono::duration<float, std::milli>;
-
 using nanoseconds = std::chrono::nanoseconds;
 
+/*
+Bind a function to a std::function object
+*/
 template<class T>
 JobFunction bind_function(JOB_RETURN(T::* pFunc)(void*), T * const sys = nullptr)
 {
 	return std::bind(pFunc, sys, std::placeholders::_1);
 }
 
-const std::uint16_t JOB_STRIDE = 0x100;
 
+const std::uint16_t JOB_STRIDE = 0x100;	// Job stride for the JOB_ID
+
+/*
+This is so the JOB_IDs aren't taking up so much space
+*/
 namespace job
 {
 	/*
@@ -90,16 +97,8 @@ namespace job
 }
 
 /*
-* Job class that holds the data for the threads 
-* to read and work on.
-*
-* Job type as stated above will govern what a job will do.
-*
-* Function gives the thread an actual function to work on - However,
-* this is extremely limiting as all jobs currently have to work
-* at a JOB_RETURN ?function? (Content*) architecture.
-*
-* (Will need to develop further)
+Job class that holds the data for the threads to read and work on.
+Job type as stated above will govern what a job will do.
 */
 struct Job
 {
@@ -135,16 +134,17 @@ struct Job
 		}
 	}
 
+	/*
+	Jobs complete the function through this operator
+	*/
 	JOB_RETURN operator()()
 	{
 		return _func(_content);
 	}
 
-	bool operator()(Job * const & lhs, Job * const & rhs)
-	{
-		return lhs->s_data.time_span < rhs->s_data.time_span;
-	}
-
+	/*
+	Adds a parent to this job
+	*/
 	void AddParent(Job * & job)
 	{
 		_parent_jobs[parent_count] = job;
@@ -160,7 +160,7 @@ struct Job
 	job::JOB_ID j_type;
 	struct ScheduleData
 	{
-		nanoseconds time_span;
+		nanoseconds time_span;	// stores the job time
 		std::chrono::high_resolution_clock::time_point start_time, end_time;
 	} s_data;
 

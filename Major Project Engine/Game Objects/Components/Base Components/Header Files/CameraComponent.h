@@ -7,6 +7,12 @@
 
 #include <LinearMath\btVector3.h>
 
+/*
+The Camera Component that will create the projection matrix when taken to Render System.
+These values are changed when player moves camera in first person.
+
+Inherits the Base Component.
+*/
 struct CameraComponent :
 	public BaseComponent
 {
@@ -17,10 +23,10 @@ struct CameraComponent :
 	{}
 	~CameraComponent() {}
 
-	btScalar _fov = 60.f;
-	btScalar _near = 0.1f, _far = 1000.f;
-	btVector3 _eye, _aim, _up = btVector3(0.f, 1.f, 0.f);
-	glm::mat4 _projection;
+	btScalar _fov = 60.f;									// Field of View
+	btScalar _near = 0.1f, _far = 1000.f;					// Distance from Camera
+	btVector3 _eye, _aim, _up = btVector3(0.f, 1.f, 0.f);	// Essentials of Perspective Matrix
+	glm::mat4 _projection;									// Projection Matrix
 };
 
 #endif // !_CAMERACOMPONENT_H

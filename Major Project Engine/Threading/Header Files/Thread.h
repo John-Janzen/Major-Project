@@ -25,7 +25,10 @@ class Thread
 public:
 
 	static const std::size_t MAX_THREADS = 8;
-
+	
+	/*
+	Designates the thread type
+	*/
 	enum THREAD_TYPE
 	{
 		NULL_THREAD,
@@ -33,7 +36,11 @@ public:
 		MAIN_THREAD,
 		RENDER_THREAD
 	};
-
+	
+	/*
+	This is for the thread logger and thread debugger
+	Job by job id with start, end and span time
+	*/
 	struct ThreadData
 	{
 		job::JOB_ID t_id;
@@ -45,14 +52,29 @@ public:
 
 	~Thread();
 
+	/*
+	Main function the threads will be using to execute the jobs
+	*/
 	void Execution();
 
+	/*
+	Stop the threads from processing anymore jobs
+	*/
 	void Stop();
 
+	/*
+	Alert the thread through the condition variable
+	*/
 	void Alert() { _cv.notify_one(); }
 
+	/*
+	Get thread type
+	*/
 	const THREAD_TYPE GetType() { return t_type; }
 
+	/*
+	Check to see if thread has any jobs available
+	*/
 	const bool HasJob() 
 	{ 
 		bool test = !this->_queue.empty();
@@ -67,36 +89,30 @@ public:
 		return (test2 || test);
 	}
 
-	void EmplaceNewJob(Job * & job, const hr_tp & objective_time) 
-	{
-		{
-			std::lock_guard<std::mutex> lock(time_mutex);
-			if (current_end < hr::now())
-			{
-				auto now = nanoseconds(hr::now() - objective_time);
-				current_end += now + job->s_data.time_span;
-			}
-			else
-			{
-				current_end += job->s_data.time_span;
-			}
-			queue_time += job->s_data.time_span;
-		}
-		{
-			std::lock_guard<std::mutex> lock(queue_mutex);
-			this->_queue.emplace(job);
-		}
-		this->Alert();
-	}
-
+	/*
+	Emplace a job on this threads queue as well as adjust the 
+	thread end time on the queue
+	*/
+	void EmplaceNewJob(Job * & job, const hr_tp & objective_time);
+	
+	/*
+	Get the total alloted time for the threads jobs
+	*/
 	const nanoseconds GetAllotedTime() 
 	{
 		std::lock_guard<std::mutex> lock(time_mutex);
 		return queue_time;
 	}
 
+	/*
+	Get the time point at which the thread will finish its job.
+	*/
 	const hr_tp GetEndTime() { std::lock_guard<std::mutex> lock(time_mutex); return current_end; }
-	void ResetAllotedTime() { queue_time = nanoseconds(0); current_end = hr::now(); }
+
+	/*
+	Reset the alloted time.
+	*/
+	void ResetAllotedTime(const hr_tp & obj_time) { queue_time = nanoseconds(0); current_end = obj_time; }
 
 	/*
 	* Prints available stats.
@@ -111,20 +127,33 @@ public:
 		return count;
 	}
 
+	/*
+	Clear the logger
+	*/
 	void ClearLogger()
 	{
 		Logger.ClearData();
 	}
 
+	/*
+	Get all of the data available for this thread
+	*/
 	std::vector<ThreadData> & AquireData()
 	{
 		return Logger.GetData();
 	}
 
+	/*
+	Toggle debug mode for this thread
+	*/
 	void ToggleDebug() { debug_mode = !debug_mode; }
 
 private:
 
+	/*
+	The Thread logger is an inner class that keeps track of 
+	the jobs it has completed in the debug mode
+	*/
 	class ThreadLogger
 	{
 	public:
@@ -132,11 +161,17 @@ private:
 		ThreadLogger() {};
 		~ThreadLogger() {};
 
+		/*
+		Create a new Thread data and return it
+		*/
 		ThreadData * Instantiate(const job::JOB_ID & id, const std::string & name)
 		{
 			return &(*t_data.emplace(t_data.end(), ThreadData{ id, name, hr::now() }));
 		}
 
+		/*
+		Print the stats of all the jobs in a clear table
+		*/
 		void PrintData(const std::string name, const hr_tp & obj_time)
 		{
 			std::cout << "Logged Data for Thread: " << name.c_str() << "\n";
@@ -156,11 +191,17 @@ private:
 			std::cout << "-------------------------" << std::endl;
 		}
 
+		/*
+		Clear the data in the thread logger
+		*/
 		void ClearData()
 		{
 			t_data.clear();
 		}
 
+		/*
+		Get all available data in logger
+		*/
 		std::vector<ThreadData> & GetData() { return t_data; }
 
 	private:

@@ -32,6 +32,18 @@ ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*> & queue
 		case 3:
 			name = "Dennis";
 			break;
+		case 4:
+			name = "Angela";
+			break;
+		case 5:
+			name = "Barton";
+			break;
+		case 6:
+			name = "Steve";
+			break;
+		case 7:
+			name = "Soup";
+			break;
 		default:
 			break;
 		}
@@ -111,11 +123,11 @@ bool ThreadManager::HasJobs()
 
 	for (int i = 1; i < n_threads; i++)
 	{
-		check |= threads[i]->HasJob();
+		check |= threads[i]->HasJob();		// check if threads have jobs
 	}
-	check |= !task_queue.Empty();
+	check |= !task_queue.Empty();			// check if task queue has jobs
 
-	check |= jobs_to_finish != 0;
+	check |= jobs_to_finish != 0;			// check if there are any lingering jobs around
 	return check;
 }
 
@@ -133,25 +145,25 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 		switch (temp->j_type / JOB_STRIDE)
 		{
 		case job::JOB_MAIN:
-			threads[mt_loc]->EmplaceNewJob(temp, frame_start);
+			threads[mt_loc]->EmplaceNewJob(temp, frame_start);		// Emplace job on Alternative main thread
 			task_queue.Pop();
 			break;
 
 		case job::JOB_RENDER:
-			threads[rt_loc]->EmplaceNewJob(temp, frame_start);
-			task_queue.Pop();
+			threads[rt_loc]->EmplaceNewJob(temp, frame_start);		// Emplace job on render thread
+			task_queue.Pop();	
 			break;
 
 		default:
 		{
-			int selection = n_threads - 1;
+			int selection = n_threads - 1;							
 			for (int i = 1; i < n_threads; i++)
 			{
-				if (threads[i]->GetEndTime() < threads[selection]->GetEndTime())
+				if (threads[i]->GetEndTime() < threads[selection]->GetEndTime())		// Find the job with the lowest end time
 					selection = i;
 			}
 
-			threads[selection]->EmplaceNewJob(temp, frame_start);
+			threads[selection]->EmplaceNewJob(temp, frame_start);			// emplace job onto the selected thread
 			task_queue.Pop();
 		}
 			break;
@@ -164,7 +176,7 @@ void ThreadManager::PrintJobs()
 	int total = 0;
 	for (const auto & t : threads)
 		if (t != nullptr)
-			total += t->PrintLogger(frame_start);
+			total += t->PrintLogger(frame_start);	// Print the loggers on the threads
 
 	printf("Total count is: %u\n", total);
 }
@@ -173,17 +185,17 @@ void ThreadManager::NewFrame()
 {
 	if (debug_mode == 1)
 	{
-		for (int i = 0; i < n_threads; i++)
+		for (int i = 0; i < n_threads; i++)		// Refresh the thread loggers
 		{
 			threads[i]->ClearLogger();
 		}
-		debug_start = std::chrono::high_resolution_clock::now();
+		debug_start = std::chrono::high_resolution_clock::now();	// Start the frame
 		debug_mode = 2;
 	}
 	else if (debug_mode == 2)
 	{
-		t_debug.LoadDebugData(threads, debug_start);
-		EventHandler::Instance().SendEvent(EventType::DEBUG_FINISHED_LOAD);
+		t_debug.LoadDebugData(threads, debug_start);		// load data onto the debugger
+		EventHandler::Instance().SendEvent(EventType::DEBUG_FINISHED_LOAD);		// Send event loading finished
 		//this->PrintJobs();
 	}
 
@@ -191,9 +203,9 @@ void ThreadManager::NewFrame()
 
 	for (int i = 1; i < n_threads; i++)
 	{
-		if (threads[i]->GetAllotedTime() != nanoseconds(0) || threads[i]->GetEndTime() < hr::now() && !threads[i]->HasJob())
+		if (threads[i]->GetAllotedTime() != nanoseconds(0) || threads[i]->GetEndTime() < frame_start && !threads[i]->HasJob())
 		{
-			threads[i]->ResetAllotedTime();
+			threads[i]->ResetAllotedTime(frame_start);		// If there happens to be a thread with out of wack data RESEST
 		}
 	}
 }
@@ -202,6 +214,6 @@ void ThreadManager::StopThreads()
 {
 	for (std::size_t i = 0; i < n_threads; i++)
 	{
-		threads[i]->Stop();
+		threads[i]->Stop();		// Stop all threads
 	}
 }

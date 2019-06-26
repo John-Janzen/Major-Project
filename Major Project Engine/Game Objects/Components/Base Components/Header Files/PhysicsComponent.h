@@ -8,6 +8,11 @@
 #include <btBulletCollisionCommon.h>
 #include <btBulletDynamicsCommon.h>
 
+/*
+The Physics Component holds all information for the bullet collision system.
+
+Inherits from Base Component
+*/
 struct PhysicsComponent :
 	public BaseComponent
 {
@@ -16,12 +21,11 @@ struct PhysicsComponent :
 
 	~PhysicsComponent() {}
 
-	btCollisionShape * coll_shape;
-	btCollisionObject * coll_object;
+	btCollisionShape * coll_shape;			// Bullet Collision Shape (Capsule)
+	btCollisionObject * coll_object;		// Bullet Collision Object (RigidBody)
 
-	btScalar mass;
-	btVector3 local_inertia;
-
+	btScalar mass;							// Mass of object
+	btVector3 local_inertia;				// Starting inertia
 };
 
 

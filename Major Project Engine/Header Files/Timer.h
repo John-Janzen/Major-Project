@@ -5,12 +5,18 @@
 
 #include <chrono>
 #include <iostream>
-#include <thread>
 
+/*
+The Timer class is a singleton that controls the delta time,
+wait time for the end of frame and a general stop watch.
+*/
 class Timer
 {
 public:
 
+	/*
+	Singleton Instaniate
+	*/
 	static Timer& Instance()
 	{
 		static Timer inst;
@@ -22,18 +28,39 @@ public:
 
 	~Timer();
 
+	/*
+	Initialize the timer
+	*/
 	void Init();
 
+	/*
+	Start a new timer
+	*/
 	void Start();
 
+	/*
+	Stop the started timer
+	*/
 	void Stop();
 
+	/*
+	Wait till frame has ended
+	*/
 	void WaitTime();
 
+	/*
+	Check the time against the time limit
+	*/
 	bool CheckTimeLimit();
 
+	/*
+	Get the delta time of the frame
+	*/
 	const float & GetDeltaTime() { return delta_time; }
 
+	/*
+	Set the time lock (default 16.6667)
+	*/
 	void SetTimeLock(const float time) 
 	{
 		current_time_lock = ms(time);
@@ -43,10 +70,19 @@ private:
 
 	Timer() {}
 
+	/*
+	Restart the Timer class
+	*/
 	void Restart();
 	
+	/*
+	Calculate the Delta Time
+	*/
 	void SetDeltaTime();
 
+	/*
+	Print the timer
+	*/
 	void Print(const ms & time);
 
 	hr_clock::time_point current_time_frame;

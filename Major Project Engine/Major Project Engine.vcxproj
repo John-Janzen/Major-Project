@@ -32,7 +32,6 @@
     <ClCompile Include="Threading\Source Files\ThreadDebugger.cpp" />
     <ClCompile Include="Threading\Source Files\Thread.cpp" />
     <ClCompile Include="Source Files\Timer.cpp" />
-    <ClCompile Include="Systems\Source Files\TestSystem.cpp" />
     <ClCompile Include="Managers\Source Files\TaskManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -69,7 +68,6 @@
     <ClInclude Include="Scenes\Header Files\Scene.h" />
     <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
     <ClInclude Include="Header Files\Timer.h" />
-    <ClInclude Include="Systems\Header Files\TestSystem.h" />
     <ClInclude Include="Managers\Header Files\TaskManager.h" />
     <ClInclude Include="Game Objects\Components\Base Components\Header Files\Transform.h" />
     <ClInclude Include="Game Objects\Components\Game Components\Header Files\WallPhysicsComponent.h" />

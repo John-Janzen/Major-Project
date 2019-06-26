@@ -10,21 +10,37 @@
 
 #include "Thread.h"
 
+/*
+The Thread Debugger displays all data pertaining to the threads and thread manager.
+It uses a seperate SDL window to do this.
+*/
 class ThreadDebugger
 {
 public:
 	ThreadDebugger();
 	~ThreadDebugger();
 
+	/*
+	Load the debugger with the refresh rate and the thread count
+	*/
 	void LoadDebug(const float & rate, const std::size_t & count);
 
+	/*
+	Render the debugger
+	*/
 	void RenderDebug();
 
+	/*
+	Show the window
+	*/
 	void ShowDebug()
 	{
 		SDL_ShowWindow(debug_window);
 	}
 
+	/*
+	Hide the window and clear the logs
+	*/
 	void HideDebug()
 	{
 		SDL_HideWindow(debug_window);
@@ -32,19 +48,31 @@ public:
 		loaded = false;
 	}
 
+	/*
+	Get the window ID
+	*/
 	Uint32 GetWindowID() 
 	{ 
 		return SDL_GetWindowID(debug_window); 
 	}
 
+	/*
+	Check to see if mouse is within a DataPoint
+	*/
 	void CheckMouseLocation(const SDL_MouseMotionEvent & event);
 
+	/*
+	Load debugger with all data for all threads
+	*/
 	void LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> threads, const hr_tp & object_time);
 
 	bool loaded = false;
 
 private:
 	
+	/*
+	Storage of the threads data saved close by so it is easy to look up
+	*/
 	struct DataPoints
 	{
 		using milli = std::chrono::duration<float, std::milli>;
@@ -58,10 +86,20 @@ private:
 		std::chrono::duration<float, std::milli> start, end, total;
 	};
 
+	/*
+	From the data I can calculate the rectangle size that gives an accurate representation 
+	on a graph.
+	*/
 	void CalculateRect(const Thread::ThreadData & data, const hr_tp & object_time, SDL_Rect & rect);
 
+	/*
+	From the data I can generate a color based on the Job id that is passed through
+	*/
 	void ColorByID(const job::JOB_ID & id, DataPoints::Color & color);
 
+	/*
+	This loads the label onto the sdl surface to draw on the screen
+	*/
 	void LoadLabel(SDL_Rect * rect, const std::string & label);
 
 	SDL_Window * debug_window = nullptr;

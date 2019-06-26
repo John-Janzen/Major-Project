@@ -13,7 +13,15 @@ enum SCENE_SELECTION
 	MAIN_SCENE
 };
 
+/*
+Forward declaration of the Scene Manager object just so 
+We can put all objects into it.
+*/
 class SceneManager;
+
+/*
+The Scene class is the base class of all scene classes.
+*/
 class Scene
 {
 public:
@@ -21,8 +29,15 @@ public:
 
 	virtual ~Scene() {}
 
+	/*
+	Load the scene
+	*/
 	virtual bool Load(SceneManager & sm) = 0;
 
+	/*
+	Unload the Scene
+	Unused
+	*/
 	virtual bool Unload() = 0;
 
 protected:

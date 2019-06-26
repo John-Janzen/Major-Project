@@ -8,7 +8,12 @@
 #include <stdint.h>
 #include <mutex>
 #include <string.h>
+#include <array>
 
+/*
+Storage for the Models of the game.
+Takes vertices and indices.
+*/
 struct Model
 {
 	Model() 
@@ -41,6 +46,11 @@ struct Model
 	GLuint elem_buff_obj = 0;
 };
 
+/*
+Storage for the Textures
+Has Image height, width and Tex height, width
+As well as an ID when it is loaded into OpenGL
+*/
 struct Texture
 {
 	Texture(const std::string name, const GLuint & id)
@@ -66,6 +76,11 @@ struct Texture
 	GLuint TextureID = 0;
 };
 
+/*
+Storage for the Shaders
+This is a combination of both fragment and vertex shaders.
+All locations in the shader are to be put here.
+*/
 struct Shader
 {
 	Shader(const std::string name, const GLuint & id)
@@ -90,18 +105,17 @@ struct Shader
 	GLuint shade_prog = 0;
 
 	// Any data required in shader is to be put here
-	GLint r_project_mat4_loc;
-	GLint r_model_mat4_loc;
-	GLint r_color_vec4_loc;
+	GLint r_project_mat4_loc;	// Projection Matrix Location
+	GLint r_model_mat4_loc;		// Model Matrix Location
+	GLint r_color_vec4_loc;		// Color Vector Location
 
-	GLint r_text_adj_w;
-	GLint r_text_adj_h;
-
-	GLint r_text_avail;
-	GLint r_text_color;
+	GLint r_text_color;			// 
 	GLint r_text_unit;
 };
 
+/*
+Storage class for all the rendering obects.
+*/
 template <class T>
 class Storage
 {
@@ -120,6 +134,9 @@ public:
 		}
 	}
 
+	/*
+	Add new Item
+	*/
 	void AddItem(T * && item)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
@@ -127,6 +144,7 @@ public:
 		num_items++;
 	}
 
+	/*Get Item by name*/
 	T * GetItem(const std::string name)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
@@ -140,6 +158,7 @@ public:
 		return nullptr;
 	}
 
+	/*Get Item by ID*/
 	T * GetItem(const GLuint & id)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
@@ -153,6 +172,7 @@ public:
 		return nullptr;
 	}
 
+	/*Check if storage has item by name*/
 	const bool & HasItem(const std::string name)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);
@@ -166,6 +186,7 @@ public:
 		return false;
 	}
 
+	/*Check if storage has item by name and get its id*/
 	const bool HasItem(const std::string & name, GLuint & id)
 	{
 		std::lock_guard<std::mutex> lk(saftey_lock);

@@ -195,13 +195,13 @@ JOB_RETURN Physics::CollisionDetection(void * ptr)
 		{
 			auto ent1 = static_cast<Entity*>(object1->getUserPointer());
 			auto ent2 = static_cast<Entity*>(object2->getUserPointer());
-			if (ent1->entity == EntityType::MULTIOBJECT && ent2->entity == EntityType::MULTIOBJECT)
+			if (ent1->entity == Entity::EntityType::MULTIOBJECT && ent2->entity == Entity::EntityType::MULTIOBJECT)
 			{
 				std::lock_guard<std::mutex> lk(coll_detect);
 				box_on_box_coll++;
 			}
-			if (ent1->entity == EntityType::MULTIOBJECT && ent2->entity == EntityType::BULLET
-				|| ent2->entity == EntityType::MULTIOBJECT && ent2->entity == EntityType::BULLET)
+			if (ent1->entity == Entity::EntityType::MULTIOBJECT && ent2->entity == Entity::EntityType::BULLET
+				|| ent2->entity == Entity::EntityType::MULTIOBJECT && ent2->entity == Entity::EntityType::BULLET)
 			{
 				std::lock_guard<std::mutex> lk(coll_detect);
 				bullet_on_box_coll++;

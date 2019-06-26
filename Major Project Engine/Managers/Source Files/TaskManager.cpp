@@ -62,11 +62,11 @@ void TaskManager::RegisterJob(JobFunction function, const std::string name, void
 void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 {
 	if (parent_job != nullptr)
-		job->AddParent(parent_job);
+		job->AddParent(parent_job);			// If we have a parent then add to job
 
-	this->_scheduler.CheckForJob(job);
+	this->_scheduler.CheckForJob(job);		// check scheduler for time span
 
-	if (dictionary.find(job->j_type) != dictionary.end())
+	if (dictionary.find(job->j_type) != dictionary.end())		// go through dictionary to see if job waiting on this one
 	{
 		for (auto jobs : dictionary.find(job->j_type)->second)
 		{
@@ -74,19 +74,19 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 			{
 				if (waits->j_type == jobs)
 				{
-					job->AddParent(waits);
+					job->AddParent(waits);			// add to parents if so
 				}
 			}
 		}
 	}
 
-	if (wait)
+	if (wait)				// If this job has to wait put on waiting queue
 	{
 		std::lock_guard<std::mutex> lk(list_lock);
 		waiting_jobs.emplace_back(job);
 	}
 	else
-	{
+	{						// Else throw on shared queue
 		
 		task_queue.Emplace(job);
 		{
@@ -98,7 +98,7 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 
 void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
 {
-	if (parent_job != nullptr)
+	if (parent_job != nullptr)				// Look at job above for explanation
 		job->AddParent(parent_job);
 
 	this->_scheduler.CheckForJob(job);
@@ -145,11 +145,11 @@ int TaskManager::ManageJobs()
 		std::lock_guard<std::mutex> lk(list_lock);
 
 		std::list<Job*>::iterator job_it = waiting_jobs.begin();
-		while (job_it != waiting_jobs.end())
+		while (job_it != waiting_jobs.end())							// Go through waiting jobs and see if they are done waiting
 		{
 			if ((*job_it)->_awaiting == 0 && (*job_it)->reason_waiting)
 			{
-				task_queue.Emplace((*job_it));
+				task_queue.Emplace((*job_it));			// if done then throw on shared queue
 				job_it = waiting_jobs.erase(job_it);
 				{
 					std::lock_guard<std::mutex> lock(jobs_lock);
