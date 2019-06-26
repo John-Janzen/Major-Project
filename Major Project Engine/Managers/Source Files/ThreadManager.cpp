@@ -10,6 +10,7 @@ ThreadManager::ThreadManager(const std::size_t & size, SharedQueue<Job*> & queue
 
 	n_threads = size;
 	std::string name;
+	frame_start = std::chrono::high_resolution_clock::now();
 	for (std::size_t i = 0; i < size; i++)
 	{
 		Thread::THREAD_TYPE type = Thread::ANY_THREAD;
@@ -62,7 +63,6 @@ void ThreadManager::HandleEvent(const EventType & e, void * data)
 			std::lock_guard<std::mutex> lock(finished_job);
 			jobs_to_finish--;
 		}
-
 		break;
 	}
 	case EventType::JOB_REENTER:
@@ -147,7 +147,7 @@ void ThreadManager::AllocateJobs(const int num_new_jobs)
 			int selection = n_threads - 1;
 			for (int i = 1; i < n_threads; i++)
 			{
-				if (threads[i]->GetEndTime() < threads[selection]->GetEndTime()) 
+				if (threads[i]->GetEndTime() < threads[selection]->GetEndTime())
 					selection = i;
 			}
 
@@ -184,13 +184,14 @@ void ThreadManager::NewFrame()
 	{
 		t_debug.LoadDebugData(threads, debug_start);
 		EventHandler::Instance().SendEvent(EventType::DEBUG_FINISHED_LOAD);
+		//this->PrintJobs();
 	}
 
 	frame_start = std::chrono::high_resolution_clock::now();
 
 	for (int i = 1; i < n_threads; i++)
 	{
-		if ((threads[i]->GetAllotedTime() != nanoseconds(0) || threads[i]->GetEndTime() != nanoseconds(0)) && !threads[i]->HasJob())
+		if (threads[i]->GetAllotedTime() != nanoseconds(0) || threads[i]->GetEndTime() < hr::now() && !threads[i]->HasJob())
 		{
 			threads[i]->ResetAllotedTime();
 		}

@@ -13,17 +13,17 @@ Application::Application(const std::size_t & num_of_threads)
 	EventHandler::Instance().SubscribeEvent(T_BUTTON_PRESSED, this);
 	EventHandler::Instance().SubscribeEvent(DEBUG_FINISHED_LOAD, this);
 	EventHandler::Instance().SubscribeEvent(LEFT_MOUSE_BUTTON, this);
+	EventHandler::Instance().SubscribeEvent(PAUSED_BUTTON, this);
+	EventHandler::Instance().SubscribeEvent(FULL_PAUSED_BUTTON, this);
 }
 
 Application::~Application()
 {
-
-	if (renderer != nullptr) delete renderer;
-	if (input != nullptr) delete input;
-	if (physics != nullptr) delete physics;
-	if (test_system != nullptr) delete test_system;
-
-	if (current_scene != nullptr) delete(current_scene);
+	for (auto system : _systems)
+	{
+		delete system;
+		system = nullptr;
+	}
 
 	SDL_Quit();
 }
@@ -48,6 +48,25 @@ void Application::HandleEvent(const EventType & e, void * data)
 		start_frame.notify_one();
 		break;
 
+	case EventType::PAUSED_BUTTON:
+		if (this->_state == GAME_STATE::PLAYING)
+			this->ChangeGameState(GAME_STATE::PAUSED);
+		else
+			this->ChangeGameState(GAME_STATE::PLAYING);
+		break;
+
+	case EventType::FULL_PAUSED_BUTTON:
+		if (this->_state == GAME_STATE::PLAYING)
+		{
+			this->ChangeGameState(GAME_STATE::FULL_PAUSE);
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+		}
+		else if (this->_state == GAME_STATE::FULL_PAUSE)
+		{
+			this->ChangeGameState(GAME_STATE::PLAYING);
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+		}
+		break;
 	case EventType::T_BUTTON_PRESSED:
 		this->ChangeGameState(GAME_STATE::DEBUG_LOAD);
 		break;
@@ -97,8 +116,9 @@ bool Application::RunApplication()
 				this->ChangeGameState(GAME_STATE::PLAYING);
 
 		break;
-	case PLAYING:
 	case PAUSED:
+	case FULL_PAUSE:
+	case PLAYING:
 	{
 		while (SDL_PollEvent(&sdl_event))
 		{
@@ -111,25 +131,6 @@ bool Application::RunApplication()
 				if (sdl_event.window.event == SDL_WINDOWEVENT_CLOSE)
 				{
 					this->ChangeGameState(GAME_STATE::EXITING);
-					break;
-				}
-				break;
-			case SDL_KEYDOWN:
-				switch (sdl_event.key.keysym.scancode)
-				{
-				case SDL_SCANCODE_ESCAPE:
-					if (SDL_GetRelativeMouseMode())
-					{
-						this->ChangeGameState(GAME_STATE::PAUSED);
-						SDL_SetRelativeMouseMode(SDL_FALSE);
-					}
-					else
-					{
-						this->ChangeGameState(GAME_STATE::PLAYING);
-						SDL_SetRelativeMouseMode(SDL_TRUE);
-					}
-					break;
-				default:
 					break;
 				}
 				break;
@@ -162,17 +163,6 @@ bool Application::RunApplication()
 				case SDL_MOUSEBUTTONDOWN:
 					m_thread.CheckDebugMouseLoc(sdl_event.motion);
 					break;
-				case SDL_KEYDOWN:
-					{
-						switch (sdl_event.key.keysym.scancode)
-						{
-						case SDL_SCANCODE_T:
-							this->ChangeGameState(GAME_STATE::DEBUG_CLOSE);
-							break;
-						default:
-							break;
-						}
-					}
 				case SDL_MOUSEMOTION:
 					{
 						int x, y;
@@ -199,7 +189,8 @@ bool Application::RunApplication()
 		break;
 	}
 
-	if (_state == PLAYING || _state == DEBUG_RUN || _state == DEBUG_LOAD) {
+	if (_state == PLAYING || _state == DEBUG_RUN || _state == DEBUG_LOAD) 
+	{
 		std::unique_lock<std::mutex> lock(start);
 		start_frame.wait(lock, [this]
 		{
@@ -233,12 +224,11 @@ bool Application::InitApp()
 	Timer::Instance().SetTimeLock(refresh_rate);
 	m_task.SetTimeLock(refresh_rate);
 
-	renderer = new Render(m_task, m_scene);
-	physics = new Physics(m_task, m_scene);
-	input = new Input(m_task, m_scene);
-	test_system = new TestSystem(m_task, m_scene);
+	_systems[SYSTEM_TYPE::RENDER] = new Render(m_task, m_scene);
+	_systems[SYSTEM_TYPE::PHYSICS] = new Physics(m_task, m_scene);
+	_systems[SYSTEM_TYPE::INPUT] = new Input(m_task, m_scene);
 
-	renderer->InitSystem(this->CreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+	static_cast<Render*>(_systems[SYSTEM_TYPE::RENDER])->InitSystem(this->CreateWindow(DEFAULT_WIDTH, DEFAULT_HEIGHT));
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 	this->LoadScene(MAIN_SCENE);
 
@@ -257,9 +247,8 @@ bool Application::LoadApp()
 	m_thread.LoadDebugger(refresh_rate, n_threads);
 	m_task.SetTimeLock(refresh_rate);
 
-	check &= renderer->Load();
-	check &= physics->Load();
-	check &= input->Load();
+	for (auto system : _systems)
+		check &= system->Load();
 	
 	LoadedApp = true;
 	return check;
@@ -277,9 +266,11 @@ JOB_RETURN Application::GameLoop(void * ptr)
 {	
 	do 
 	{
+		if (!game_running) break;
+
 		int num = m_task.ManageJobs();
 		m_thread.AllocateJobs(num);
-	} while (Timer::Instance().CheckTimeLimit() && (m_thread.HasJobs() || m_task.HasJobs()));
+	} while ((m_thread.HasJobs() || m_task.HasJobs()));
 
 	m_task.MainThreadJob(new Job(bind_function(&Application::WaitTillNextFrame, this), "Wait_Time_For_Frame", nullptr, job::JOB_TILL_NEXT_FRAME));
 	m_thread.AllocateJobs(1);

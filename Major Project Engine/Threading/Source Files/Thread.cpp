@@ -1,5 +1,4 @@
 #include "Thread.h"
-#include "ThreadManager.h"
 
 /*
 * Constructor that registers a name for the
@@ -51,7 +50,7 @@ void Thread::Execution()
 		if (!_running) break;
 
 		if (debug_mode)
-			data = Logger.Instatiate(current_job->j_type, current_job->job_name);
+			data = Logger.Instantiate(current_job->j_type, current_job->job_name);
 
 		if (current_job != nullptr)
 		{
@@ -63,7 +62,7 @@ void Thread::Execution()
 				{
 					std::lock_guard<std::mutex> lock(time_mutex);
 					this->queue_time -= this->current_job->s_data.time_span;
-					if (_queue.empty()) current_end = nanoseconds(0);
+					//if (_queue.empty()) current_end = hr::now();
 				}
 
 				count++;
@@ -80,7 +79,7 @@ void Thread::Execution()
 				{
 					std::lock_guard<std::mutex> lock(time_mutex);
 					this->queue_time -= this->current_job->s_data.time_span;
-					if (_queue.empty()) current_end = nanoseconds(0);
+					//if (_queue.empty()) current_end = hr::now();
 				}
 				EventHandler::Instance().SendEvent(EventType::JOB_REENTER, current_job);
 

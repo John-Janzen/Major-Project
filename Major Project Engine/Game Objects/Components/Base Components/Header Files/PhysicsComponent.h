@@ -11,8 +11,10 @@
 struct PhysicsComponent :
 	public BaseComponent
 {
-	PhysicsComponent(const std::uint16_t & id);
-	~PhysicsComponent();
+	PhysicsComponent(const std::uint16_t & id)
+		: BaseComponent(id) {}
+
+	~PhysicsComponent() {}
 
 	btCollisionShape * coll_shape;
 	btCollisionObject * coll_object;
@@ -20,7 +22,6 @@ struct PhysicsComponent :
 	btScalar mass;
 	btVector3 local_inertia;
 
-	//btVector3 linearVelocity;
 };
 
 

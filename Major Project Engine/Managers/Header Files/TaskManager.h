@@ -11,6 +11,7 @@
 #include <atomic>
 #include <mutex>
 #include <map>
+#include <iostream>
 
 class TaskManager : public EventListener
 {

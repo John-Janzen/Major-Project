@@ -7,7 +7,10 @@ ThreadDebugger::ThreadDebugger()
 {
 	m_borders[0] = { 0, 0, default_width, border_width };
 	m_borders[1] = { 0, 0, border_width, default_height };
-	m_text[0] = { 300, 0, 250, 50 };
+	m_text[0] = { ((int)windowX / 2) - 50, 0, 250, 50 };
+	m_text[1] = { border_width + 100, 50, 100, 50 };
+	m_text[2] = { ((int)windowX / 2) + 50, 50, 100, 50 };
+	m_text[3] = { (int)windowX - 100, 50, 100, 50 };
 
 	if (TTF_Init() < 0)
 	{
@@ -40,7 +43,12 @@ void ThreadDebugger::LoadDebug(const float & rate, const std::size_t & count)
 	refresh_rate = rate;
 	widthOfLines = (int)(windowX / refresh_rate);
 	heightOfLines = (int)(windowY / n_threads);
-	current_frame.resize(50);
+	current_frame.reserve(50);
+
+	for (int i = 0; i < count; i++)
+	{
+		m_thread_labels[i] = { 12, (i * ((int)windowY / (int)count)) + ((((int)windowY / (int)count) / 2) - 12) + border_width, 75, 25 };
+	}
 }
 
 void ThreadDebugger::RenderDebug()
@@ -50,6 +58,14 @@ void ThreadDebugger::RenderDebug()
 
 	SDL_Rect rect;
 	DataPoints dp_job;
+
+	for (int i = 0; i < n_threads; i++)
+		this->LoadLabel(&m_thread_labels[i], std::string(thread_label + std::to_string(i)));
+
+	this->LoadLabel(&m_text[0], job_label.c_str());
+	this->LoadLabel(&m_text[1], start_label.c_str());
+	this->LoadLabel(&m_text[2], total_label.c_str());
+	this->LoadLabel(&m_text[3], end_label.c_str());
 
 	SDL_SetRenderDrawColor(debug_renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	SDL_RenderDrawRects(debug_renderer, m_borders, 2);
@@ -78,12 +94,15 @@ void ThreadDebugger::RenderDebug()
 		}
 	}
 
-	text_surface = TTF_RenderText_Solid(sans_font, job_label.c_str(), SDL_Color{ 0, 0, 0 });
-	text_texture = SDL_CreateTextureFromSurface(debug_renderer, text_surface);
-
-	SDL_RenderCopy(debug_renderer, text_texture, NULL, m_text);
-
 	SDL_RenderPresent(debug_renderer);
+}
+
+void ThreadDebugger::LoadLabel(SDL_Rect * rect, const std::string & label)
+{
+	auto text_surface = TTF_RenderText_Shaded(this->sans_font, label.c_str(), SDL_Color{ 0, 0, 0 }, SDL_Color{ 255, 255, 255 });
+	auto text_texture = SDL_CreateTextureFromSurface(debug_renderer, text_surface);
+
+	SDL_RenderCopy(debug_renderer, text_texture, NULL, rect);
 
 	SDL_DestroyTexture(text_texture);
 	SDL_FreeSurface(text_surface);
@@ -115,6 +134,9 @@ void ThreadDebugger::LoadDebugData(std::array<Thread*, Thread::MAX_THREADS> thre
 				rect.y = (count * heightOfLines) + border_width;
 				dp_job.id = data.t_id;
 				dp_job.name = data.t_name;
+				dp_job.start = DataPoints::milli(data.t_start - object_time);
+				dp_job.end = DataPoints::milli(data.t_end - object_time);
+				dp_job.total = DataPoints::milli(data.t_end - data.t_start);
 				current_frame.emplace_back(std::make_pair(rect, dp_job));
 			}
 			count++;
@@ -164,10 +186,16 @@ void ThreadDebugger::CheckMouseLocation(const SDL_MouseMotionEvent & event)
 			&& event.y > rect.y && event.y < rect.y + rect.h)
 		{
 			job_label = data.second.name;
+			start_label = "Start: " + std::to_string(data.second.start.count()) + "ms";
+			total_label = "Total: " + std::to_string(data.second.total.count()) + "ms";
+			end_label = "End: " + std::to_string(data.second.end.count()) + "ms";
 			return;
 		}
 	}
 	job_label = "No Job Selected";
+	start_label = "Start: 0.000ms";
+	end_label = "End: 0.000ms";
+	total_label = "Total: 0.000ms";
 }
 
 void ThreadDebugger::CalculateRect(const Thread::ThreadData & data, const hr_tp & object_time,  SDL_Rect & rect)

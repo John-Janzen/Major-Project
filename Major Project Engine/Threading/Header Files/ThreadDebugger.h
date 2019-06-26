@@ -47,28 +47,30 @@ private:
 	
 	struct DataPoints
 	{
+		using milli = std::chrono::duration<float, std::milli>;
+
 		struct Color
 		{
 			Uint8 r, g, b, a;
 		} c;
 		std::uint16_t id;
 		std::string name;
+		std::chrono::duration<float, std::milli> start, end, total;
 	};
 
 	void CalculateRect(const Thread::ThreadData & data, const hr_tp & object_time, SDL_Rect & rect);
 
 	void ColorByID(const job::JOB_ID & id, DataPoints::Color & color);
 
+	void LoadLabel(SDL_Rect * rect, const std::string & label);
+
 	SDL_Window * debug_window = nullptr;
 	SDL_Renderer * debug_renderer = nullptr;
-	SDL_Texture * text_texture = nullptr;
-	SDL_Surface * text_surface = nullptr;
 
 	const static int default_width;
 	const static int default_height;
 
-	const int border_width = 50;
-
+	const int border_width = 100;
 
 	std::size_t windowX = default_width - border_width;
 	std::size_t windowY = default_height - border_width;
@@ -78,14 +80,19 @@ private:
 	std::size_t n_threads;
 	float refresh_rate;
 
-	std::string job_label = "No Job Selected";
-
 	int widthOfLines, heightOfLines;
 
-	SDL_Rect m_borders[2];
-	SDL_Rect m_text[1];
+	std::string job_label = "No Job Selected";
+	std::string start_label = "Start: 0.000ms";
+	std::string end_label = "End: 0.000ms";
+	std::string total_label = "Total: 0.000ms";
+	const std::string thread_label = "Thread ";
 
-	std::list<std::pair<SDL_Rect, DataPoints>> current_frame;
+	SDL_Rect m_borders[2];
+	SDL_Rect m_thread_labels[10];
+	SDL_Rect m_text[4];
+
+	std::vector<std::pair<SDL_Rect, DataPoints>> current_frame;
 };
 
 #endif // !_THREADDEBUGGER_H

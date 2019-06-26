@@ -15,6 +15,7 @@
 #include <gtx\euler_angles.hpp>
 #include <gtc\type_ptr.hpp>
 #include <LinearMath\btTransform.h>
+#include <SDL_ttf.h>
 
 class Render : public System
 {
@@ -33,8 +34,6 @@ public:
 
 	JOB_RETURN Update(void * ptr);
 
-	void SwapBuffers() { SDL_GL_SwapWindow(sdl_window); }
-
 private:
 
 	bool InitSDL();
@@ -43,7 +42,6 @@ private:
 	JOB_RETURN GiveThreadedContext(void * ptr);
 
 	void InitUpdate();
-	void ComponentUpdate(RenderComponent * rc, const Transform & trans);
 
 	JOB_RETURN LoadSingleComponent(void * ptr);
 	JOB_RETURN LoadComponents(void * ptr);
@@ -69,16 +67,15 @@ private:
 
 	SDL_Window * sdl_window;
 
-	GLfloat * project_value_ptr;
-
-	int screen_width, screen_height;
-
-	GLfloat Y_rotation = 0.0f;
-
 	Storage<Model> _models;
-	std::map<std::string, std::vector<RenderComponent*>> model_listeners;
+	std::map<GLuint, std::vector<RenderComponent*>> model_listeners;
 	Storage<Shader> _shaders;
 	Storage<Texture> _textures;
+
+	int num_of_box_coll = 0;
+	int num_of_bull_coll = 0;
+
+	TTF_Font * sans_font;
 };
 
 #endif // !_RENDER_H

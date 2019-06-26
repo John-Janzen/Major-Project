@@ -12,8 +12,6 @@ public:
 	Transform(const std::uint16_t & id, const btQuaternion & quat, const btVector3 & pos);
 	~Transform();
 
-	bool _physics = false, _input = true, _gamelogic = true;
-
 	btTransform _transform;
 };
 

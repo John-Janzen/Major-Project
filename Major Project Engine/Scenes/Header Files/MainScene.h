@@ -17,7 +17,7 @@ public:
 
 	bool Unload();
 
-	static const int NUM_MULTI_OBJECTS = 6;
+	static const int NUM_MULTI_OBJECTS = 8;
 
 private:
 	bool LoadBullet(SceneManager & sm);

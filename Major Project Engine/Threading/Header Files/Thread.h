@@ -4,6 +4,7 @@
 #define _THREAD_H
 
 #include "Job.h"
+#include "EventHandler.h"
 
 #include <atomic>
 #include <thread>
@@ -70,10 +71,10 @@ public:
 	{
 		{
 			std::lock_guard<std::mutex> lock(time_mutex);
-			if (current_end <= nanoseconds(0))
+			if (current_end < hr::now())
 			{
 				auto now = nanoseconds(hr::now() - objective_time);
-				current_end = now + job->s_data.time_span;
+				current_end += now + job->s_data.time_span;
 			}
 			else
 			{
@@ -94,8 +95,8 @@ public:
 		return queue_time;
 	}
 
-	const nanoseconds GetEndTime() { std::lock_guard<std::mutex> lock(time_mutex); return current_end; }
-	void ResetAllotedTime() { queue_time = nanoseconds(0); current_end = nanoseconds(0); }
+	const hr_tp GetEndTime() { std::lock_guard<std::mutex> lock(time_mutex); return current_end; }
+	void ResetAllotedTime() { queue_time = nanoseconds(0); current_end = hr::now(); }
 
 	/*
 	* Prints available stats.
@@ -131,7 +132,7 @@ private:
 		ThreadLogger() {};
 		~ThreadLogger() {};
 
-		ThreadData * Instatiate(const job::JOB_ID & id, const std::string & name)
+		ThreadData * Instantiate(const job::JOB_ID & id, const std::string & name)
 		{
 			return &(*t_data.emplace(t_data.end(), ThreadData{ id, name, hr::now() }));
 		}
@@ -179,7 +180,8 @@ private:
 	std::mutex queue_mutex, time_mutex;
 	std::condition_variable _cv;
 	std::queue<Job*> _queue;
-	nanoseconds queue_time = nanoseconds(0), current_end = nanoseconds(0);
+	nanoseconds queue_time = nanoseconds(0);
+	hr_tp current_end;
 
 };
 

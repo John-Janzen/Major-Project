@@ -11,7 +11,7 @@ bool MainScene::Load(SceneManager & sm)
 
 	this->LoadPlayer(sm);
 	this->LoadBullet(sm);
-	this->LoadQuad(sm);
+	//this->LoadQuad(sm);
 	this->LoadFloor(sm);
 	this->LoadWalls(sm);
 	for (int i = 0; i < NUM_MULTI_OBJECTS; i++)
@@ -30,7 +30,7 @@ bool MainScene::Load(SceneManager & sm)
 bool MainScene::LoadBullet(SceneManager & sm)
 {
 	Entity * & project = sm.CreateEntity("Bullet", EntityType::BULLET);
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(project->_id, btVector3(0.f, 0.f, 0.f)));
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(project->_id, btVector3(0.f, -2.f, 0.f)));
 	sm.AddComponent(SceneManager::RENDER, new SphereRenderComponent(project->_id));
 	return true;
 }
@@ -81,7 +81,7 @@ bool MainScene::LoadFloor(SceneManager & sm)
 bool MainScene::LoadPlayer(SceneManager & sm)
 {
 	Entity * & player = sm.CreateEntity("Player", EntityType::PLAYER);
-	sm.AddComponent(SceneManager::TRANSFORM, new Transform(player->_id, btVector3(btScalar(0.f), btScalar(2.f), btScalar(10.f))));
+	sm.AddComponent(SceneManager::TRANSFORM, new Transform(player->_id, btVector3(btScalar(0.f), btScalar(2.f), btScalar(20.f))));
 	sm.AddComponent(SceneManager::CAMERA, new CameraComponent(player->_id, btVector3(0.f, 2.f, 0.f), btVector3(0.f, 0.f, -2.f)));
 	sm.AddComponent(SceneManager::PHYSICS, new PlayerPhysicsComponent(player->_id));
 	sm.AddComponent(SceneManager::RENDER, new PlayerRenderComponent(player->_id));

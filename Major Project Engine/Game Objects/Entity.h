@@ -20,8 +20,8 @@ enum EntityType
 
 struct Entity
 {
-	Entity(const std::string & name, const EntityID & id, const EntityType & type) 
-		: _name(name), _id(id), death_flag(false) 
+	Entity(const std::string & name, const EntityID & id, const EntityType & type = EntityType::DEFAULT) 
+		: _name(name), _id(id), death_flag(false), entity(type)
 	{}
 	~Entity() {}
 

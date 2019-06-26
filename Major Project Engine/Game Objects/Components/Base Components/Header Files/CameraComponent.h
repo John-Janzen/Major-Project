@@ -20,7 +20,7 @@ struct CameraComponent :
 	btScalar _fov = 60.f;
 	btScalar _near = 0.1f, _far = 1000.f;
 	btVector3 _eye, _aim, _up = btVector3(0.f, 1.f, 0.f);
-	glm::mat4 projection;
+	glm::mat4 _projection;
 };
 
 #endif // !_CAMERACOMPONENT_H

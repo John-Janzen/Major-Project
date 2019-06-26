@@ -60,12 +60,6 @@
     <ClCompile Include="Threading\Source Files\ThreadDebugger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Game Objects\Components\Base Components\Source Files\PhysicsComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Game Objects\Components\Base Components\Source Files\RenderComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header Files\Application.h">

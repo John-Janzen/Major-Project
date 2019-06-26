@@ -7,13 +7,12 @@
 #include <vector>
 
 #include "SceneHeaders.h"
-#include "EventHandler.h"
 
 class SceneManager
 {
 public:
 
-	static const std::size_t MAX_ENT = 1024;
+	static const std::size_t DEFAULT_MAX_ENT = 1024;
 
 	enum CompTypes
 	{
@@ -25,11 +24,11 @@ public:
 		COUNT
 	};
 
-	SceneManager() {}
+	SceneManager() { _entities.reserve(DEFAULT_MAX_ENT); }
 
 	~SceneManager();
 
-	void LoadScene(Scene * scene)
+	void LoadScene(Scene * && scene)
 	{
 		scene->Load(*this);
 	}
@@ -91,17 +90,17 @@ public:
 
 	Entity * & CreateEntity(const std::string & name, const EntityType & type)
 	{
-		_entities[count_ent] = new Entity(name, id_count++, type);
-		count_ent++;
-		return _entities[count_ent - 1];
+		_entities.emplace_back(new Entity(name, id_count++, type));
+		entity_count++;
+		return _entities.back();
 	}
 
 private:
 	static int id_count;
 	
-	std::uint16_t count_ent = 0;
+	std::uint16_t entity_count = 0;
 	std::array<std::vector<BaseComponent*>, COUNT> _components;
-	std::array<Entity*, MAX_ENT> _entities = { nullptr };
+	std::vector<Entity*> _entities;
 };
 
 

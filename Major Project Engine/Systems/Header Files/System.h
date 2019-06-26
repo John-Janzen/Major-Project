@@ -24,7 +24,8 @@ public:
 
 	virtual void HandleEvent() {};
 protected:
-	bool paused = true;
+	//bool paused = true;
+	GAME_STATE gs = GAME_STATE::INITIALIZING;
 
 	TaskManager & m_task;
 	SceneManager & m_scene;

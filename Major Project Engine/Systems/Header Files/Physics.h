@@ -24,7 +24,7 @@ public:
 
 private:
 
-	std::mutex dworld_lock;
+	std::mutex dworld_lock, coll_detect;
 	JOB_RETURN ComponentUpdate(void * ptr);
 
 	JOB_RETURN CollisionDetection(void * ptr);
@@ -40,6 +40,8 @@ private:
 
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
 
-	const int p_breakdown = 4;
+	const int p_breakdown = 2;
+	int box_on_box_coll = 0;
+	int bullet_on_box_coll = 0;
 };
 

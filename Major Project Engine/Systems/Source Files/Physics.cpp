@@ -72,16 +72,17 @@ void Physics::HandleEvent(const EventType & e, void * data)
 		break;
 	case EventType::STATE_CHANGE:
 	{
-		GAME_STATE gs = *static_cast<GAME_STATE*>(data);
-		if (gs == PLAYING || gs == DEBUG_LOAD)
-			paused = false;
-		else
-			paused = true;
+		this->gs = *static_cast<GAME_STATE*>(data);
 		break;
 	}
 	case EventType::NEW_FRAME:
-		if (!paused)
+		if (this->gs == GAME_STATE::PLAYING || this->gs == GAME_STATE::DEBUG_LOAD)
 			m_task.RegisterJob(new Job(bind_function(&Physics::Update, this), "Physics_Update", &m_scene.GetComponents(SceneManager::PHYSICS), job::JOB_PHYSICS_UPDATE), true);
+		//printf("Num1\t%d, Num2\t%d\n", box_on_box_coll, bullet_on_box_coll);
+		EventHandler::Instance().SendEvent(EventType::BOX_COLLISION_PHYSICS_TO_RENDER, &box_on_box_coll);
+		EventHandler::Instance().SendEvent(EventType::BULLET_COLLISION_PHYSICS_TO_RENDER, &bullet_on_box_coll);
+		box_on_box_coll = 0;
+		bullet_on_box_coll = 0;
 		break;
 	case EventType::PLAYER_INPUT_TO_PHYSICS:
 	{
@@ -106,8 +107,10 @@ JOB_RETURN Physics::Update(void * ptr)
 		dynamicWorld->stepSimulation(Timer::Instance().GetDeltaTime(), 0, 0);
 	}
 
-	int n_updates_per_job = PVector->size() / p_breakdown;
-	int remainder = PVector->size() % p_breakdown;
+	auto adjust = p_breakdown + 4;
+
+	int n_updates_per_job = PVector->size() / adjust;
+	int remainder = PVector->size() % adjust;
 
 	int n_collisions_per_job = dynamicWorld->getDispatcher()->getNumManifolds() / p_breakdown;
 	int remainder2 = dynamicWorld->getDispatcher()->getNumManifolds() % p_breakdown;
@@ -117,12 +120,12 @@ JOB_RETURN Physics::Update(void * ptr)
 
 	if (n_updates_per_job > p_breakdown)
 	{
-		for (int i = 0; i < p_breakdown; i++)
+		for (int i = 0; i < adjust; i++)
 		{
 			x = i * n_updates_per_job;
 			y = (i + 1) * n_updates_per_job;
 
-			if (i == p_breakdown - 1)
+			if (i == adjust - 1)
 				y += remainder;
 
 			std::vector<int> * updates = new std::vector<int>{ x, y };
@@ -131,8 +134,6 @@ JOB_RETURN Physics::Update(void * ptr)
 				"Physics_Component_Update",
 				updates,
 				job::JOB_PHYSICS_COMPONENT), false);
-
-			
 		}
 		for (int i = 0; i < p_breakdown; i++) 
 		{
@@ -149,24 +150,6 @@ JOB_RETURN Physics::Update(void * ptr)
 					select,
 					job::JOB_PHYSICS_COLLISION_DETECTION), false);
 		}
-	}
-	else
-	{
-		/*m_task.RegisterJob(new Job(
-			bind_function(&Physics::ComponentUpdate, this),
-			"Physics_Component",
-			new std::vector<BaseComponent*>(PVector->begin(), PVector->end()),
-			job::JOB_PHYSICS_COMPONENT), false);
-
-
-		int * selection = (int*)malloc(2 * sizeof(int));
-		selection[0] = 0;
-		selection[1] = dynamicWorld->getDispatcher()->getNumManifolds();
-		m_task.RegisterJob(
-			new Job(bind_function(&Physics::CollisionDetection, this),
-				"Collision_Detection",
-				selection,
-				job::JOB_PHYSICS_COLLISION_DETECTION), false);*/
 	}
 	return JOB_COMPLETED;
 }
@@ -201,16 +184,28 @@ JOB_RETURN Physics::ComponentUpdate(void * ptr)
 JOB_RETURN Physics::CollisionDetection(void * ptr)
 {
 	std::vector<int> * select = static_cast<std::vector<int>*>(ptr);
-	//auto asdad = "asda";
+
 	int num = dynamicWorld->getDispatcher()->getNumManifolds();
 	for (int i = (*select)[0]; i < (*select)[1]; i++)
 	{
 		btPersistentManifold * p_manifold = dynamicWorld->getDispatcher()->getManifoldByIndexInternal(i);
 		const btCollisionObject * object1 = p_manifold->getBody0();
 		const btCollisionObject * object2 = p_manifold->getBody1();
-		if (object1->getCollisionShape()->isNonMoving() && object2->getCollisionShape()->isNonMoving())
+		if (!object1->getCollisionShape()->isNonMoving() && !object2->getCollisionShape()->isNonMoving())
 		{
-
+			auto ent1 = static_cast<Entity*>(object1->getUserPointer());
+			auto ent2 = static_cast<Entity*>(object2->getUserPointer());
+			if (ent1->entity == EntityType::MULTIOBJECT && ent2->entity == EntityType::MULTIOBJECT)
+			{
+				std::lock_guard<std::mutex> lk(coll_detect);
+				box_on_box_coll++;
+			}
+			if (ent1->entity == EntityType::MULTIOBJECT && ent2->entity == EntityType::BULLET
+				|| ent2->entity == EntityType::MULTIOBJECT && ent2->entity == EntityType::BULLET)
+			{
+				std::lock_guard<std::mutex> lk(coll_detect);
+				bullet_on_box_coll++;
+			}
 		}
 	}
 	delete select;
@@ -227,6 +222,7 @@ JOB_RETURN Physics::LoadSingleComponent(void * ptr)
 			btRigidBody * rb = nullptr;
 			if ((rb = btRigidBody::upcast(obj->coll_object)))
 			{
+				rb->setUserPointer(m_scene.FindEntity(obj->_id));
 				rb->setWorldTransform(trans->_transform);
 				rb->getMotionState()->setWorldTransform(trans->_transform);
 				std::lock_guard<std::mutex> lock(dworld_lock);
@@ -239,7 +235,7 @@ JOB_RETURN Physics::LoadSingleComponent(void * ptr)
 
 JOB_RETURN Physics::LoadComponents(void * ptr)
 {
-	for (const auto & physics : *static_cast<std::vector<BaseComponent*>*>(ptr))
+	for (auto physics : *static_cast<std::vector<BaseComponent*>*>(ptr))
 	{
 		assert(dynamic_cast<PhysicsComponent*>(physics));
 		auto obj = static_cast<PhysicsComponent*>(physics);
@@ -250,6 +246,7 @@ JOB_RETURN Physics::LoadComponents(void * ptr)
 				btRigidBody * rb = nullptr;
 				if ((rb = btRigidBody::upcast(obj->coll_object)))
 				{
+					rb->setUserPointer(m_scene.FindEntity(obj->_id));
 					rb->setWorldTransform(trans->_transform);
 					rb->getMotionState()->setWorldTransform(trans->_transform);
 					dynamicWorld->addRigidBody(rb);

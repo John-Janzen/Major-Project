@@ -33,13 +33,14 @@ public:
 private:
 
 	void PlayerControls(PlayerControllerComponent * pc_cp, Transform * transform);
+	JOB_RETURN PausedControls(void * ptr);
 
 	const float player_speed = 10.f;
 	const float camera_rotation_deg = 10.f;
 
 	const float running = 2.f;
 
-	bool buttonHeld = false, Tbutton = false;
+	bool buttonHeld = false, Tbutton = false, escapeButton = false, Pbutton = false;
 };
 
 #endif // !_INPUT_H

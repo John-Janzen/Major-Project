@@ -2,7 +2,7 @@
 
 std::mutex io_lock, devIL_lock;
 
-bool LoadShaderFile(const std::string & vert_path, const std::string & frag_path, Shader * & shader)
+bool LoadShaderFile(const std::string & vert_path, const std::string & frag_path, Shader * shader)
 {
 	GLuint vertexID = 0, fragID = 0;
 	std::string vertString = OpenFileRead(vert_path);
@@ -76,7 +76,7 @@ const GLuint CompileShader(const std::string & shader, const GLenum type)
 	return compile;
 }
 
-bool LoadOBJModelFile(const std::string & path, Model * & model)
+bool LoadOBJModelFile(const std::string & path, Model * model)
 {
 	
 	std::vector<GLuint> indices;
@@ -179,7 +179,7 @@ bool LoadOBJModelFile(const std::string & path, Model * & model)
 	return false;
 }
 
-bool LoadTextureFile(const std::string & path, Texture * & texture)
+bool LoadTextureFile(const std::string & path, Texture * texture)
 {
 	std::lock_guard<std::mutex> lk(devIL_lock);
 	ilInit();

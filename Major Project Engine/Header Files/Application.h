@@ -61,10 +61,15 @@ private:
 
 	void ChangeGameState(const GAME_STATE & gs);
 
-	Render * renderer = nullptr;
-	Input * input = nullptr;
-	TestSystem * test_system = nullptr;
-	Physics * physics = nullptr;
+	enum SYSTEM_TYPE
+	{
+		RENDER,
+		PHYSICS,
+		INPUT,
+		COUNT
+	};
+
+	std::array<System*, SYSTEM_TYPE::COUNT> _systems = { nullptr };
 
 	TaskManager m_task;
 	ThreadManager m_thread;
@@ -75,14 +80,11 @@ protected:
 	bool game_running = true;
 	GAME_STATE _state;
 
-	float refresh_rate = 1000 / 60;
-
-	Scene * current_scene = nullptr;
+	float refresh_rate = 1000.f / 60.f;
 
 	GLfloat frame_rate;
 	std::size_t n_threads;
 
-	std::unique_ptr<std::thread> main_thread;
 	std::condition_variable start_frame;
 	std::mutex start;
 	bool can_start = false;

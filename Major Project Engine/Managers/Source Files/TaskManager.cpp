@@ -96,12 +96,6 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 	}
 }
 
-void TaskManager::MainThreadJob(Job * && job)
-{
-	this->_scheduler.CheckForJob(job);
-	task_queue.Emplace(job);
-}
-
 void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
 {
 	if (parent_job != nullptr)
@@ -129,13 +123,19 @@ void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
 		waiting_jobs.emplace_back(job);
 	}
 	else
-	{	
+	{
 		task_queue.Emplace(job);
 		{
 			std::lock_guard<std::mutex> lock(jobs_lock);
 			num_of_jobs++;
 		}
 	}
+}
+
+void TaskManager::MainThreadJob(Job * && job)
+{
+	this->_scheduler.CheckForJob(job);
+	task_queue.Emplace(job);
 }
 
 int TaskManager::ManageJobs()
