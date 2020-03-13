@@ -10,7 +10,7 @@ Copyright 2018 John Janzen. All rights reserved.
 https://github.com/John-Janzen
 
 @author John Janzen
-@version 0.0.02
+@version 0.1.0
 @file Main.cpp
 
 *//*====================================================================================*/
@@ -23,12 +23,11 @@ Initializes and runs everything in the engine.
 */
 int main(int argc, char * args[])
 {
-
-	int n_threads = std::thread::hardware_concurrency();
-	Application * game = new Application(n_threads / 2);
+	int n_threads = std::thread::hardware_concurrency();		// Gets the number of cores on the computer running the program
+	Application * game = new Application(n_threads - 1);
 	
-	while (game->RunApplication());
+	while (game->RunApplication());			// loop through the applciation
 
-	delete game;
+	delete game;							// delete game when done
 	return 0;
 }

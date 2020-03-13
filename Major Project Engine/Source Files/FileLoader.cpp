@@ -2,7 +2,7 @@
 
 std::mutex io_lock, devIL_lock;
 
-bool LoadShaderFile(const std::string & vert_path, const std::string & frag_path, Shader * & shader)
+bool LoadShaderFile(const std::string & vert_path, const std::string & frag_path, Shader * shader)
 {
 	GLuint vertexID = 0, fragID = 0;
 	std::string vertString = OpenFileRead(vert_path);
@@ -19,21 +19,20 @@ bool LoadShaderFile(const std::string & vert_path, const std::string & frag_path
 		return false;
 	}
 
-	vertexID = CompileShader(vertString, GL_VERTEX_SHADER);
-	fragID = CompileShader(fragString, GL_FRAGMENT_SHADER);
+	vertexID = CompileShader(vertString, GL_VERTEX_SHADER);		// OpenGL compile the shader
+	fragID = CompileShader(fragString, GL_FRAGMENT_SHADER);		// OpenGL compile the shader
 
 	if (vertexID == 0 || fragID == 0)
 		return false;
 	
-	//printf("Shader Loaded: %s & %s\n", vert_path.c_str(), frag_path.c_str());
 	if (shader != nullptr)
 	{
-		shader->_shaderID_Vert = vertexID;
-		shader->_shaderID_Frag = fragID;
+		shader->_shaderID_Vert = vertexID;	// put data into the shader object
+		shader->_shaderID_Frag = fragID;	// put data into the shader object
 	}
 	else
 	{
-		shader = new Shader(std::string(vert_path + frag_path), vertexID, fragID);
+		shader = new Shader(std::string(vert_path + frag_path), vertexID, fragID);		// put data into the shader object
 	}
 	return true;
 }
@@ -43,22 +42,22 @@ std::string OpenFileRead(const std::string & path)
 	std::string data;
 	std::lock_guard<std::mutex> u_lock(io_lock);
 	std::ifstream File(path.c_str());
-	if (File.is_open())
+	if (File.is_open())					// Open the file path
 	{
-		data.assign(std::istreambuf_iterator<char>(File), std::istreambuf_iterator<char>());
-		File.close();
+		data.assign(std::istreambuf_iterator<char>(File), std::istreambuf_iterator<char>());		// Put everything in the file into a single string
+		File.close();		// close the file
 	}
 	else
 	{
 		printf("Unable to open file %s\n", path.c_str());
 		return NULL;
 	}
-	return data;
-}
+	return data;			// return the string data to work on
+}	
 
-const GLuint CompileShader(const std::string & shader, const GLenum type)
+const GLuint CompileShader(const std::string & shader, const GLenum type)		// Frankly this should be in the Render System
 {
-	GLuint compile = glCreateShader(type);
+	GLuint compile = glCreateShader(type);			// OpenGL compile the shader 
 
 	const GLchar* source = shader.c_str();
 	glShaderSource(compile, 1, (const GLchar**)&source, NULL);
@@ -76,7 +75,7 @@ const GLuint CompileShader(const std::string & shader, const GLenum type)
 	return compile;
 }
 
-bool LoadOBJModelFile(const std::string & path, Model * & model)
+bool LoadOBJModelFile(const std::string & path, Model * model)
 {
 	
 	std::vector<GLuint> indices;
@@ -100,25 +99,25 @@ bool LoadOBJModelFile(const std::string & path, Model * & model)
 		{
 			sscanf_s(to.c_str(), "%s", lineHeader, (unsigned)_countof(lineHeader));
 			
-			if (strcmp(lineHeader, "v") == 0)
+			if (strcmp(lineHeader, "v") == 0)			// vertices
 			{
 				glm::vec3 v_temp;
 				sscanf_s(to.c_str(), "%s %f %f %f", lineHeader, (unsigned)_countof(lineHeader), &v_temp.x, &v_temp.y, &v_temp.z);
 				vertex.emplace_back(v_temp);
 			}
-			else if (strcmp(lineHeader, "vt") == 0)
+			else if (strcmp(lineHeader, "vt") == 0)		// uv coords
 			{
 				glm::vec2 t_temp;
 				sscanf_s(to.c_str(), "%s %f %f", lineHeader, (unsigned)_countof(lineHeader), &t_temp.x, &t_temp.y);
 				uv.emplace_back(t_temp);
 			}
-			else if (strcmp(lineHeader, "vn") == 0)
+			else if (strcmp(lineHeader, "vn") == 0)		// noramls
 			{
 				glm::vec3 n_temp;
 				sscanf_s(to.c_str(), "%s %f %f %f", lineHeader, (unsigned)_countof(lineHeader), &n_temp.x, &n_temp.y, &n_temp.z);
 				normal.emplace_back(n_temp);
 			}
-			else if (strcmp(lineHeader, "f") == 0)
+			else if (strcmp(lineHeader, "f") == 0)		// faces
 			{
 				int matches = sscanf_s(to.c_str(), "%s %d/%d/%d %d/%d/%d %d/%d/%d", lineHeader, (unsigned)_countof(lineHeader),
 					&face[0].x, &face[0].y, &face[0].z,		// Vertex // Texture // Normal
@@ -133,7 +132,7 @@ bool LoadOBJModelFile(const std::string & path, Model * & model)
 				else
 				{
 					std::stringstream ss_name;
-					for (int i = 0; i < 3; i++)
+					for (int i = 0; i < 3; i++)												// Combine all the data together and get all the vertices and inidices for the model
 					{
 						ss_name << face[i].x << '/' << face[i].y << '/' << face[i].z;
 						if ((loc = library.find(ss_name.str())) == library.end())
@@ -161,10 +160,10 @@ bool LoadOBJModelFile(const std::string & path, Model * & model)
 			}
 		}
 		if (model == nullptr)
-			model = new Model(path.c_str(), MallocSpace(finalData), MallocSpace(indices), (GLsizei)indices.size(), (GLsizei)finalData.size());
+			model = new Model(path.c_str(), MallocSpace(finalData), MallocSpace(indices), (GLsizei)indices.size(), (GLsizei)finalData.size());		// put data into the model class
 		else
 		{
-			model->_vertices = MallocSpace(finalData);
+			model->_vertices = MallocSpace(finalData);	// put data into the model class
 			model->_indices = MallocSpace(indices);
 			model->ISize = (GLsizei)indices.size();
 			model->VSize = (GLsizei)finalData.size();
@@ -179,16 +178,16 @@ bool LoadOBJModelFile(const std::string & path, Model * & model)
 	return false;
 }
 
-bool LoadTextureFile(const std::string & path, Texture * & texture)
+bool LoadTextureFile(const std::string & path, Texture * texture)
 {
-	std::lock_guard<std::mutex> lk(devIL_lock);
+	std::lock_guard<std::mutex> lk(devIL_lock);			// DevIL doesn't like multi-threading
 	ilInit();
 	iluInit();
 
 	ILuint imgID = 0;
 	ilGenImages(1, &imgID);
 	ilBindImage(imgID);
-	ILboolean success = ilLoadImage(path.c_str());
+	ILboolean success = ilLoadImage(path.c_str());		// Load the image through DevIL
 	if (success == IL_TRUE)
 	{
 		success = ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
@@ -209,19 +208,18 @@ bool LoadTextureFile(const std::string & path, Texture * & texture)
 			void* _data = malloc(size);
 			ILubyte* data = ilGetData();
 			memcpy(_data, data, size);
-			
-			//printf("Texure Loaded: %s\n", path.c_str());
+
 			if (texture != nullptr)
 			{
 				texture->imgHeight = imgHeight;
-				texture->imgWidth = imgWidth;
+				texture->imgWidth = imgWidth;	// Put Data into texture class
 				texture->texWidth = texWidth;
 				texture->texHeight = texHeight;
 				texture->_texture = (GLuint*)_data;
 			}
 			else
 			{
-				texture = new Texture(path, (GLuint*)_data, imgWidth, imgHeight, texWidth, texHeight);
+				texture = new Texture(path, (GLuint*)_data, imgWidth, imgHeight, texWidth, texHeight);		// Put Data into texture class
 			}
 		}
 		ilBindImage(0);

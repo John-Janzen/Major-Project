@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Game Objects\Components\Base Components\Source Files\PhysicsComponent.cpp" />
     <ClCompile Include="Managers\Source Files\SceneManager.cpp" />
     <ClCompile Include="Source Files\Application.cpp" />
     <ClCompile Include="Source Files\Scheduler.cpp" />
@@ -28,13 +27,11 @@
     <ClCompile Include="Systems\Source Files\Input.cpp" />
     <ClCompile Include="Scenes\Source Files\MainScene.cpp" />
     <ClCompile Include="Managers\Source Files\ThreadManager.cpp" />
-    <ClCompile Include="Game Objects\Components\Base Components\Source Files\RenderComponent.cpp" />
     <ClCompile Include="Systems\Source Files\Render.cpp" />
     <ClCompile Include="Source Files\Main.cpp" />
     <ClCompile Include="Threading\Source Files\ThreadDebugger.cpp" />
     <ClCompile Include="Threading\Source Files\Thread.cpp" />
     <ClCompile Include="Source Files\Timer.cpp" />
-    <ClCompile Include="Systems\Source Files\TestSystem.cpp" />
     <ClCompile Include="Managers\Source Files\TaskManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -71,7 +68,6 @@
     <ClInclude Include="Scenes\Header Files\Scene.h" />
     <ClInclude Include="Scenes\Header Files\SceneHeaders.h" />
     <ClInclude Include="Header Files\Timer.h" />
-    <ClInclude Include="Systems\Header Files\TestSystem.h" />
     <ClInclude Include="Managers\Header Files\TaskManager.h" />
     <ClInclude Include="Game Objects\Components\Base Components\Header Files\Transform.h" />
     <ClInclude Include="Game Objects\Components\Game Components\Header Files\WallPhysicsComponent.h" />
@@ -132,7 +128,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(ProjectDir)Libraries\DevIL Windows SDK\include;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Libraries\glm\include;$(ProjectDir)Libraries\glew-2.1.0\include;$(ProjectDir)Libraries\bullet3-2.87\src;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)Libraries\SDL2_ttf-2.0.14\lib\x64;$(ProjectDir)Libraries\sdl\lib;$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\DevIL Windows SDK\lib\x64\Release;$(ProjectDir)Libraries\bullet3-2.87\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)Libraries\SDL2_ttf-2.0.14\lib\x64;$(ProjectDir)Libraries\sdl\lib;$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\DevIL Windows SDK\lib\x64\Release;$(ProjectDir)Libraries\bullet3-2.87\lib\Debug;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SourcePath)</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(ProjectDir)Libraries\bullet3-2.87\src;$(ProjectDir)Libraries\DevIL Windows SDK\include;$(ProjectDir)Libraries\glew-2.1.0\include;$(ProjectDir)Libraries\glm\include;$(ProjectDir)Libraries\sdl\include;$(ProjectDir)Libraries\SDL2_ttf-2.0.14\include;$(IncludePath)</IncludePath>
     <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -155,12 +155,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)Game Objects\Components\Game Components\Header Files;$(ProjectDir)Game Objects\Components\Base Components\Header Files;$(ProjectDir)Libraries\SDL2_ttf-2.0.14\include;$(ProjectDir)Threading\Header Files;$(ProjectDir)Input\Header Files;$(ProjectDir)Scenes\Header Files;$(ProjectDir)Game Objects;$(ProjectDir)Systems\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Game Objects\Components\Game Components\Header Files;$(ProjectDir)Game Objects\Components\Base Components\Header Files;$(ProjectDir)Threading\Header Files;$(ProjectDir)Input\Header Files;$(ProjectDir)Scenes\Header Files;$(ProjectDir)Game Objects;$(ProjectDir)Systems\Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Libraries\bullet3-2.87\src;$(ProjectDir)Libraries\SDL2_ttf-2.0.14\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;DevIL.lib;ILU.lib;ILUT.lib;Bullet2FileLoader.lib;Bullet3Collision.lib;Bullet3Common.lib;Bullet3Dynamics.lib;Bullet3Geometry.lib;Bullet3OpenCL_clew.lib;BulletCollision.lib;BulletDynamics.lib;BulletInverseDynamics.lib;BulletSoftBody.lib;LinearMath.lib;SDL2_ttf.lib</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;glu32.lib;DevIL.lib;ILU.lib;ILUT.lib;Bullet2FileLoader.lib;Bullet3Collision.lib;Bullet3Common.lib;Bullet3Dynamics.lib;Bullet3Geometry.lib;Bullet3OpenCL_clew.lib;BulletCollision.lib;BulletDynamics.lib;BulletInverseDynamics.lib;BulletSoftBody.lib;LinearMath.lib;SDL2_ttf.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -185,10 +185,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)Libraries\bullet3-2.87\src;$(ProjectDir)Game Objects\Components\Base Components\Header Files;$(ProjectDir)Game Objects\Components\Game Components\Header Files;$(ProjectDir)Header Files;$(ProjectDir)Managers\Header Files;$(ProjectDir)Scenes\Header Files;$(ProjectDir)Systems\Header Files;$(ProjectDir)Threading\Header Files;$(ProjectDir)Game Objects;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(ProjectDir)Libraries\bullet3-2.87\lib\Release;$(ProjectDir)Libraries\DevIL Windows SDK\lib\x64\Release;$(ProjectDir)Libraries\glew-2.1.0\lib\Release\x64;$(ProjectDir)Libraries\sdl\lib;$(ProjectDir)Libraries\SDL2_ttf-2.0.14\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32.lib;opengl32.lib;DevIL.lib;ILU.lib;ILUT.lib;Bullet2FileLoader.lib;Bullet3Collision.lib;Bullet3Common.lib;Bullet3Dynamics.lib;Bullet3Geometry.lib;Bullet3OpenCL_clew.lib;BulletCollision.lib;BulletDynamics.lib;BulletInverseDynamics.lib;BulletSoftBody.lib;LinearMath.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -11,6 +11,7 @@
 #include <atomic>
 #include <mutex>
 #include <map>
+#include <iostream>
 
 class TaskManager : public EventListener
 {
@@ -19,24 +20,55 @@ public:
 
 	~TaskManager();
 
+	/*
+	Get Event that came in from Event Handler
+	*/
 	void HandleEvent(const EventType & e, void * data);
 
+	/*
+	Set the time lock for scheduler and myself
+	*/
 	void SetTimeLock(const float & time_limit);
 
+	/*
+	Close the Task Manager
+	*/
 	void Close();
 
+	/*
+	Check to see if I have any jobs
+	*/
 	bool HasJobs();
 
+	/*
+	Place new job on queue
+	*/
 	void RegisterJob(JobFunction function, const std::string name, void * content = nullptr, const job::JOB_ID type = job::JOB_DEFAULT);
 
+	/*
+	Place new job on queue
+	*/
 	void RegisterJob(Job * & job, bool wait = false, Job * parent_job = nullptr);
 
-	void MainThreadJob(Job *&& job);
-
+	/*
+	Place new job on queue
+	*/
 	void RegisterJob(Job * && job, bool wait = false, Job * parent_job = nullptr);
 
+	/*
+	Place new job on queue for the main thread
+	*/
+	void MainThreadJob(Job *&& job);
+
+	/*
+	Deal with the jobs that I currently have
+	Waiting jobs mostly.
+	*/
 	int ManageJobs();
 
+	/*
+	Get the shared queue for the thread manager by reference
+	*/
 	SharedQueue<Job*> & GetJobList() { return task_queue; }
 
 	// Map of jobs that need to wait on other jobs
@@ -44,7 +76,7 @@ public:
 
 private:
 
-	Scheduler _scheduler;
+	Scheduler _scheduler;	// For scheduling jobs
 
 	// List of jobs available
 	SharedQueue<Job*> task_queue;

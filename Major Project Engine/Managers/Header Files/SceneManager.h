@@ -3,17 +3,20 @@
 #ifndef _SCENEMANAGER_H
 #define _SCENEMANAGER_H
 
+#include "SceneHeaders.h"
+
 #include <array>
 #include <vector>
 
-#include "SceneHeaders.h"
-#include "EventHandler.h"
-
+/*
+The Scene Manager class controls everything that is contained within the scene.
+Usually the components and the entities.
+*/
 class SceneManager
 {
 public:
 
-	static const std::size_t MAX_ENT = 1024;
+	static const std::size_t DEFAULT_MAX_ENT = 1024;
 
 	enum CompTypes
 	{
@@ -25,84 +28,50 @@ public:
 		COUNT
 	};
 
-	SceneManager() {}
+	SceneManager();
 
 	~SceneManager();
 
-	void LoadScene(Scene * scene)
-	{
-		scene->Load(*this);
-	}
+	/*
+	Redirector function that calls the scenes load function
+	*/
+	void LoadScene(Scene * && scene);
 
-	Entity * FindEntity(const EntityID & id)
-	{
-		for (auto & ent : _entities)
-		{
-			if (ent->_id == id)
-			{
-				return ent;
-			}
-		}
-		return nullptr;
-	}
+	/*
+	Find the entity by the id of the object
+	*/
+	Entity * FindEntity(const Entity::EntityID & id);
+	
 
-	BaseComponent * AddComponent(const CompTypes & type, BaseComponent * && base)
-	{
-		_components[type].emplace_back(base);
-		return _components[type].back();
-	}
+	/*
+	Add a component to the list by the type of component and the 
+	component itself.
+	*/
+	BaseComponent * AddComponent(const CompTypes & type, BaseComponent * && base);
 
-	std::vector<BaseComponent*> & GetComponents(const CompTypes & type)
-	{
-		return _components[type];
-	}
 
-	BaseComponent * FindComponent(const CompTypes & type, const EntityID & id)
-	{
-		for (const auto & comp : _components[type])
-		{
-			if (comp->_id == id)
-			{
-				switch (type)
-				{
-				case TRANSFORM:
-					assert(dynamic_cast<Transform*>(comp));
-					break;
-				case RENDER:
-					assert(dynamic_cast<RenderComponent*>(comp));
-					break;
-				case PHYSICS:
-					assert(dynamic_cast<PhysicsComponent*>(comp));
-					break;
-				case CONTROLLER:
-					assert(dynamic_cast<PlayerControllerComponent*>(comp));
-					break;
-				case CAMERA:
-					assert(dynamic_cast<CameraComponent*>(comp));
-					break;
-				default:
-					break;
-				}
-				return comp;
-			}
-		}
-		return nullptr;
-	}
+	/*
+	Get the list of all components by the type.
+	*/
+	std::vector<BaseComponent*> & GetComponents(const CompTypes & type);
 
-	Entity * & CreateEntity(const std::string & name, const EntityType & type)
-	{
-		_entities[count_ent] = new Entity(name, id_count++, type);
-		count_ent++;
-		return _entities[count_ent - 1];
-	}
+
+	/*
+	Find a single component by the type and the id of the component.
+	*/
+	BaseComponent * FindComponent(const CompTypes & type, const Entity::EntityID & id);
+
+	/*
+	Create a new Entity to use for the components.
+	*/
+	Entity * & CreateEntity(const std::string & name, const Entity::EntityType & type);
 
 private:
 	static int id_count;
 	
-	std::uint16_t count_ent = 0;
+	std::uint16_t entity_count = 0;
 	std::array<std::vector<BaseComponent*>, COUNT> _components;
-	std::array<Entity*, MAX_ENT> _entities = { nullptr };
+	std::vector<Entity*> _entities;
 };
-
 
 #endif // !_SCENEMANAGER_H

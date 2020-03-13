@@ -4,70 +4,37 @@
 #define _RENDERCOMPONENT_H
 
 #include "BaseComponent.h"
-#include "RenderStorage.h"
 
-#include <memory>
 #include <string>
+#include <GL\glew.h>
 #include <glm.hpp>
 
-class RenderComponent : public BaseComponent
+/*
+The Render Component controls the model, texture and shaders.
+This class takes paths for all then is loaded in the Render System.
+
+Inherits Base Component
+*/
+struct RenderComponent : public BaseComponent
 {
-public:
-	RenderComponent(const std::uint16_t & id, const std::string model, const std::string v_shader, const std::string f_shader, const std::string texture);
-	RenderComponent(const std::uint16_t & id);
-	~RenderComponent();
+	RenderComponent(const std::uint16_t & id)
+		: BaseComponent(id), model_id(0), shader_id(0), texture_id(0)
+	{}
+	~RenderComponent() {}
 
-	void SetModel(Model * model) { current_model = model; }
-	Model * GetModel() const { return current_model; }
-	Model * & GetModelAdd() { return current_model; }
+	GLuint vert_arr_obj = 0;			// Every Render object has to have a independant VAO (Vertex Array Object)
+										// Something OpenGL enforces.
 
-	void SetShader(Shader * shader) { current_shader = shader; }
-	Shader * GetShader() const { return current_shader; }
-	Shader * & GetShaderAdd() { return current_shader; }
+	std::string model_path;				// Path to the model
+	std::string vertex_shader_path;		// Path to the Vertex Shader
+	std::string fragment_shader_path;	// Path to the Frag Shader
+	std::string texture_path;			// Path to the Texture
 
-	void SetTexture(Texture * texture) { current_texture = texture; }
-	Texture * GetTexture() const { return current_texture; }
-	Texture * & GetTextureAdd() { return current_texture; }
+	GLuint model_id;					// ID of the model (Storage class)
+	GLuint shader_id;					// ID of the shader (Storage class)
+	GLuint texture_id;					// ID of the texture (Storage class)
 
-	//GLuint & GetVertexBuffer() { return vert_buff_obj; }
-	GLuint & GetVertexArray() { return vert_arr_obj; }
-	//GLuint & GetElementBuffer() { return elem_buff_obj; }
-
-	/*const GLint & GetProjectionMatrixLoc() const { return r_project_mat4_loc; }
-	void SetProjectionMatrixLoc(const GLint & matrix_loc) { r_project_mat4_loc = matrix_loc; }
-
-	const GLint & GetModelMatrixLoc() const { return r_model_mat4_loc; }
-	void SetModelMatrixLoc(const GLint & matrix_loc) { r_model_mat4_loc = matrix_loc; }
-
-	const GLint & GetColorShaderLoc() const { return r_color_vec4_loc; }
-	void SetColorShaderLoc(const GLint & matrix_loc) { r_color_vec4_loc = matrix_loc; }*/
-
-	const glm::vec4 & GetColor() const { return _color; }
-	void SetColor(const glm::vec4 & v4_color) { _color = v4_color; }
-	void SetColor(const glm::vec3 & v3_color) { _color = glm::vec4(v3_color, 1.0f); }
-
-	const std::string GetModelPath() const { return model_path; }
-	const std::string GetVShaderPath() const { return vertex_shader_path; }
-	const std::string GetFShaderPath() const { return fragment_shader_path; }
-	const std::string GetTexturePath() const { return texture_path; }
-
-	const std::string GetShaderPath() const { return std::string(vertex_shader_path + fragment_shader_path); }
-
-	GLuint vert_arr_obj = 0;
-
-protected:
-
-	std::string model_path;
-	std::string vertex_shader_path;
-	std::string fragment_shader_path;
-	std::string texture_path;
-
-private:
-	Model * current_model;
-	Shader * current_shader;
-	Texture * current_texture;
-
-	glm::vec4 _color = glm::vec4(1.0f);
+	glm::vec4 _color = glm::vec4(1.0f);	// Basic color vertex
 };
 
 #endif // !_RENDERCOMPONENT_H

@@ -62,6 +62,43 @@ void TaskManager::RegisterJob(JobFunction function, const std::string name, void
 void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 {
 	if (parent_job != nullptr)
+		job->AddParent(parent_job);			// If we have a parent then add to job
+
+	this->_scheduler.CheckForJob(job);		// check scheduler for time span
+
+	if (dictionary.find(job->j_type) != dictionary.end())		// go through dictionary to see if job waiting on this one
+	{
+		for (auto jobs : dictionary.find(job->j_type)->second)
+		{
+			for (auto waits : waiting_jobs)
+			{
+				if (waits->j_type == jobs)
+				{
+					job->AddParent(waits);			// add to parents if so
+				}
+			}
+		}
+	}
+
+	if (wait)				// If this job has to wait put on waiting queue
+	{
+		std::lock_guard<std::mutex> lk(list_lock);
+		waiting_jobs.emplace_back(job);
+	}
+	else
+	{						// Else throw on shared queue
+		
+		task_queue.Emplace(job);
+		{
+			std::lock_guard<std::mutex> lock(jobs_lock);
+			num_of_jobs++;
+		}
+	}
+}
+
+void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
+{
+	if (parent_job != nullptr)				// Look at job above for explanation
 		job->AddParent(parent_job);
 
 	this->_scheduler.CheckForJob(job);
@@ -87,7 +124,6 @@ void TaskManager::RegisterJob(Job * & job, bool wait, Job * parent_job)
 	}
 	else
 	{
-		
 		task_queue.Emplace(job);
 		{
 			std::lock_guard<std::mutex> lock(jobs_lock);
@@ -102,42 +138,6 @@ void TaskManager::MainThreadJob(Job * && job)
 	task_queue.Emplace(job);
 }
 
-void TaskManager::RegisterJob(Job * && job, bool wait, Job * parent_job)
-{
-	if (parent_job != nullptr)
-		job->AddParent(parent_job);
-
-	this->_scheduler.CheckForJob(job);
-
-	if (dictionary.find(job->j_type) != dictionary.end())
-	{
-		for (auto jobs : dictionary.find(job->j_type)->second)
-		{
-			for (auto waits : waiting_jobs)
-			{
-				if (waits->j_type == jobs)
-				{
-					job->AddParent(waits);
-				}
-			}
-		}
-	}
-
-	if (wait)
-	{
-		std::lock_guard<std::mutex> lk(list_lock);
-		waiting_jobs.emplace_back(job);
-	}
-	else
-	{	
-		task_queue.Emplace(job);
-		{
-			std::lock_guard<std::mutex> lock(jobs_lock);
-			num_of_jobs++;
-		}
-	}
-}
-
 int TaskManager::ManageJobs()
 {
 	int temp;
@@ -145,11 +145,11 @@ int TaskManager::ManageJobs()
 		std::lock_guard<std::mutex> lk(list_lock);
 
 		std::list<Job*>::iterator job_it = waiting_jobs.begin();
-		while (job_it != waiting_jobs.end())
+		while (job_it != waiting_jobs.end())							// Go through waiting jobs and see if they are done waiting
 		{
 			if ((*job_it)->_awaiting == 0 && (*job_it)->reason_waiting)
 			{
-				task_queue.Emplace((*job_it));
+				task_queue.Emplace((*job_it));			// if done then throw on shared queue
 				job_it = waiting_jobs.erase(job_it);
 				{
 					std::lock_guard<std::mutex> lock(jobs_lock);

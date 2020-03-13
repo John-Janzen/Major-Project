@@ -5,12 +5,15 @@
 
 #include <cstdint>
 
+/*
+The Base Component that all component derive from.
+Only has an ID to identify what Entity it belongs to.
+*/
 struct BaseComponent
 {
 public:
-	BaseComponent(const std::uint16_t & id) : _id(id), death_flag(false) {}
+	BaseComponent(const std::uint16_t & id) : _id(id) {}
 	virtual ~BaseComponent() {}
-	bool death_flag;
 
 	std::uint16_t _id;
 };

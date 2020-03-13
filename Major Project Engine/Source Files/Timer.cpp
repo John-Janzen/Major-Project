@@ -33,22 +33,17 @@ void Timer::WaitTime()
 		frame_count = 0u;														// RESET FRAME COUNT
 	}
 
-	// COMES HAPPENS BEFORE (10ms HAVE PASSED)
 	if (ms(hr_clock::now() - current_time_frame) < current_time_lock)		// AS LONG AS THE WORK_TIME IS LESS THAN THE FRAMETIME NEEDED (60FPS LOCK) -> (16.66ms)
 	{
-		//printf("Timer: %f\n", ms(hr_clock::now() - current_time_frame).count());
 		while (ms(hr_clock::now() - current_time_frame) < current_time_lock);		// SPINLOCK FROM THE CURRENT FRAMETIME BELOW TO THE BEGINNING OF THE NEXT FRAME 
-
-		//printf("Timer: %f\n", ms(hr_clock::now() - current_time_frame).count());
-		//printf("%d FrameSleep elapsed: %f\n", frame_count, std::chrono::duration<double, std::milli>(hr_clock::now() - current_time_frame).count());		// PRINT RESULTS
 	}
-	this->SetDeltaTime();
-	this->Restart();
+	this->SetDeltaTime();			// Set the delta time after the sleep
+	this->Restart();				// reset the frame time
 }
 
 bool Timer::CheckTimeLimit()
 {
-	return ms(hr_clock::now() - current_time_frame) < current_time_lock;
+	return ms(hr_clock::now() - current_time_frame) < current_time_lock;		// check the time against the current time lock
 }
 
 void Timer::Print(const ms & time)

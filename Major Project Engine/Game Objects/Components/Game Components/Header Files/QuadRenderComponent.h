@@ -5,9 +5,14 @@
 
 #include "RenderComponent.h"
 
-class QuadRenderComponent : public RenderComponent
+/*
+The Render Component specific to the Quad Object.
+This Instantiates with a Quad model, test_texture, default vertex and frag shaders.
+
+Inherits from Render Component
+*/
+struct QuadRenderComponent : public RenderComponent
 {
-public:
 	QuadRenderComponent(const std::uint16_t & id)
 		: RenderComponent(id)
 	{
@@ -18,8 +23,6 @@ public:
 	}
 
 	~QuadRenderComponent() {}
-
-private:
 
 };
 
